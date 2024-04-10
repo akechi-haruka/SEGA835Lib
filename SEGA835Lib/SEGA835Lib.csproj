@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+    <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ErrorReport>none</ErrorReport>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
+    <Title>SEGA 835 I/O Library</Title>
+    <Version>0.1.0</Version>
+    <Authors>Haruka Akechi</Authors>
+    <Company />
+    <Description>Libary to interface with SEGA(R) arcade hardware</Description>
+    <Copyright>(c) 2024 Haruka Akechi and contributors</Copyright>
+    <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
+    <PackageTags>Arcade;I/O;Serial</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <DebugType>embedded</DebugType>
+    <IsPublishable>False</IsPublishable>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <DebugType>embedded</DebugType>
+    <IsPublishable>False</IsPublishable>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+
+</Project>
