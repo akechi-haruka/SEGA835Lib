@@ -5,7 +5,13 @@ VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SEGA835Lib", "SEGA835Lib\SEGA835Lib.csproj", "{A0280C61-BB62-416D-9E4E-16E9109F964D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SEGA835Cmd", "SEGA835Cmd\SEGA835Cmd.csproj", "{61591E55-30E1-4835-8B98-3F207678A48B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SEGA835Cmd", "SEGA835Cmd\SEGA835Cmd.csproj", "{61591E55-30E1-4835-8B98-3F207678A48B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7C7EB1DE-C7D1-4A4F-BC58-4E90A231608E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		README.txt = README.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

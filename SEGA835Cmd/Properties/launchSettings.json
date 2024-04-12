@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SEGA835Cmd": {
+      "commandName": "Project",
+      "remoteDebugEnabled": false
+    }
+  }
+}

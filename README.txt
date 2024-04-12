@@ -3,4 +3,4 @@ SEGA835Lib / SEGA835Cmd
 
 Licensed under the Server Side Public License.
 
-API to interface with SEGA 835-series arcade hardware and companion command line application.
+API to interface with SEGA 835/837-series arcade hardware and companion command line application.
