@@ -3,6 +3,7 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -244,5 +245,60 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
             return DeviceStatus.OK;
         }
 
+        public DeviceStatus LEDReset() {
+            Log.Write("LEDReset");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDReset(), out RespPacketLEDReset _, out byte status);
+            if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
+                return SetLastError(DeviceStatus.OK, status);
+            }
+            return SetLastError(ret, status);
+        }
+
+        public DeviceStatus LEDGetHWVersion(out string version) {
+            Log.Write("LEDGetHWVersion");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDHWVersion(), out RespPacketLEDHWVersion resp, out byte status);
+            SetLastError(ret, status);
+            if (ret == DeviceStatus.OK) {
+                version = resp.version;
+            } else {
+                version = null;
+            }
+            return ret;
+        }
+
+        public DeviceStatus LEDGetInfo(out string info) {
+            Log.Write("LEDGetInfo");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDGetInfo(), out RespPacketLEDGetInfo resp, out byte status);
+            SetLastError(ret, status);
+            if (ret == DeviceStatus.OK) {
+                info = resp.info;
+            } else {
+                info = null;
+            }
+            return ret;
+        }
+
+        public DeviceStatus LEDSetChannels(byte strength, bool red, bool green, bool blue) {
+            Log.Write("LEDSetChannels");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDSetChannel() {
+                rgb = (byte)((red ? 1 << 0 : 0) | (green ? 1 << 1 : 0) | (blue ? 1 << 2 : 0)),
+                value = strength
+            }, out RespPacketLEDSetChannel _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        public DeviceStatus LEDSetColor(Color c) {
+            return LEDSetColor(c.R, c.G, c.B);
+        }
+
+        public DeviceStatus LEDSetColor(byte red, byte green, byte blue) {
+            Log.Write("LEDSetColor");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDSetColor() {
+                red = red,
+                green = green,
+                blue = blue
+            }, out RespPacketLEDSetColor _, out byte status);
+            return SetLastError(ret, status);
+        }
     }
 }
