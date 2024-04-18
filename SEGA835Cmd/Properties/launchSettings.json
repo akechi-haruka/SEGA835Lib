@@ -2,7 +2,10 @@
   "profiles": {
     "SEGA835Cmd": {
       "commandName": "Project",
-      "remoteDebugEnabled": false
+      "remoteDebugEnabled": true,
+      "remoteDebugMachine": "allsux.lan",
+      "authenticationMode": "Windows",
+      "nativeDebugging": false
     }
   }
 }

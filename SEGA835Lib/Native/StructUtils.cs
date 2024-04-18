@@ -1,15 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Native {
-    internal class StructUtils {
+    public class StructUtils {
 
-        public static byte[] GetBytes<T>(T str) {
-            int size = Marshal.SizeOf(str);
+        public static bool IsZeroSizeStruct(Type t) {
+            return t.IsValueType && !t.IsPrimitive &&
+                   t.GetFields((BindingFlags)0x34).All(fi => IsZeroSizeStruct(fi.FieldType));
+        }
+
+        public static byte[] GetBytes<T>(T obj) {
+            int size = Marshal.SizeOf(obj);
+
+            if (size == 1 && IsZeroSizeStruct(obj.GetType())) {
+                return new byte[0];
+            }
 
             byte[] arr = new byte[size];
 
@@ -18,7 +28,7 @@ namespace Haruka.Arcade.SEGA835Lib.Native {
             try {
                 h = GCHandle.Alloc(arr, GCHandleType.Pinned);
 
-                Marshal.StructureToPtr<T>(str, h.AddrOfPinnedObject(), false);
+                Marshal.StructureToPtr<T>(obj, h.AddrOfPinnedObject(), false);
             } finally {
                 if (h.IsAllocated) {
                     h.Free();

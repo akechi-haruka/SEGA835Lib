@@ -1,7 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Native;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
-    public class JVSFrame {
+    public class SProtFrame {
 
         private static int sequenceCount = 1;
 
@@ -11,21 +11,21 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         public byte Status { get; private set; }
         public byte[] Payload { get; private set; }
 
-        public JVSFrame(byte command, byte[] payload, byte address = 0x0) {
+        public SProtFrame(byte command, byte[] payload, byte address = 0x0) {
             this.Command = command;
             this.Payload = payload;
             this.Address = address;
             this.Sequence = (byte)(sequenceCount++ % 0xFF);
         }
 
-        public JVSFrame(JVSPayload payload, byte address = 0x0) {
-            this.Command = payload.CommandID;
+        public SProtFrame(SProtPayload payload, byte address = 0x0) {
+            this.Command = payload.GetCommandID();
             this.Payload = StructUtils.GetBytes(payload);
             this.Address = address;
             this.Sequence = (byte)(sequenceCount++ % 0xFF);
         }
 
-        public JVSFrame(byte sequence, byte command, byte address, byte status, byte[] payload) {
+        public SProtFrame(byte sequence, byte command, byte address, byte status, byte[] payload) {
             this.Sequence = sequence;
             this.Command = command;
             this.Address = address;

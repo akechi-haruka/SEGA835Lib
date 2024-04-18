@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -75,10 +76,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 data = (byte)ret;
                 //Log.Write("byte=" + data);
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + ": Interrupted");
+                Log.WriteError("Failed reading from port " + Port + " (1): Interrupted");
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
-                Log.WriteError("Failed reading from port " + Port + ": Timed out");
+                Log.WriteError("Failed reading from port " + Port + " (1): Timed out");
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading from port " + Port);
@@ -101,8 +102,8 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (LOG_RW) {
                 Log.Write("Port " + Port + ", Read Len=" + data.Length);
             }
+            int pos = 0;
             try {
-                int pos = 0;
                 while (pos < data.Length) {
                     int read = device.Read(data, pos, len);
                     if (read <= 0) {
@@ -111,10 +112,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     pos += read;
                 }
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + ": Interrupted");
+                Log.WriteError("Failed reading from port " + Port + " ("+pos+"/"+len+"): Interrupted");
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
-                Log.WriteError("Failed reading from port " + Port + ": Timed out");
+                Log.WriteError("Failed reading from port " + Port + " ("+pos+"/"+len+"): Timed out");
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading from port " + Port);

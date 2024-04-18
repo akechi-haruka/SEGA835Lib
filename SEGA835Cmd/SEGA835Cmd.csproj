@@ -43,4 +43,8 @@
 		<ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj" />
 	</ItemGroup>
 
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
+	</Target>
+
 </Project>

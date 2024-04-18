@@ -1,5 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Card._837_15396;
-using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices;
+using Haruka.Arcade.SEGA835Lib.Devices.Card;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -10,19 +11,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Display;
 
-namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
+namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
     public partial class AimeCardReader_837_15396 : CardReader {
+
+        private const byte LED_BOARD_ADDRESS = 0x00;
 
         public int Port { get; private set; }
 
-        private JVSSerial serial;
+        private SProtSerial serial;
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
 
         public AimeCardReader_837_15396(int port, bool high_baudrate = true) {
             this.Port = port;
-            this.serial = new JVSSerial(port, high_baudrate ? 115200 : 9600);
+            this.serial = new SProtSerial(port, high_baudrate ? 115200 : 38400);
         }
 
         public override DeviceStatus Connect() {
@@ -52,7 +55,7 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
         }
 
         private DeviceStatus Read(out byte addr, out byte seq, out byte cmd, out byte status, out byte[] payload) {
-            DeviceStatus ret = serial.ReadLenByOffset(1, out byte[] data);
+            DeviceStatus ret = serial.ReadLenByOffset(1, out byte[] data, false, true);
             if (ret != DeviceStatus.OK) {
                 addr = 0;
                 seq = 0;
@@ -74,17 +77,17 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
             return ret;
         }
 
-        public override DeviceStatus Write(JVSFrame send) {
+        public override DeviceStatus Write(SProtFrame send) {
             return Write(send.Address, send.Sequence, send.Command, send.Payload);
         }
 
-        public override DeviceStatus Read(out JVSFrame recv) {
+        public override DeviceStatus Read(out SProtFrame recv) {
             DeviceStatus ret = Read(out byte addr, out byte seq, out byte cmd, out byte status, out byte[] payload);
             if (ret != DeviceStatus.OK) {
                 recv = null;
                 return ret;
             }
-            recv = new JVSFrame(seq, cmd, addr, status, payload);
+            recv = new SProtFrame(seq, cmd, addr, status, payload);
             return ret;
         }
 
@@ -134,7 +137,7 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
         }
 
         private DeviceStatus Poll() {
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketPoll().ToFrame(), out JVSFrame resp);
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketPoll().ToFrame(), out SProtFrame resp);
             SetLastError(ret, resp?.Status);
             if (resp != null && resp.Payload != null) {
                 byte[] data = resp.Payload;
@@ -247,16 +250,13 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
 
         public DeviceStatus LEDReset() {
             Log.Write("LEDReset");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDReset(), out RespPacketLEDReset _, out byte status);
-            if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
-                return SetLastError(DeviceStatus.OK, status);
-            }
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDReset(), out RespPacketLEDReset _, out byte status, LED_BOARD_ADDRESS);
             return SetLastError(ret, status);
         }
 
         public DeviceStatus LEDGetHWVersion(out string version) {
             Log.Write("LEDGetHWVersion");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDHWVersion(), out RespPacketLEDHWVersion resp, out byte status);
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDHWVersion(), out RespPacketLEDHWVersion resp, out byte status, LED_BOARD_ADDRESS);
             SetLastError(ret, status);
             if (ret == DeviceStatus.OK) {
                 version = resp.version;
@@ -268,7 +268,7 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
 
         public DeviceStatus LEDGetInfo(out string info) {
             Log.Write("LEDGetInfo");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDGetInfo(), out RespPacketLEDGetInfo resp, out byte status);
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDGetInfo(), out RespPacketLEDGetInfo resp, out byte status, LED_BOARD_ADDRESS);
             SetLastError(ret, status);
             if (ret == DeviceStatus.OK) {
                 info = resp.info;
@@ -280,11 +280,11 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
 
         public DeviceStatus LEDSetChannels(byte strength, bool red, bool green, bool blue) {
             Log.Write("LEDSetChannels");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDSetChannel() {
+            DeviceStatus ret = Write(new ReqPacketLEDSetChannel() {
                 rgb = (byte)((red ? 1 << 0 : 0) | (green ? 1 << 1 : 0) | (blue ? 1 << 2 : 0)),
                 value = strength
-            }, out RespPacketLEDSetChannel _, out byte status);
-            return SetLastError(ret, status);
+            }.ToFrame(LED_BOARD_ADDRESS));
+            return SetLastError(ret);
         }
 
         public DeviceStatus LEDSetColor(Color c) {
@@ -293,12 +293,12 @@ namespace Haruka.Arcade.SEGA835Lib.Card._837_15396 {
 
         public DeviceStatus LEDSetColor(byte red, byte green, byte blue) {
             Log.Write("LEDSetColor");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDSetColor() {
+            DeviceStatus ret = Write(new ReqPacketLEDSetColor() {
                 red = red,
                 green = green,
                 blue = blue
-            }, out RespPacketLEDSetColor _, out byte status);
-            return SetLastError(ret, status);
+            }.ToFrame(LED_BOARD_ADDRESS));
+            return SetLastError(ret);
         }
     }
 }

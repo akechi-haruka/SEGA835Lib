@@ -229,6 +229,7 @@ dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix = 
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
 dotnet_diagnostic.IDE0090.severity = none
 dotnet_diagnostic.IDE0028.severity = none
 dotnet_diagnostic.IDE0305.severity = none
@@ -238,6 +239,8 @@ dotnet_diagnostic.IDE0302.severity = none
 dotnet_diagnostic.IDE0301.severity = none
 dotnet_diagnostic.IDE0300.severity = none
 dotnet_diagnostic.IDE0290.severity = none
+dotnet_diagnostic.CA1806.severity = warning
+dotnet_diagnostic.NUnit2045.severity = none
 
 [*.{cs,vb}]
 dotnet_style_operator_placement_when_wrapping = beginning_of_line

@@ -45,4 +45,16 @@
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="HidLibrary">
+      <HintPath>..\..\HidLibrary\src\HidLibrary\bin\Debug\netstandard2\HidLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="C330Ausb.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
