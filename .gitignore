@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Project specific
+/testenvironments.json
+/SEGA835Lib/C330Ausb.dll
