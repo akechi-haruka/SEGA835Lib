@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
-    public class IO4USB835_15257_01 : JVSUSBIO {
+    public class IO4USB_835_15257_01 : JVSUSBIO {
 
-        public IO4USB835_15257_01() : base(0x0ca3, 0x0021) {
+        public IO4USB_835_15257_01() : base(0x0ca3, 0x0021) {
         }
 
         public override string GetDeviceModel() {

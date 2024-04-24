@@ -2,6 +2,7 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.IO;
 using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC330;
 using Haruka.Arcade.SEGA835Lib.Native;
 using Haruka.Arcade.SEGA835Lib.Serial;
 
@@ -10,22 +11,8 @@ namespace Haruka.Arcade.SEGA835Cmd {
 
         static void Main(string[] args) {
             Log.Init(false, 0);
-            IO4USB835_15257_01 io4 = new IO4USB835_15257_01();
-            ThrowOnDeviceError(io4.Connect());
-            ThrowOnDeviceError(io4.ResetBoardStatus());
-            while (true) {
-                io4.Poll(out JVSUSBReportIn report);
-                unsafe {
-                    Log.Write(report.system_status + "," + report.usb_status);
-                    for (int i = 0; i < 2; i++) {
-                        Log.Write("B" + i + ":" +report.buttons[i].ToString());
-                    }
-                    for (int i = 0; i < 8; i++) {
-                        Log.Write("A" +i + ":" + report.adcs[i].ToString());
-                    }
-                }
-                Thread.Sleep(1000);
-            }
+            CHC330Printer printer = new CHC330Printer(new SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347(4));
+            printer.Connect();
         }
 
         /*static void Main(string[] args) {

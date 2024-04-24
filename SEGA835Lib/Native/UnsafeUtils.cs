@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Native {
-    internal class Unsafe {
+    internal class UnsafeUtils {
 
         public static string BytesToString(byte[] buffer, int offset = 0) {
             int len = Array.IndexOf<byte>(buffer, 0);

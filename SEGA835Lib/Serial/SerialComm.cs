@@ -80,7 +80,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
                 Log.WriteError("Failed reading from port " + Port + " (1): Timed out");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ERR_TIMEOUT;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading from port " + Port);
                 return DeviceStatus.ERR_OTHER;
@@ -116,7 +116,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
                 Log.WriteError("Failed reading from port " + Port + " ("+pos+"/"+len+"): Timed out");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ERR_TIMEOUT;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading from port " + Port);
                 return DeviceStatus.ERR_OTHER;
@@ -131,9 +131,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (!IsConnected()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
-            if (data == null) {
-                throw new ArgumentNullException(nameof(data));
-            }
+            ArgumentNullException.ThrowIfNull(data);
             if (LOG_RW) {
                 Log.Write("Port " + Port + ", Write Len=" + data.Length);
             }
@@ -147,7 +145,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
                 Log.WriteError("Failed writing to port " + Port + ": Timed out");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ERR_TIMEOUT;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed writing to port " + Port);
                 return DeviceStatus.ERR_OTHER;

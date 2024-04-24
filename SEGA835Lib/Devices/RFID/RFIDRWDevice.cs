@@ -1,27 +1,23 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Serial;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     public abstract class RFIDRWDevice : Device, ISProtRW {
 
-        private SProtSerial serial;
+        public RFIDBackend Backend { get; private set; }
 
-        public int Port { get; private set; }
-
-        protected RFIDRWDevice(int port) {
-            this.Port = port;
-            this.serial = new SProtSerial(port, 115200, 3000, true, true, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One, System.IO.Ports.Handshake.XOnXOff);
+        protected RFIDRWDevice(RFIDBackend backend) {
+            ArgumentNullException.ThrowIfNull(backend);
+            Backend = backend;
         }
 
         public override DeviceStatus Connect() {
-            if (serial != null && serial.IsConnected()) {
-                return DeviceStatus.OK;
+            DeviceStatus ret = Backend.Connect();
+            if (ret != DeviceStatus.OK) {
+                return ret;
             }
-            Log.Write("Connecting on Port " + Port);
-            if (!serial.Connect()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
-            }
-            DeviceStatus ret = SetLastError(Reset());
+            ret = SetLastError(Reset());
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
@@ -30,9 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         }
 
         public override DeviceStatus Disconnect() {
-            Log.Write("Disconnected on Port " + Port);
-            serial?.Disconnect();
-            return DeviceStatus.OK;
+            return Backend.Disconnect();
         }
 
         protected DeviceStatus Write(byte cmd, byte[] payload) {
@@ -43,11 +37,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             packet[0] = cmd;
             packet[1] = (byte)payload.Length;
             Array.Copy(payload, 0, packet, 2, payload.Length);
-            return serial.Write(packet);
+            return Backend.Write(packet);
         }
 
         protected DeviceStatus Read(out byte cmd, out byte sub_cmd, out byte[] payload) {
-            DeviceStatus ret = serial.ReadLenByOffset(3, out byte[] data);
+            DeviceStatus ret = Backend.Read(out byte[] data);
             if (ret != DeviceStatus.OK) {
                 cmd = 0;
                 sub_cmd = 0;

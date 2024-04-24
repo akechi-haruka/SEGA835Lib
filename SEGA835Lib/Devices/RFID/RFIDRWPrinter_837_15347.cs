@@ -7,13 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
-    public class _837_15347_RFIDRWPrinter : _837_20004_RFIDDeckReader {
+    public class RFIDRWPrinter_837_15347 : RFIDDeckReader_837_20004 {
 
         private const byte COMMAND_WRITE_START_STOP = 0x02;
         private const byte COMMAND_WRITE_BLOCK = 0x03;
 
 
-        public _837_15347_RFIDRWPrinter(int port) : base(port) {
+        public RFIDRWPrinter_837_15347(int port) : base(port) {
         }
 
         public override string GetDeviceModel() {
@@ -25,12 +25,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         }
 
         public DeviceStatus Write(byte[] cardid, byte[] data) {
-            if (cardid == null) {
-                throw new ArgumentNullException(nameof(cardid));
-            }
-            if (data == null) {
-                throw new ArgumentNullException(nameof(data));
-            }
+            ArgumentNullException.ThrowIfNull(cardid);
+            ArgumentNullException.ThrowIfNull(data);
             if (cardid.Length != 12) {
                 throw new ArgumentException("cardid must be 12 bytes in length (given: "+cardid.Length+")");
             }
@@ -42,7 +38,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
 
             // todo: these actually return something
 
-            DeviceStatus ret = SetLastError(Write(COMMAND_WRITE_START_STOP, new byte[0]));
+            DeviceStatus ret = SetLastError(Write(COMMAND_WRITE_START_STOP, cardid));
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
@@ -50,9 +46,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
-            byte[] payload = new byte[cardid.Length + data.Length];
-            for (int i = 0; i < payload.Length; i+=2) {
-                ret = SetLastError(Write(COMMAND_WRITE_BLOCK, new byte[] { payload[i], payload[i + 1] }));
+            for (int i = 0; i < data.Length; i+=2) {
+                Log.Write("Write Block " + (i/2));
+                ret = SetLastError(Write(COMMAND_WRITE_BLOCK, new byte[] { data[i], data[i + 1] }));
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
@@ -67,6 +63,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             }
             return SetLastError(Read(out SProtFrame _));
         }
+
+        public DeviceStatus ResetWriter() {
+            Log.Write("ResetWriter");
+            // I am not sure why this needs to be done, but it seems to be mandatory otherwise Scan will give RC 3
+            return SetLastError(GetUnknown81(out byte _));
+        }
+
     }
 
 }

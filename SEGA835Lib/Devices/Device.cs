@@ -6,6 +6,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
         private int lastError;
         private bool useExceptions;
 
+        protected bool IsUsingExceptions {
+            get {
+                return useExceptions;
+            }
+        }
+
         public abstract string GetName();
 
         public abstract string GetDeviceModel();
@@ -83,6 +89,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
          * The device has reported an (undefined) error.
          */
         ERR_DEVICE,
+        /**
+         * The device has not responded to a query.
+         */
+        ERR_TIMEOUT,
         /**
          * An exception has occurred.
          */

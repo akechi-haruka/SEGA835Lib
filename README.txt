@@ -17,19 +17,31 @@ What can this be used for?
 What devices are supported?
 
 * Aime 837-15396 NFC Card Reader (Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396.AimeCardReader_837_15396)
-* "IO4" 835-15257-01 JVS USB I/O Board (Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01.IO4USB835_15257_01)
-* GP1232A02A Futaba VFD display (Haruka.Arcade.SEGA835Lib.Devices.Misc.GP1232A02A_VFD)
-* SINFONIA CHC-310 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC310.CHC310_Printer)
+* "IO4" 835-15257-01 JVS USB I/O Board (Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01.IO4USB_835_15257_01)
+* GP1232A02A Futaba VFD (Haruka.Arcade.SEGA835Lib.Devices.Misc.VFD_GP1232A02A)
+* SINFONIA CHC-310 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310_Printer)
  - including embedded RFID
  - requires C310Ausb.dll
-* SINFONIA CHC-330 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC330.CHC330_Printer)
+* SINFONIA CHC-330 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.CHC330_Printer)
  - requires C330Ausb.dll
-* 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID._837_15347_RFIDRWPrinter)
-* 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID._837_20004_RFIDDeckReader)
-* 837-15375 Tenkey (Haruka.Arcade.SEGA835Lib.Devices.Misc._837_15375_Tenkey)
+* 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347)
+* 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
+* 837-15375 Tenkey (Haruka.Arcade.SEGA835Lib.Devices.Misc.Tenkey_837_15375)
 
 ----------------
 Implementation Notes:
 
 * As this is a highly experimental API right now, consumer applications should check Haruka.Arcade.SEGA835Lib.VersionInfo.LIB_API_VERSION. This number will be incremented on any breaking changes for consumers.
 * All device implementations operate by default on C-style error codes (enum DeviceStatus) as the devices themselves or dependent libaries do so. If you prefer exceptions, call SetUseExceptions on the device. (Invalid arguments, etc. will always throw exceptions regardless of this preference.)
+
+----------------
+Contributing:
+
+If you own some of these obscure boards, feel free to add support and make PRs as I can't buy them all!
+
+The only things to keep in mind are:
+* Any actual board/device should inherit from Haruka.Arcade.SEGA835Lib.Devices.Device
+* Any board that uses the JVS-like protocol (0xE0 as sync, 0xD0 as escape - I call it "SProt") should also implement Haruka.Arcade.SEGA835Lib.Serial.ISProtRW
+* Devices that share base functionality should have an appropriate superclass (ex. Haruka.Arcade.SEGA835Lib.Devices.Card.CardReader)
+* Everything that's public should have appropriate documentation. (If you build in Release mode, missing documentation warnings will be generated)
+* Unit tests should expect the device to be connected on it's default port (usually defined by the game it's from). Devices that are not present should FAIL the tests.

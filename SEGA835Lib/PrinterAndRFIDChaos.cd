@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.CHCSeriesCardPrinter">
+    <Position X="3" Y="1" Width="2" />
+    <Members>
+      <Property Name="IccTable1FileName" Hidden="true" />
+      <Property Name="IccTable2FileName" Hidden="true" />
+      <Property Name="ImageDimensions" Hidden="true" />
+      <Property Name="ImageStretchMode" Hidden="true" />
+      <Property Name="Job" Hidden="true" />
+      <Property Name="MtfFileName" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.CHCSeriesCardPrinter.PrintJob" Collapsed="true">
+        <Compartments>
+          <Compartment Name="Fields" Collapsed="true" />
+        </Compartments>
+        <TypeIdentifier>
+          <NewMemberFileName>Devices\Printer\CHC\PrintJob.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Delegate Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.CHCSeriesCardPrinter.StatusWaitDelegate" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Devices\Printer\CHC\CHCSeriesCardPrinter.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.CHCSeriesCardPrinter.PrinterThreadDelegate" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Devices\Printer\CHC\CHCSeriesCardPrinter.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <AssociationLine Name="RFIDBackend" Type="Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends.RFIDBackend" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3.688" Y="2.559" />
+        <Point X="3.688" Y="3.969" />
+        <Point X="7.292" Y="3.969" Type="JumpStart" />
+        <Point X="7.458" Y="3.969" Type="JumpEnd" />
+        <Point X="9.5" Y="3.969" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Native" Type="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.INativeTrampolineCHC" ManuallyRouted="true">
+      <Path>
+        <Point X="5" Y="1.594" />
+        <Point X="7.5" Y="1.594" />
+        <Point X="7.5" Y="1.594" />
+        <Point X="10" Y="1.594" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>kvdTg5AIMmqgcDEMhgjBaIYAjoSCQbDRMSIUhDLG//8=</HashCode>
+      <FileName>Devices\Printer\CHC\CHCSeriesCardPrinter.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="RFIDBackend" />
+      <Property Name="Native" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310Printer" Collapsed="true">
+    <Position X="5.75" Y="2" Width="1.5" />
+    <Members>
+      <Field Name="COMMAND_WRITE_BLOCK" Hidden="true" />
+      <Field Name="COMMAND_WRITE_START_STOP" Hidden="true" />
+      <Field Name="native" Hidden="true" />
+      <Field Name="SUBCOMMAND_WRITE_BLOCK" Hidden="true" />
+      <Field Name="SUBCOMMAND_WRITE_START_STOP" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>GAgCAIAAAAAAYAAAAgAAABEAAAAAAIABAAggQAEABAA=</HashCode>
+      <FileName>Devices\Printer\CHC\C310\CHC310Printer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.CHC330Printer" Collapsed="true">
+    <Position X="5.75" Y="3" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <InheritanceLine Type="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.CHCSeriesCardPrinter" FixedFromPoint="true">
+      <Path>
+        <Point X="4.688" Y="2.559" />
+        <Point X="4.688" Y="2.846" />
+        <Point X="7" Y="2.846" />
+        <Point X="7" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAACIIAAAEAAYAAAAgAAAAEAAAAAAIAAAAAAAAAABAA=</HashCode>
+      <FileName>Devices\Printer\CHC\C330\CHC330Printer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="rfid" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Device">
+    <Position X="0.5" Y="1" Width="2.25" />
+    <Members>
+      <Property Name="IsUsingExceptions" Hidden="true" />
+      <Field Name="lastError" Hidden="true" />
+      <Field Name="useExceptions" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQghAAAAIAAAAAACAAAAIEAAAAAAAgAAAAAAAAABAA=</HashCode>
+      <FileName>Devices\Device.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWDevice">
+    <Position X="0.75" Y="4.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>CAQQAAAAAAAIBAAAAAAQIIAgAAAAAAgAAAAAAAEAAAA=</HashCode>
+      <FileName>Devices\RFID\RFIDRWDevice.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Backend" />
+    </ShowAsAssociation>
+    <Lollipop Orientation="Left" Position="0.251" />
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347">
+    <Position X="6.5" Y="6" Width="2.25" />
+    <Members>
+      <Method Name="GetDeviceModel" Hidden="true" />
+      <Method Name="GetName" Hidden="true" />
+      <Method Name="RFIDRWPrinter_837_15347" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAgAAAEABAA=</HashCode>
+      <FileName>Devices\RFID\RFIDRWPrinter_837_15347.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004">
+    <Position X="3.75" Y="6" Width="2.25" />
+    <Members>
+      <Field Name="COMMAND_SCAN" Hidden="true" />
+      <Method Name="GetDeviceModel" Hidden="true" />
+      <Method Name="GetName" Hidden="true" />
+      <Method Name="RFIDDeckReader_837_20004" Hidden="true" />
+      <Field Name="SUBCOMMAND_CARD_DATA" Hidden="true" />
+      <Field Name="SUBCOMMAND_CARD_DATA_END" Hidden="true" />
+      <Field Name="SUBCOMMAND_CARD_DATA_START" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAIAAAIAAAgAAEAAAAAAAAQAAgAAAAABAA=</HashCode>
+      <FileName>Devices\RFID\RFIDDeckReader_837_20004.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.Native" Collapsed="true">
+    <Position X="7.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>HGDMgDLS9EgZpCcCDAggqCAHThAEBnQ2BWAEJLBgoVA=</HashCode>
+      <FileName>Devices\Printer\CHC\C310\Native.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.Native" Collapsed="true">
+    <Position X="8.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>HGDMgDLS9EgRpCcCDAggKCAHShAEBnQ2BWAEJLBgoVA=</HashCode>
+      <FileName>Devices\Printer\CHC\C330\Native.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends.RFIDBackend">
+    <Position X="9.5" Y="3.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAIAgAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Devices\RFID\Backends\RFIDBackend.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends.RFIDBackendCHCDLL" Collapsed="true">
+    <Position X="12.25" Y="4.5" Width="2.5" />
+    <Members>
+      <Field Name="CHCUSB_RC_OK" Hidden="true" />
+      <Field Name="LastResponse" Hidden="true" />
+      <Field Name="RESULT_CARDRFID_ReadA" Hidden="true" />
+      <Field Name="RESULT_NOERROR" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAABAAAAAAAAAAAAAACIAiAAAAAAAAAAAAgAEAAEA=</HashCode>
+      <FileName>Devices\RFID\Backends\RFIDBackendCHC.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="Native" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends.RFIDBackendSerial" Collapsed="true">
+    <Position X="12.25" Y="3.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAEIAgCAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Devices\RFID\Backends\RFIDBackendSerial.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.INativeTrampolineCHC">
+    <Position X="10" Y="1.25" Width="2.25" />
+    <Members>
+      <Method Name="CHC_commCardRfidReader" Hidden="true" />
+      <Method Name="CHC_copies" Hidden="true" />
+      <Method Name="CHC_endpage" Hidden="true" />
+      <Method Name="CHC_exitCard" Hidden="true" />
+      <Method Name="CHC_getCardRfidTID" Hidden="true" />
+      <Method Name="CHC_getEEPROM" Hidden="true" />
+      <Method Name="CHC_getErrorLog" Hidden="true" />
+      <Method Name="CHC_getErrorStatus" Hidden="true" />
+      <Method Name="CHC_getGamma" Hidden="true" />
+      <Method Name="CHC_getMtf" Hidden="true" />
+      <Method Name="CHC_getParameter" Hidden="true" />
+      <Method Name="CHC_getPrinterInfo" Hidden="true" />
+      <Method Name="CHC_getPrinterToneCurve" Hidden="true" />
+      <Method Name="CHC_getPrintIDStatus" Hidden="true" />
+      <Method Name="CHC_imageformat" Hidden="true" />
+      <Method Name="CHC_listupPrinter" Hidden="true" />
+      <Method Name="CHC_listupPrinterSN" Hidden="true" />
+      <Method Name="CHC_makeGamma" Hidden="true" />
+      <Method Name="CHC_MakeThread" Hidden="true" />
+      <Method Name="CHC_open" Hidden="true" />
+      <Method Name="CHC_ReleaseThread" Hidden="true" />
+      <Method Name="CHC_resetPrinter" Hidden="true" />
+      <Method Name="CHC_selectPrinter" Hidden="true" />
+      <Method Name="CHC_selectPrinterSN" Hidden="true" />
+      <Method Name="CHC_setCutList" Hidden="true" />
+      <Method Name="CHC_setIcctable" Hidden="true" />
+      <Method Name="CHC_setLaminatePattern" Hidden="true" />
+      <Method Name="CHC_setmtf" Hidden="true" />
+      <Method Name="CHC_setParameter" Hidden="true" />
+      <Method Name="CHC_setPrinterInfo" Hidden="true" />
+      <Method Name="CHC_setPrinterToneCurve" Hidden="true" />
+      <Method Name="CHC_setPrintStandby" Hidden="true" />
+      <Method Name="CHC_startpage" Hidden="true" />
+      <Method Name="CHC_status" Hidden="true" />
+      <Method Name="CHC_statusAll" Hidden="true" />
+      <Method Name="CHC_testCardFeed" Hidden="true" />
+      <Method Name="CHC_universal_command" Hidden="true" />
+      <Method Name="CHC_updateCardRfidReader" Hidden="true" />
+      <Method Name="CHC_write" Hidden="true" />
+      <Method Name="CHC_writeHolo" Hidden="true" />
+      <Method Name="CHC_writeIred" Hidden="true" />
+      <Method Name="CHC_writeLaminate" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>BGDIAAJC8EABhCECDAgAKCADAhAEBCAkAWAABDBgAQA=</HashCode>
+      <FileName>Devices\Printer\CHC\INativeTrampolineCHC.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

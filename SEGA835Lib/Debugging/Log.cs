@@ -4,9 +4,18 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
+
+    /// <summary>
+    /// This class is used for logging to the console, and optionally a file.
+    /// </summary>
     public class Log {
 
         private static string _logFileName = "Log\\Main.log";
+
+        /// <summary>
+        /// Sets the log file name.
+        /// </summary>
+        /// <exception cref="ArgumentException">If <see cref="Init(bool, int)"/> was already called</exception>
         public static string LogFileName {
             get { return _logFileName; }
             set {
@@ -18,10 +27,14 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             }
         }
 
-        public static bool DrawOnScreen { get; set; }
-        public static bool AutoFlush { get; set; }
-        public static bool LogDebug { get; set; }
+        /// <summary>
+        /// Flush the log file immediately after each call to <see cref="Write()"/>
+        /// </summary>
+        public static bool AutoFlush { get; set; } = true;
 
+        /// <summary>
+        /// Event handler that receives every log message that was written.
+        /// </summary>
         public static event Action<LogEntry> LogMessageWritten;
 
         private static DateTime initTime = DateTime.Now;
@@ -29,6 +42,14 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         private static StreamWriter log;
         private static readonly object logLock = new object();
 
+        /// <summary>
+        /// Opens the log file.
+        /// </summary>
+        /// <remarks>
+        /// This is not required to start logging to the console.
+        /// </remarks>
+        /// <param name="diagnosticInfo">If some simple system information (such as loaded assemblies, .NET version, etc.) should be logged</param>
+        /// <param name="logrotateCount">The amount of log files to keep in rotation. If this is 0, files are not rotated. Rotated files will be suffixed with a number (ex. Main.log.3)</param>
         public static void Init(bool diagnosticInfo = true, int logrotateCount = 5) {
             initTime = DateTime.Now;
             open = true;
@@ -115,29 +136,71 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     Flush();
                 }
             }
-            LogMessageWritten?.Invoke(new LogEntry(section, message, c));
+            LogMessageWritten?.Invoke(new LogEntry(message, c));
         }
 
+        /// <summary>
+        /// Converts an array of object arguments to a comma-seperated string.
+        /// </summary>
+        /// <remarks>This exists as a workaround for not being able to use params in addition to [CallerMemberName]</remarks>
+        /// <param name="objects">The objects to stringify</param>
+        /// <returns>A string in the format "object1, object2, object3, ..."</returns>
+        public static String Args(params object[] objects) {
+            return String.Join(", ", objects);
+        }
+
+        /// <summary>
+        /// Logs an empty line.
+        /// </summary>
         public static void Write() {
             WriteOut(null, ConsoleColor.White, null);
         }
 
+        /// <summary>
+        /// Logs a message.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
         public static void Write(string message, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
             WriteOut(message, ConsoleColor.White, "<" + Path.GetFileNameWithoutExtension(callerFilePath) + ":" + callerFunc + ">");
         }
 
+        /// <summary>
+        /// Logs a warning. In the console, this will show up as yellow.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
         public static void WriteWarning(string message, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
             WriteOut(message, ConsoleColor.Yellow, "<" + Path.GetFileNameWithoutExtension(callerFilePath) + ":" + callerFunc + "> WARN:");
         }
 
+        /// <summary>
+        /// Logs an error. In the console, this will show up as red.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
         public static void WriteError(string message, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
             WriteOut(message, ConsoleColor.Red, "<" + Path.GetFileNameWithoutExtension(callerFilePath) + ":" + callerFunc + "> ERROR:");
         }
 
-        public static void WriteFault(Exception ex, string message = null, string section = null, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
-            WriteOut("FATAL: " + message + "\n" + ex, ConsoleColor.Magenta, section + "<" + Path.GetFileNameWithoutExtension(callerFilePath) + ":" + callerFunc + ">");
+
+        /// <summary>
+        /// Logs an exception. In the console, this will show up as purple.
+        /// </summary>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="message">The message to log.</param>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
+        public static void WriteFault(Exception ex, string message = null, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
+            WriteOut("FATAL: " + message + "\n" + ex, ConsoleColor.Magenta, "<" + Path.GetFileNameWithoutExtension(callerFilePath) + ":" + callerFunc + ">");
         }
 
+        /// <summary>
+        /// Calls Flush on the log file. Does nothing if <see cref="Init(bool, int)"/> was not called.
+        /// </summary>
         public static void Flush() {
             if (!open) { return; }
             try {
@@ -145,6 +208,9 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             } catch { }
         }
 
+        /// <summary>
+        /// Closes the log file. Does nothing if <see cref="Init(bool, int)"/> was not called. To start logging to a new file, call <see cref="Init(bool, int)"/> again.
+        /// </summary>
         public static void Close() {
             lock (logLock) {
                 open = false;
@@ -156,11 +222,23 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             }
         }
 
+        /// <summary>
+        /// Logs a byte arrray dump with hexadecimal values and text representation.
+        /// </summary>
+        /// <param name="data">The byte array to log. May be null.</param>
+        /// <param name="header">The message to log (which should describe the byte dump)</param>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
         public static void Dump(byte[] data, string header = null, [CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
             Write(header + "\n" + Hex.Dump(data), callerFilePath, callerFunc);
         }
 
-        internal static void DumpStack([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
+        /// <summary>
+        /// Logs the current stack.
+        /// </summary>
+        /// <param name="callerFilePath">Auto-generated caller file name</param>
+        /// <param name="callerFunc">Auto-generated calling function</param>
+        public static void DumpStack([CallerFilePath] string callerFilePath = null, [CallerMemberName] string callerFunc = null) {
             Write(new StackTrace().ToString(), callerFilePath, callerFunc);
         }
     }

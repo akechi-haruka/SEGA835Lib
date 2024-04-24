@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -8,14 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
-    public class _837_20004_RFIDDeckReader : RFIDRWDevice {
+    public class RFIDDeckReader_837_20004 : RFIDRWDevice {
 
         private const byte COMMAND_SCAN = 0x06;
         private const byte SUBCOMMAND_CARD_DATA_START = 0x81;
         private const byte SUBCOMMAND_CARD_DATA = 0x82;
         private const byte SUBCOMMAND_CARD_DATA_END = 0x83;
 
-        public _837_20004_RFIDDeckReader(int port) : base(port) {
+        public RFIDDeckReader_837_20004(int port) : base(new RFIDBackendSerial(port)) {
         }
 
         public override string GetDeviceModel() {
@@ -29,7 +30,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         public DeviceStatus Scan(out byte[][] cards) {
             Log.Write("Scan for cards");
             cards = null;
-            DeviceStatus ret = SetLastError(Write(0x06, new byte[0])); // start scanning
+            DeviceStatus ret = SetLastError(Write(COMMAND_SCAN, new byte[0])); // start scanning
             if (ret != DeviceStatus.OK) {
                 return ret;
             }

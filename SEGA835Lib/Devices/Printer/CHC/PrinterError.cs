@@ -1,4 +1,4 @@
-﻿namespace Haruka.Arcade.SEGA835Lib.Devices.Printer {
+﻿namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
     public struct PrinterError {
         public int ErrorCodeInt;
         public int ErrorCodeExt;
@@ -19,7 +19,7 @@
         }
 
         public override string ToString() {
-            return "[" + ErrorCodeExt + (ErrorCodeExtSub != 0 ? "-" + ErrorCodeExtSub : "") + "] " + Message;
+            return "[" + ErrorCodeExt + (ErrorCodeExtSub != 0 ? "-" + ErrorCodeExtSub : "") + "] " + Message + " (" + ErrorCodeInt + ")";
         }
     }
 }

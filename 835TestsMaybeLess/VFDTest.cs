@@ -4,13 +4,13 @@ using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using System.Reflection.PortableExecutable;
 
 namespace _835TestsMaybeLess {
-    public class GP1232A02A_VFDTest {
+    public class VFDTest {
 
-        private GP1232A02A_VFD vfd;
+        private VFD_GP1232A02A vfd;
 
         [SetUp]
         public void Setup() {
-            vfd = new GP1232A02A_VFD();
+            vfd = new VFD_GP1232A02A();
         }
 
         [TearDown]

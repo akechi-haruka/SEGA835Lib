@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
-    public class GP1232A02A_VFD : Device {
+    public class VFD_GP1232A02A : Device {
 
         private SerialComm serial;
         public int Port { get; private set; }
         public VFDEncoding EncodingSetting { get; private set; }
 
-        public GP1232A02A_VFD(int port = 1) {
+        public VFD_GP1232A02A(int port = 1) {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Port = port;
             serial = new SerialComm(port, 115200, 1000, true, true);
@@ -161,9 +161,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
         public DeviceStatus WriteScrollingText(string str, bool truncate = false) {
             Log.Write("Write Text: " + str);
-            if (str == null) {
-                throw new ArgumentNullException(nameof(str));
-            }
+            ArgumentNullException.ThrowIfNull(str);
             const int max_str_len = 0x95;
             if (str.Length >= max_str_len) {
                 if (truncate) {

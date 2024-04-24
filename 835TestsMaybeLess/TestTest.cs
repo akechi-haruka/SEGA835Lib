@@ -6,8 +6,13 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void TestFramework() {
+        public void T01_TestFramework() {
             Assert.Pass();
+        }
+
+        [Test]
+        public void T02_TestCWD() {
+            Assert.Pass(Environment.CurrentDirectory);
         }
 
     }

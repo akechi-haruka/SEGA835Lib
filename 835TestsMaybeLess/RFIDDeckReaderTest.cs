@@ -7,13 +7,13 @@ using System;
 using System.Reflection.PortableExecutable;
 
 namespace _835TestsMaybeLess {
-    public class _835_20004_RFIDDeckReaderTest {
+    public class RFIDDeckReaderTest {
 
-        private _837_20004_RFIDDeckReader reader;
+        private RFIDDeckReader_837_20004 reader;
 
         [SetUp]
         public void Setup() {
-            reader = new _837_20004_RFIDDeckReader(2);
+            reader = new RFIDDeckReader_837_20004(2);
             SerialComm.DUMP_BYTES = false;
             SerialComm.LOG_RW = false;
         }
