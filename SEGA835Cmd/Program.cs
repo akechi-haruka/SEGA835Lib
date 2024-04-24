@@ -3,7 +3,7 @@ using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.IO;
 using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC330;
-using Haruka.Arcade.SEGA835Lib.Native;
+
 using Haruka.Arcade.SEGA835Lib.Serial;
 
 namespace Haruka.Arcade.SEGA835Cmd {

@@ -2,7 +2,7 @@
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using Haruka.Arcade.SEGA835Lib.Native;
+
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
