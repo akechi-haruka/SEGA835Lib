@@ -26,10 +26,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public unsafe struct JVSUSBReportIn {
-        public fixed ushort adcs[8];
-        public fixed ushort spinners[4];
-        public fixed ushort chutes[2];
-        public fixed ushort buttons[2];
+        public const int ADC_COUNT = 8;
+        public const int SPINNER_COUNT = 4;
+        public const int CHUTE_COUNT = 2;
+        public const int BUTTON_COUNT = 2;
+
+        public fixed ushort adcs[ADC_COUNT];
+        public fixed ushort spinners[SPINNER_COUNT];
+        public fixed ushort chutes[CHUTE_COUNT];
+        public fixed ushort buttons[BUTTON_COUNT];
         public byte system_status;
         public byte usb_status;
         public fixed byte unknown[29];

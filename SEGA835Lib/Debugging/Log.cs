@@ -33,6 +33,11 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         public static bool AutoFlush { get; set; } = true;
 
         /// <summary>
+        /// Mutes the log from being written to the console.
+        /// </summary>
+        public static bool Mute { get; set; }
+
+        /// <summary>
         /// Event handler that receives every log message that was written.
         /// </summary>
         public static event Action<LogEntry> LogMessageWritten;
@@ -126,7 +131,9 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     o = "";
                 }
                 o = o.Replace("\a", ""); // HACK: fixes random beeping caused by outputting Japanese to non-Japanese terminal
-                Console.WriteLine(o);
+                if (!Mute) {
+                    Console.WriteLine(o);
+                }
                 if (Debugger.IsAttached) {
                     Debugger.Log(0, section, message + "\r\n");
                 }

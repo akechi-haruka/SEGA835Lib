@@ -50,6 +50,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             return SetLastError(DeviceStatus.OK);
         }
 
+        public bool IsConnected() {
+            return device?.IsConnected ?? false;
+        }
+
         public DeviceStatus GetManufacturer(out string manufacturer) {
             Log.Write("GetManufacturer");
             manufacturer = null;

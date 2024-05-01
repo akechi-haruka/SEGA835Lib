@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
+		<RootNamespace>Haruka.Arcade.SEGA835Cmd</RootNamespace>
 		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
@@ -38,6 +38,11 @@
 		<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="CommandLineParser" Version="2.9.1" />
+	  <PackageReference Include="vJoy.Wrapper" Version="1.0.0.5" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj" />
