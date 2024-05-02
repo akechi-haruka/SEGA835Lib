@@ -14,14 +14,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public delegate DeviceStatus PrinterThreadDelegate(ref ushort rc);
 
         #region CHC constants
-        protected const int CHCUSB_RC_BUSY = 0;
-        protected const int CHCUSB_RC_OK = 1;
-        protected const int CHCUSB_RC_ERROR = -1;
+        public const int CHCUSB_RC_BUSY = 0;
+        public const int CHCUSB_RC_OK = 1;
+        public const int CHCUSB_RC_ERROR = -1;
         internal const int CARD_ID_LEN = 12;
 
         private const ushort PRINTER_ERROR_UNKNOWN = 6810;
 
-        protected const int RESULT_NOERROR = 0;
+        public const int RESULT_NOERROR = 0;
         protected const int RESULT_MEMFULLERR = 1000;
         protected const int RESULT_USBNOTFOUND = 1002;
         protected const int RESULT_ICCNOTFOUND = 1003;
@@ -302,6 +302,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             Log.Write("Connect");
 
             ResetState();
+
+            try {
+                Native.CHC_close(); // test for DLL presence
+            }catch(Exception ex) {
+                Log.WriteFault(ex, "DLL initialization failed");
+                return DeviceStatus.ERR_OTHER;
+            }
+
             isConnected = true;
             printThread = new Thread(PrintCommandExecutor) {
                 Name = "Printer Command Executor"

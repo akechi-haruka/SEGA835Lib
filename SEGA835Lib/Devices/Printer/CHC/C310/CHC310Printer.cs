@@ -43,7 +43,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
 
         public override DeviceStatus DisconnectRFID() {
-            return SetLastError(ExecuteOnPrintThread((ref ushort rc) => RFIDBackend.Disconnect(), true, true));
+            return SetLastError(RFIDBackend.Disconnect());
         }
 
         private DeviceStatus SendRFIDCommand<In, Out>(In request, out Out response, out byte status) where In : struct, SProtPayload where Out : struct, SProtPayload {
