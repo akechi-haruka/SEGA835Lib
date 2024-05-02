@@ -17,20 +17,34 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
             IO4USB_835_15257_01 dev = new IO4USB_835_15257_01();
             DeviceStatus ret = dev.Connect();
             if (ret != DeviceStatus.OK) {
-                Log.Write("Failed to connect to IO4 board.");
+                Log.WriteError("Failed to connect to IO4 board.");
                 return ret;
             }
 
             ret = dev.ResetBoardStatus();
             if (ret != DeviceStatus.OK) {
-                Log.Write("Failed to reset status.");
+                Log.WriteError("Failed to reset status.");
                 return ret;
             }
 
             VirtualJoystick j = new VirtualJoystick(opts.ControllerId);
             j.Aquire();
 
+            if (!opts.NoExitButton) {
+                Console.WriteLine("Press ESC to exit.");
+            }
+
             while (j.Aquired && dev.IsConnected()) {
+
+                if (!opts.NoExitButton) {
+                    if (Console.KeyAvailable) {
+                        ConsoleKeyInfo key = Console.ReadKey(true);
+                        if (key.Key == ConsoleKey.Escape) {
+                            break;
+                        }
+                    }
+                }
+
                 ret = dev.Poll(out JVSUSBReportIn report);
                 if (ret != DeviceStatus.OK) {
                     Log.WriteError("Poll failed: " + ret);

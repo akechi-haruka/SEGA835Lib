@@ -234,10 +234,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
     public enum VFDBrightnessLevel : byte {
         OFF,
-        LEVEL_1,
-        LEVEL_2,
-        LEVEL_3,
-        LEVEL_4
+        LEVEL1,
+        LEVEL2,
+        LEVEL3,
+        LEVEL4
     }
 
     public enum VFDTextScrollSpeed : byte {

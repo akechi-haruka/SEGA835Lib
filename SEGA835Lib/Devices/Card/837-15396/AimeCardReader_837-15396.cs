@@ -300,5 +300,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             }.ToFrame(LED_BOARD_ADDRESS));
             return SetLastError(ret);
         }
+
+        public void ClearCard() {
+            lastReadCardType = null;
+            lastReadCardUID = null;
+        }
     }
 }

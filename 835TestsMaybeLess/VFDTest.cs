@@ -34,7 +34,7 @@ namespace _835TestsMaybeLess {
             Assert.That(vfd.SetTextPosition(20, 8, 120), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.WriteScrollingText("835Tests are running"), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetTextScroll(true), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(vfd.SetBrightness(VFDBrightnessLevel.LEVEL_2), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(vfd.SetBrightness(VFDBrightnessLevel.LEVEL2), Is.EqualTo(DeviceStatus.OK));
         }
 
     }
