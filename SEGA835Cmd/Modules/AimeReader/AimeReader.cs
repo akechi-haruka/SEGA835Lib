@@ -64,13 +64,18 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
 
             int scan = 1;
             int maxScan = opts.Continous ? Int32.MaxValue : 1;
+            TimeSpan timeout = TimeSpan.FromMilliseconds(opts.Timeout);
 
             do {
-                if (aime.HasDetectedCard()) {
-                    Console.WriteLine(BitConverter.ToString(aime.GetCardUID()).Replace("-", ""));
-                    aime.ClearCard();
-                }
-                Thread.Sleep(50);
+                DateTime start = DateTime.Now;
+                do {
+                    if (aime.HasDetectedCard()) {
+                        Console.WriteLine(BitConverter.ToString(aime.GetCardUID()).Replace("-", ""));
+                        break;
+                    }
+                    Thread.Sleep(50);
+                } while (DateTime.Now - start < timeout);
+                aime.ClearCard();
             } while (aime.IsPolling() && ++scan <= maxScan);
 
             ret = aime.StopPolling();

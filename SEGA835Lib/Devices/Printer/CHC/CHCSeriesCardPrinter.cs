@@ -307,7 +307,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 Native.CHC_close(); // test for DLL presence
             }catch(Exception ex) {
                 Log.WriteFault(ex, "DLL initialization failed");
-                return DeviceStatus.ERR_OTHER;
+                return DeviceStatus.ERR_LIBRARY;
             }
 
             isConnected = true;
