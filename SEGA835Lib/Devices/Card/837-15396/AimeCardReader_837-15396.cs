@@ -174,44 +174,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return SetLastError(ret, status);
         }
 
-        private DeviceStatus Poll() {
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketPoll().ToFrame(), out SProtFrame resp);
-            SetLastError(ret, resp?.Status);
-            if (resp != null && resp.Payload != null) {
-                byte[] data = resp.Payload;
-                int offset = 0;
-                
-                byte count = data[offset++];
-                for (int i = 0; i < count; i++) {
-                    byte type = data[offset++];
-                    byte size = data[offset++];
-
-                    if (type == 0x10) { // MIFARE
-                        byte[] id = new byte[size];
-                        Array.Copy(data, offset, id, 0, size);
-                        offset += size;
-                        lastReadCardUID = id;
-                        lastReadCardType = CardType.MIFARE;
-                        Log.Write("Found a MIFARE card: \n" + Hex.Dump(id));
-                    } else if (type == 0x20){ // FeliCa
-                        if (size == 0x10) {
-                            byte[] id = new byte[size];
-                            Array.Copy(data, offset, id, 0, size);
-                            offset += size;
-                            lastReadCardUID = id;
-                            lastReadCardType = CardType.FeliCa;
-                            Log.Write("Found a FeliCa card: \n" + Hex.Dump(id));
-                        } else {
-                            ret = DeviceStatus.ERR_INCOMPATIBLE;
-                        }
-                    } else {
-                        ret = DeviceStatus.ERR_INCOMPATIBLE;
-                    }
-                }
-            }
-            return ret;
-        }
-
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             Log.Write("Disconnected on Port " + Port);
@@ -261,9 +223,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         }
 
         private void PollT() {
+            DeviceStatus ret = DeviceStatus.OK;
             do {
                 try {
-                    DeviceStatus ret = Poll();
+                    ret = Poll();
                     SetLastError(ret);
                     if (ret != DeviceStatus.OK) {
                         break;
@@ -273,8 +236,49 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                     break;
                 }
             } while (pollingThread != null);
-            pollingThread = null;
             Log.Write("Polling thread exited of Aime reader on port " + Port);
+            if (ret != DeviceStatus.OK) {
+                Log.WriteWarning("Last Error Code before polling was stopped: " + ret);
+            }
+            pollingThread = null;
+        }
+
+        private DeviceStatus Poll() {
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketPoll().ToFrame(), out SProtFrame resp);
+            SetLastError(ret, resp?.Status);
+            if (resp != null && resp.Payload != null) {
+                byte[] data = resp.Payload;
+                int offset = 0;
+
+                byte count = data[offset++];
+                for (int i = 0; i < count; i++) {
+                    byte type = data[offset++];
+                    byte size = data[offset++];
+
+                    if (type == 0x10) { // MIFARE
+                        byte[] id = new byte[size];
+                        Array.Copy(data, offset, id, 0, size);
+                        offset += size;
+                        lastReadCardUID = id;
+                        lastReadCardType = CardType.MIFARE;
+                        Log.Write("Found a MIFARE card: \n" + Hex.Dump(id));
+                    } else if (type == 0x20) { // FeliCa
+                        if (size == 0x10) {
+                            byte[] id = new byte[size];
+                            Array.Copy(data, offset, id, 0, size);
+                            offset += size;
+                            lastReadCardUID = id;
+                            lastReadCardType = CardType.FeliCa;
+                            Log.Write("Found a FeliCa card: \n" + Hex.Dump(id));
+                        } else {
+                            ret = DeviceStatus.ERR_INCOMPATIBLE;
+                        }
+                    } else {
+                        ret = DeviceStatus.ERR_INCOMPATIBLE;
+                    }
+                }
+            }
+            return ret;
         }
 
         /// <inheritdoc/>
