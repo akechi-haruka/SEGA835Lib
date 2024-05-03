@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
     internal class RFIDBackendSerial : RFIDBackend {
 
-        private SProtSerial serial;
+        internal readonly SProtSerial serial;
 
         public int Port { get; private set; }
 

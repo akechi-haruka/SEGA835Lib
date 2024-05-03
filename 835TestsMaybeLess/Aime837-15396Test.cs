@@ -19,8 +19,8 @@ namespace _835TestsMaybeLess {
         [SetUp]
         public void Setup() {
             reader = new AimeCardReader_837_15396(3, true);
-            SerialComm.DUMP_BYTES = true;
-            SerialComm.LOG_RW = true;
+            reader.serial.DumpRWCommandsToLog = true;
+            reader.serial.DumpBytesToLog = true;
         }
 
         [TearDown]

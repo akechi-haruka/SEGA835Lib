@@ -2,6 +2,7 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
+using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Reflection.PortableExecutable;
@@ -14,8 +15,9 @@ namespace _835TestsMaybeLess {
         [SetUp]
         public void Setup() {
             reader = new RFIDDeckReader_837_20004(2);
-            SerialComm.DUMP_BYTES = false;
-            SerialComm.LOG_RW = false;
+            SProtSerial serial = ((RFIDBackendSerial)reader.Backend).serial;
+            serial.DumpRWCommandsToLog = true;
+            serial.DumpBytesToLog = true;
         }
 
         [TearDown]

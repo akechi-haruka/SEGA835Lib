@@ -25,7 +25,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         public int Port { get; private set; }
 
-        private readonly SProtSerial serial;
+        internal readonly SProtSerial serial;
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
