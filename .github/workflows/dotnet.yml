@@ -28,8 +28,8 @@ jobs:
 #      run: dotnet test --no-build --verbosity normal
     - name: Publish
       run: |
-        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net6.pubxml
-        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net6.pubxml -f:net6.0-windows7
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
         dotnet publish .\SEGA835Cmd\SEGA835Cmd.csproj --configuration Release /p:PublishProfile=.\SEGA835Cmd\Properties\PublishProfiles\Sega835Cmd.pubxml
     - name: Upload Lib NET 6
       uses: actions/upload-artifact@v4.3.3
