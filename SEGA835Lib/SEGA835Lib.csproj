@@ -28,7 +28,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
-    <IsPublishable>False</IsPublishable>
+    <IsPublishable>True</IsPublishable>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -36,10 +36,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
-    <IsPublishable>False</IsPublishable>
+    <IsPublishable>True</IsPublishable>
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="publish\**" />
+    <EmbeddedResource Remove="publish\**" />
+    <None Remove="publish\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="hidlibrary" Version="3.3.40" />
@@ -49,16 +55,16 @@
 
   <ItemGroup>
     <None Update="C330AFWDLusb.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="C330Ausb.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="C330ColorMatch.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="C330UsbCtrl.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

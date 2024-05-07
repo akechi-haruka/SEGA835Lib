@@ -26,7 +26,6 @@ What devices are supported?
  - requires C330Ausb.dll
 * 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347)
 * 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
-* 837-15375 Tenkey (Haruka.Arcade.SEGA835Lib.Devices.Misc.Tenkey_837_15375)
 
 ----------------
 Implementation Notes:
