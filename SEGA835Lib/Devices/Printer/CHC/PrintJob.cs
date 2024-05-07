@@ -1,10 +1,13 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
@@ -333,3 +336,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
     }
 
 }
+
+#endif

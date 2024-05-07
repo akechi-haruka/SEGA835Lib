@@ -1,6 +1,8 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using HidLibrary;
+using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 

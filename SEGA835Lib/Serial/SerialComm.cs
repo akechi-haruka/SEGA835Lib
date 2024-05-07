@@ -1,5 +1,6 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -231,7 +232,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (!IsConnected()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
-            ArgumentNullException.ThrowIfNull(data);
+            NetStandardBackCompatExtensions.ThrowIfNull(data, nameof(data));
             if (DumpRWCommandsToLog) {
                 Log.Write("Port " + Port + ", Write Len=" + data.Length);
             }

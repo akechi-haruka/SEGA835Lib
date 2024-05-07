@@ -12,7 +12,7 @@ using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
     internal class VFDRunner {
-        internal static DeviceStatus Main(Options opts) {
+        internal static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             VFD_GP1232A02A vfd = new VFD_GP1232A02A(opts.Port);

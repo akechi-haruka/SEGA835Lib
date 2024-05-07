@@ -22,7 +22,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if a timeout occurred during writing.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        public DeviceStatus Write(SProtFrame send);
+        DeviceStatus Write(SProtFrame send);
 
         /// <summary>
         /// Reads a frame from the device. This call may block.
@@ -36,7 +36,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        public DeviceStatus Read(out SProtFrame recv);
+        DeviceStatus Read(out SProtFrame recv);
 
     }
 

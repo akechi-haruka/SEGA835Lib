@@ -11,7 +11,7 @@ using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
     internal class IO4Controller {
-        internal unsafe static DeviceStatus Main(Options opts) {
+        internal unsafe static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             IO4USB_835_15257_01 dev = new IO4USB_835_15257_01();

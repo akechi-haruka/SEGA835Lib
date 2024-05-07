@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <param name="port">The COM port to use.</param>
         public VFD_GP1232A02A(int port = 1) {
+#if NET6_0_OR_GREATER
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             Port = port;
             serial = new SerialComm(port, 115200, 1000, true, true);
             EncodingSetting = VFDEncoding.SHIFT_JIS;
@@ -257,7 +260,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <exception cref="ArgumentException">If the configured encoding is not supported on this computer.</exception>
         public DeviceStatus WriteScrollingText(string str, bool truncate = false) {
             Log.Write("Write Text: " + str);
-            ArgumentNullException.ThrowIfNull(str);
+            NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
             const int max_str_len = 0x95;
             if (str.Length >= max_str_len) {
                 if (truncate) {

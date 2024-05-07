@@ -1,19 +1,14 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
-
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-
 jobs:
   build:
-
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -30,35 +25,42 @@ jobs:
       run: |
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net6.pubxml -f:net6.0-windows7
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard20.pubxml -f:netstandard2.0
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard21.pubxml -f:netstandard2.1
         dotnet publish .\SEGA835Cmd\SEGA835Cmd.csproj --configuration Release /p:PublishProfile=.\SEGA835Cmd\Properties\PublishProfiles\Sega835Cmd.pubxml
     - name: Upload Lib NET 6
       uses: actions/upload-artifact@v4.3.3
       with:
-        # Artifact name
         name: Sega835Lib-net6-latest
-        # A file, directory or wildcard pattern that describes what to upload
         path: SEGA835Lib/publish/net6
-        # The desired behavior if no files are found using the provided path.
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET 8
       uses: actions/upload-artifact@v4.3.3
       with:
-        # Artifact name
         name: Sega835Lib-net8-latest
-        # A file, directory or wildcard pattern that describes what to upload
         path: SEGA835Lib/publish/net8
-        # The desired behavior if no files are found using the provided path.
+        if-no-files-found: error
+        overwrite: true
+    - name: Upload Lib NET Standard 2.0
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: Sega835Lib-netstandard2.0-latest
+        path: SEGA835Lib/publish/netstandard20
+        if-no-files-found: error
+        overwrite: true
+    - name: Upload Lib NET Standard 2.1
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: Sega835Lib-netstandard2.1-latest
+        path: SEGA835Lib/publish/netstandard21
         if-no-files-found: error
         overwrite: true
     - name: Upload Cmd
       uses: actions/upload-artifact@v4.3.3
       with:
-        # Artifact name
         name: Sega835Cmd-latest
-        # A file, directory or wildcard pattern that describes what to upload
         path: SEGA835Cmd/publish
-        # The desired behavior if no files are found using the provided path.
         if-no-files-found: error
         overwrite: true
               

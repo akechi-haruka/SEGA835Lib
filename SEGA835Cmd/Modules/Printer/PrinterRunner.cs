@@ -17,7 +17,7 @@ using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
     internal class PrinterRunner {
-        internal static DeviceStatus Main(Options opts) {
+        internal static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             DeviceStatus ret;

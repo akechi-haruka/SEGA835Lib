@@ -17,12 +17,12 @@ namespace Haruka.Arcade.SEGA835Cmd {
                 return (int)Parser.Default.ParseArguments
                     <Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options>(args)
                     .MapResult<Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, DeviceStatus>(
-                  IO4Controller.Main,
-                  AimeReader.Main,
-                  VFDRunner.Main,
-                  PrinterRunner.Main,
-                  PrinterWatcherRunner.Main,
-                  RFIDRunner.Main,
+                  IO4Controller.Run,
+                  AimeReader.Run,
+                  VFDRunner.Run,
+                  PrinterRunner.Run,
+                  PrinterWatcherRunner.Run,
+                  RFIDRunner.Run,
                   errs => DeviceStatus.ERR_OTHER);
             }catch(Exception ex) {
                 Log.WriteFault(ex, "An error has occurred");

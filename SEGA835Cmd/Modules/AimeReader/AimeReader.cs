@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
     internal class AimeReader {
 
-        public static DeviceStatus Main(Options opts) {
+        public static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             AimeCardReader_837_15396 aime = new AimeCardReader_837_15396(opts.Port, !opts.SlowBaudrate);

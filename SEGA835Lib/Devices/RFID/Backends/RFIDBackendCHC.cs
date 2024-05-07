@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
         /// </summary>
         /// <param name="native">The DLL trampoline to use.</param>
         public RFIDBackendCHCDLL(INativeTrampolineCHC native) {
-            ArgumentNullException.ThrowIfNull(native);
+            NetStandardBackCompatExtensions.ThrowIfNull(native, nameof(native));
             this.Native = native;
         }
 

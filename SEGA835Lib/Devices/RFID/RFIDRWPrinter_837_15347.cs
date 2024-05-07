@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -41,8 +42,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         /// <exception cref="ArgumentException">If cardid is not 12 bytes or the data is not <see cref="RFIDRWDevice.GetCardPayloadSize"/> - 12 bytes.</exception>
         public DeviceStatus Write(byte[] cardid, byte[] data) {
-            ArgumentNullException.ThrowIfNull(cardid);
-            ArgumentNullException.ThrowIfNull(data);
+            NetStandardBackCompatExtensions.ThrowIfNull(cardid, nameof(cardid));
+            NetStandardBackCompatExtensions.ThrowIfNull(data, nameof(data));
             if (cardid.Length != 12) {
                 throw new ArgumentException("cardid must be 12 bytes in length (given: "+cardid.Length+")");
             }

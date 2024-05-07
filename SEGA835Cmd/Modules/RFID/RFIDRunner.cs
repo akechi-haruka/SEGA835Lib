@@ -14,7 +14,7 @@ using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.RFID {
     internal class RFIDRunner {
-        internal static DeviceStatus Main(Options opts) {
+        internal static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             RFIDDeckReader_837_20004 rfid = new RFIDDeckReader_837_20004(opts.Port);

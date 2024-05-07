@@ -1,6 +1,8 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using System;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// <summary>
@@ -18,7 +20,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// </summary>
         /// <param name="backend">The backend being used.</param>
         protected RFIDRWDevice(RFIDBackend backend) {
-            ArgumentNullException.ThrowIfNull(backend);
+            NetStandardBackCompatExtensions.ThrowIfNull(backend, nameof(backend));
             Backend = backend;
         }
 

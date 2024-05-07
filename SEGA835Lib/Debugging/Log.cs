@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -119,7 +121,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 string o;
                 if (message != null) {
                     string fullSection;
-                    if (section.StartsWith('<')) {
+                    if (section.StartsWith("<")) {
                         fullSection = section;
                     } else if (section != null) {
                         fullSection = "[" + section + "]";

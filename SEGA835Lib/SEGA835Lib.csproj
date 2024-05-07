@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>net6.0-windows7;net8.0-windows10.0.18362.0</TargetFrameworks>
+	<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0-windows7;net8.0-windows10.0.18362.0</TargetFrameworks>
     <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>

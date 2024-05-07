@@ -1,12 +1,16 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
-
+using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
@@ -271,8 +275,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="rfidBackend">The RFID backend this printer uses (or null to disable RFID functions).</param>
         /// <param name="imageSize">The image dimensions this printer expects.</param>
         protected CHCSeriesCardPrinter(INativeTrampolineCHC dllFunctions, RFIDBackend rfidBackend, Size imageSize) {
-            ArgumentNullException.ThrowIfNull(dllFunctions);
-            ArgumentNullException.ThrowIfNull(imageSize);
+            NetStandardBackCompatExtensions.ThrowIfNull(dllFunctions, nameof(dllFunctions));
+            NetStandardBackCompatExtensions.ThrowIfNull(imageSize, nameof(imageSize));
             ImageDimensions = imageSize;
             RFIDBackend = rfidBackend;
             Native = dllFunctions;
@@ -405,8 +409,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="icc2Filename">The second .icc file to be used.</param>
         /// <exception cref="FileNotFoundException">If one of the files cannot be found.</exception>
         public void SetIccTables(string icc1Filename, string icc2Filename) {
-            ArgumentNullException.ThrowIfNull(icc1Filename);
-            ArgumentNullException.ThrowIfNull(icc2Filename);
+            NetStandardBackCompatExtensions.ThrowIfNull(icc1Filename, nameof(icc1Filename));
+            NetStandardBackCompatExtensions.ThrowIfNull(icc2Filename, nameof(icc2Filename));
             if (!File.Exists(icc1Filename)) {
                 throw new FileNotFoundException(null, icc1Filename);
             }
@@ -424,7 +428,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="mtfFilename">The file to be used.</param>
         /// <exception cref="FileNotFoundException">If the file cannot be found.</exception>
         public void SetMtfFile(string mtfFilename) {
-            ArgumentNullException.ThrowIfNull(mtfFilename);
+            NetStandardBackCompatExtensions.ThrowIfNull(mtfFilename, nameof(mtfFilename));
             if (!File.Exists(mtfFilename)) {
                 throw new FileNotFoundException(null, mtfFilename);
             }
@@ -454,16 +458,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             printThread.Start();
 
             ret = ExecuteOnPrintThread((ref ushort rc) => {
-                DeviceStatus ret = SetLastErrorByRC(Native.CHC_open(ref rc), rc);
-                if (ret != DeviceStatus.OK) {
+                DeviceStatus ret2 = SetLastErrorByRC(Native.CHC_open(ref rc), rc);
+                if (ret2 != DeviceStatus.OK) {
                     Log.WriteError("Open failed");
-                    return ret;
+                    return ret2;
                 }
 
-                ret = SelectById();
-                if (ret != DeviceStatus.OK) {
+                ret2 = SelectById();
+                if (ret2 != DeviceStatus.OK) {
                     Log.WriteError("Select failed");
-                    return ret;
+                    return ret2;
                 }
 
                 Log.Write("Waiting until printer has finished initalizing");
@@ -599,7 +603,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             ushort rc = 0;
 
             byte[] idArray = new byte[0x80];
-            Array.Fill<byte>(idArray, 0xFF);
+            idArray.Populate<byte>(0xFF);
             unsafe {
                 fixed (byte* idArrayPtr = idArray) {
                     ret = SetLastErrorByRC(Native.CHC_listupPrinter(idArrayPtr));
@@ -633,7 +637,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             ushort rc = 0;
 
             ulong[] idArray = new ulong[0x400];
-            Array.Fill(idArray, NO_ENTRY);
+            idArray.Populate(NO_ENTRY);
             unsafe {
                 fixed (ulong* idArrayPtr = idArray) {
                     ret = SetLastErrorByRC(Native.CHC_listupPrinterSN(idArrayPtr));
@@ -689,16 +693,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             uint len = tag.GetBufferSize();
             byte[] buf = new byte[len];
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort rc) => {
-                DeviceStatus ret;
+                DeviceStatus ret2;
                 unsafe {
                     fixed (byte* ptr = buf) {
-                        ret = SetLastErrorByRC(Native.CHC_getPrinterInfo((ushort)tag, ptr, ref len));
+                        ret2 = SetLastErrorByRC(Native.CHC_getPrinterInfo((ushort)tag, ptr, ref len));
                     }
                 }
-                if (ret != DeviceStatus.OK) {
+                if (ret2 != DeviceStatus.OK) {
                     buf = null;
                 }
-                return ret;
+                return ret2;
             });
             data = buf;
             return ret;
@@ -836,7 +840,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
         /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
         public DeviceStatus StartPrinting(Bitmap image, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false) {
-            ArgumentNullException.ThrowIfNull(image);
+            NetStandardBackCompatExtensions.ThrowIfNull(image, nameof(image));
             if (image.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
                     image = image.CopyStretched(ImageDimensions);
@@ -924,3 +928,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         }
     }
 }
+
+#endif

@@ -30,7 +30,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
 
         private static List<Tuple<string, string, string>> pendingImages = new List<Tuple<string, string, string>>();
 
-        internal static DeviceStatus Main(Options opts) {
+        internal static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
             options = opts;
@@ -137,7 +137,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                 }
                 if (image != null) {
                     Log.Write("Starting print of: " + image.Item1);
-                    DeviceStatus ret = PrinterRunner.Main(new Printer.Options() {
+                    DeviceStatus ret = PrinterRunner.Run(new Printer.Options() {
                         HoloFileName = image.Item2,
                         ICC1FileName = options.ICC1FileName,
                         ICC2FileName = options.ICC2FileName,

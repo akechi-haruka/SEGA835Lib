@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using System.IO;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices {
 

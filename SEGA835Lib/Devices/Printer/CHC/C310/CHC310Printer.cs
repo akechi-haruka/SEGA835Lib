@@ -6,9 +6,8 @@ using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
 
 using Haruka.Arcade.SEGA835Lib.Serial;
+using System;
 using System.Drawing;
-using System.Runtime.CompilerServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
