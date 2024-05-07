@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
@@ -7,14 +9,23 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
+
+    /// <summary>
+    /// A CHC-330 Card Printer for Fate/Grand Order Arcade.
+    /// </summary>
     public class CHC330Printer : CHCSeriesCardPrinter {
 
         private RFIDRWPrinter_837_15347 rfid;
 
+        /// <summary>
+        /// Creates a new CHC-330 printer.
+        /// </summary>
+        /// <param name="rfid">The 837-15347 integrated RFID board to use (or null to not use RFID features)</param>
         public CHC330Printer(RFIDRWPrinter_837_15347 rfid) : base(new Native(), rfid?.Backend, new Size(662, 1024)) {
             this.rfid = rfid;
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus ConnectRFID() {
             DeviceStatus ret;
             if (rfid != null) {
@@ -36,14 +47,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             return SetLastError(ret);
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus DisconnectRFID() {
             return SetLastError(rfid?.Disconnect() ?? DeviceStatus.OK);
         }
 
+        /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "CHC330";
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus GetLoadedCardId(out byte[] cardid) {
             DeviceStatus ret = rfid.Scan(out byte[][] card);
             if (card != null && card.Length == 1) {
@@ -54,14 +68,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             return SetLastError(ret);
         }
 
+        /// <inheritdoc/>
         public override string GetName() {
             return "SINFONIA Card Printer";
         }
 
+        /// <summary>
+        /// Returns the 837-15347 RFID board used with this printer.
+        /// </summary>
+        /// <returns>the RFID board instance or null if not used.</returns>
         public RFIDRWPrinter_837_15347 GetRFIDBoard() {
             return rfid;
         }
 
+        /// <inheritdoc/>
         public override void VerifyRFIDData(byte[] payload) {
             if (payload != null && rfid == null) {
                 throw new InvalidOperationException("Can't write RFID data to card if no RFID board was set when initializing printer");
@@ -71,6 +91,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             }
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId) {
             DeviceStatus ret = DeviceStatus.OK;
             writtenCardId = null;
@@ -116,8 +137,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             return ret;
         }
 
+        /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
             return StartPage_Standby_RFID;
         }
     }
 }
+
+#endif

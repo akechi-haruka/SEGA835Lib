@@ -6,10 +6,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
+
+    /// <summary>
+    /// This class proxies calls to specific CHC printer DLLS (C3XX[AB]Usb.dll) so that implementors don't need to handle differences between the DLLs themselves (fastcall vs stdcall, different signatures, etc.)
+    /// </summary>
     public unsafe interface INativeTrampolineCHC {
 
+        /// <summary>
+        /// Returns the DLL file name that is being used.
+        /// </summary>
+        /// <returns>the DLL file name.</returns>
         public String GetDLLFileName();
 
+        // Disable documentation requirements for these, 90% of them would just say "Unknown".
+#pragma warning disable CS1591
         public int CHC_MakeThread(ushort maxCount);
         public int CHC_open(ref ushort rResult);
         public void CHC_close();
@@ -58,7 +68,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public int CHC_getParameter(byte a1, byte* a2, ref ushort rResult);
         public int CHC_universal_command(int a1, byte a2, int a3, byte* a4, ref ushort rResult);
         public int CHC_writeIred(byte* a1, byte* a2, ref ushort rResult);
-
+#pragma warning restore CS1591
 
     }
 }

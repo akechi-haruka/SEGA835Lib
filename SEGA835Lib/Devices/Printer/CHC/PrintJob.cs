@@ -1,5 +1,4 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
@@ -9,10 +8,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
+
+    /// <summary>
+    /// The base class for a CHC-series card printer.
+    /// </summary>
     public abstract partial class CHCSeriesCardPrinter : Device {
 
-        // subclass so we can grab the constants from CHCSeriesCardPrinter
-        public class PrintJob {
+        /// <summary>
+        /// A print job.
+        /// </summary>
+        public class PrintJob { // subclass so we can grab the constants from CHCSeriesCardPrinter
 
             private PrintStatus _jobStatus;
             internal PrintStatus JobStatus {
@@ -45,7 +50,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly byte[] OutToneG = new byte[256];
             private readonly byte[] OutToneB = new byte[256];
 
-            public PrintJob(CHCSeriesCardPrinter printer, INativeTrampolineCHC native, Bitmap image, Bitmap holo, byte[] rfidPayload) {
+            internal PrintJob(CHCSeriesCardPrinter printer, INativeTrampolineCHC native, Bitmap image, Bitmap holo, byte[] rfidPayload) {
                 ArgumentNullException.ThrowIfNull(printer);
                 ArgumentNullException.ThrowIfNull(native);
                 ArgumentNullException.ThrowIfNull(image);
@@ -63,7 +68,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 paperInfo[3] = (byte)(Printer.ImageDimensions.Height % 0x100);
                 paperInfo[4] = (byte)((Printer.ImageDimensions.Height >> 8) % 0x100);
             }
-            public DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
+            internal DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
                 if (JobStatus == PrintStatus.Errored) {
                     return ret;
                 }
@@ -79,7 +84,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 return ret;
             }
 
-            public unsafe DeviceStatus Run(ref ushort rc) {
+            internal unsafe DeviceStatus Run(ref ushort rc) {
                 if (JobStatus != PrintStatus.None) {
                     throw new ThreadStateException("This print job was already started");
                 }

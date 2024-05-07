@@ -5,22 +5,47 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
+
+    /// <summary>
+    /// Base class for a USB-based JVS input device.
+    /// </summary>
     public abstract class JVSUSBIO : JVSIO {
 
         private const int OUTGOING_REPORT_ID = 0x10;
         private const int INCOMING_REPORT_ID = 0x01;
 
+        /// <summary>
+        /// USB vendor ID of this board.
+        /// </summary>
         public int USBVendorID { get; private set; }
+        /// <summary>
+        /// USB product ID of this board.
+        /// </summary>
         public int USBProductID { get; private set; }
+        /// <summary>
+        /// Communication timeout in ms to the board.
+        /// </summary>
         public int Timeout { get; private set; } = 1000;
 
         private HidDevice device;
 
-        public JVSUSBIO(int vid, int pid) {
+        /// <summary>
+        /// Creates a new JVSUSBIO.
+        /// </summary>
+        /// <param name="vid">The vendor id of the board.</param>
+        /// <param name="pid">The product id of the board.</param>
+        protected JVSUSBIO(int vid, int pid) {
             USBVendorID = vid;
             USBProductID = pid;
         }
 
+        /// <summary>
+        /// Connects to the USB device.
+        /// </summary>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if connection was successful.
+        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the board is not attached or if opening the device fails.<br />
+        /// </returns>
         public override sealed DeviceStatus Connect() {
             Log.Write("Open JVS USB: VID:" + USBVendorID + ", PID: " + USBProductID);
             device = HidDevices.Enumerate(USBVendorID, USBProductID).FirstOrDefault();
@@ -42,6 +67,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             return SetLastError(DeviceStatus.OK);
         }
 
+        /// <summary>
+        /// Disconnects from the USB device.
+        /// </summary>
+        /// <returns>Always returns <see cref="DeviceStatus.OK"/>.</returns>
         public override DeviceStatus Disconnect() {
             if (device != null) {
                 device.CloseDevice();
@@ -50,10 +79,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             return SetLastError(DeviceStatus.OK);
         }
 
+        /// <summary>
+        /// Returns if the device is connected and was not unplugged since the last call to <see cref="Connect"/>.
+        /// </summary>
+        /// <returns>true if the device is connected</returns>
         public bool IsConnected() {
             return device?.IsConnected ?? false;
         }
 
+        /// <summary>
+        /// Returns the USB HID Manufacturer name of the board.
+        /// </summary>
+        /// <param name="manufacturer">The manufacturer string that was read from the board.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// </returns>
         public DeviceStatus GetManufacturer(out string manufacturer) {
             Log.Write("GetManufacturer");
             manufacturer = null;
@@ -73,6 +116,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             }
         }
 
+        /// <summary>
+        /// Returns the USB HID product name of the board.
+        /// </summary>
+        /// <param name="product">The product string that was read from the board.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// </returns>
         public DeviceStatus GetProduct(out string product) {
             Log.Write("GetProduct");
             product = null;
@@ -92,6 +145,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             }
         }
 
+        /// <summary>
+        /// Reads a report from the USB device.
+        /// </summary>
+        /// <param name="report">The report that was read from the device.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_INCOMPATIBLE"/> if an unexpected report type was read.<br />
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// </returns>
         public DeviceStatus Poll(out JVSUSBReportIn report) {
             if (device == null) {
                 report = default;
@@ -117,6 +181,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             }
         }
 
+        /// <summary>
+        /// Writes a report to the USB device.
+        /// </summary>
+        /// <param name="report">The report that should be written to the device.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was successfully written.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// </returns>
         protected DeviceStatus Write(JVSUSBReportOut report) {
             if (device == null) {
                 return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);

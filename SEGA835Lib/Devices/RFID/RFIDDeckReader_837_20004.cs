@@ -9,6 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
+
+    /// <summary>
+    /// A 837-20004 RFID card reader that is found in Kantai Collection Arcade and Fate/Grand Order Arcade.
+    /// </summary>
     public class RFIDDeckReader_837_20004 : RFIDRWDevice {
 
         private const byte COMMAND_SCAN = 0x06;
@@ -16,17 +20,28 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         private const byte SUBCOMMAND_CARD_DATA = 0x82;
         private const byte SUBCOMMAND_CARD_DATA_END = 0x83;
 
+        /// <summary>
+        /// Creates a new card reader.
+        /// </summary>
+        /// <param name="port">The COM port to use.</param>
         public RFIDDeckReader_837_20004(int port) : base(new RFIDBackendSerial(port)) {
         }
 
+        /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "837-20004";
         }
 
+        /// <inheritdoc/>
         public override string GetName() {
             return "RFID Deck Reader BD Half TKK";
         }
 
+        /// <summary>
+        /// Scans for cards. This method blocks until all cards were read.
+        /// </summary>
+        /// <param name="cards">A 2-dimensional array where the first dimension is the list of cards, and the second dimension is the card's content in bytes, length equal to <see cref="GetCardPayloadSize()"/>.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus Scan(out byte[][] cards) {
             Log.Write("Scan for cards");
             cards = null;
@@ -63,6 +78,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             return DeviceStatus.OK;
         }
 
+        /// <inheritdoc/>
         public override int GetCardPayloadSize() {
             return 44;
         }

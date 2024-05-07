@@ -1,5 +1,4 @@
-﻿using ABI.Windows.Foundation;
-using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Activation;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
 

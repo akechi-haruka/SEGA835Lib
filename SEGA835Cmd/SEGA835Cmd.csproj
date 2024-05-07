@@ -25,7 +25,7 @@
 		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
 		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<DebugType>embedded</DebugType>
-		<IsPublishable>False</IsPublishable>
+		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
 	</PropertyGroup>
@@ -34,7 +34,7 @@
 		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
 		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<DebugType>embedded</DebugType>
-		<IsPublishable>False</IsPublishable>
+		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
 	</PropertyGroup>

@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
 
@@ -8,16 +9,35 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
+
+    /// <summary>
+    /// The base class for a CHC-series card printer.
+    /// Note that all calls to the given <see cref="INativeTrampolineCHC"/> must be done via <see cref="ExecuteOnPrintThread(PrinterThreadDelegate, bool, bool)"/> as the library checks from what thread any printer function is accessed.
+    /// </summary>
     public abstract partial class CHCSeriesCardPrinter : Device {
 
+        /// <summary>
+        /// A function of the printer that waits until a non-busy status is returned.
+        /// </summary>
+        /// <param name="rc">The variable that the printer status will be passed to upon completion.</param>
+        /// <returns>The printer function return code (CHCUSB_RC_*)</returns>
         public delegate int StatusWaitDelegate(ref ushort rc);
+        /// <summary>
+        /// A function that should be run on the printer thread.
+        /// </summary>
+        /// <param name="rc">The variable that the printer status will be passed to upon completion.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on error.</returns>
         public delegate DeviceStatus PrinterThreadDelegate(ref ushort rc);
 
         #region CHC constants
+
+        internal const int CARD_ID_LEN = 12;
+
+        // We are not documenting these... Again, 90% "Unknown".
+#pragma warning disable CS1591
         public const int CHCUSB_RC_BUSY = 0;
         public const int CHCUSB_RC_OK = 1;
         public const int CHCUSB_RC_ERROR = -1;
-        internal const int CARD_ID_LEN = 12;
 
         private const ushort PRINTER_ERROR_UNKNOWN = 6810;
 
@@ -61,7 +81,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int RESULT_STATUS_PrintStartPositionHolo = 2214;
         protected const int RESULT_STATUS_Holo_Printing = 2215;
         protected const int RESULT_STATUS_RFIDPosition = 2216;
-        protected const int RESULT_STATUS_NoPrintting = 2300;
+        protected const int RESULT_STATUS_NoPrintting = 2300; // sic
         protected const int RESULT_STATUS_UNKNOWNPAPER = 2301;
         protected const int RESULT_STATUS_CardLoadErr = 2303;
         protected const int RESULT_STATUS_CardUnSetErr = 2304;
@@ -115,6 +135,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int Standby_YMC = 0;
         protected const int Standby_Holo = 1;
         protected const int Standby_RFID = 2;
+#pragma warning restore CS1591
         #endregion
 
         #region CHC error table
@@ -197,20 +218,45 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         };
         #endregion
 
+        /// <summary>
+        /// The image dimensions that this printer expects.
+        /// </summary>
         public Size ImageDimensions { get; private set; }
+        /// <summary>
+        /// The DLL trampoline that this printer uses.
+        /// </summary>
         protected INativeTrampolineCHC Native { get; private set; }
+        /// <summary>
+        /// The RFID backend that this printer uses.
+        /// </summary>
         protected RFIDBackend RFIDBackend { get; private set; }
 
         // Printer properties
 
+        /// <summary>
+        /// The file name for the first .icc file.
+        /// </summary>
         public string IccTable1FileName { get; private set; }
+        /// <summary>
+        /// The file name for the second .icc file.
+        /// </summary>
         public string IccTable2FileName { get; private set; }
+        /// <summary>
+        /// The file name for the mtf.txt file.
+        /// </summary>
         public string MtfFileName { get; private set; }
+        /// <summary>
+        /// How the image being printed should be stretched.
+        /// </summary>
         public StretchMode ImageStretchMode { get; set; } = StretchMode.SizeMustMatch;
 
         // Instance properties
 
+        /// <summary>
+        /// The current print job being executed (or null).
+        /// </summary>
         protected PrintJob Job { get; private set; }
+
         private Thread printThread;
         private bool isConnected;
         private PrinterThreadDelegate threadFunc;
@@ -218,6 +264,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         private ushort threadStatusCode;
         private ushort currentStatusCode;
 
+        /// <summary>
+        /// Creates a new CHCSeriesCardPrinter.
+        /// </summary>
+        /// <param name="dllFunctions">The native function trampoline with a matching DLL that this printer uses.</param>
+        /// <param name="rfidBackend">The RFID backend this printer uses (or null to disable RFID functions).</param>
+        /// <param name="imageSize">The image dimensions this printer expects.</param>
         protected CHCSeriesCardPrinter(INativeTrampolineCHC dllFunctions, RFIDBackend rfidBackend, Size imageSize) {
             ArgumentNullException.ThrowIfNull(dllFunctions);
             ArgumentNullException.ThrowIfNull(imageSize);
@@ -226,22 +278,83 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             Native = dllFunctions;
         }
 
+        /// <summary>
+        /// Returns the last reported printer status code (RESULT_* constants).
+        /// </summary>
+        /// <returns>the last reported printer status code</returns>
         public ushort GetPrinterStatusCode() {
             return currentStatusCode;
         }
 
+        /// <summary>
+        /// Reads the ID of the currently loaded card in the printer.
+        /// </summary>
+        /// <param name="cardid">The cardid that was read or null on failure.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on error.</returns>
         public abstract DeviceStatus GetLoadedCardId(out byte[] cardid);
 
+        /// <summary>
+        /// Connects to the RFID board.
+        /// </summary>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if connection was successful or the board was already connected.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the board is not attached.<br />
+        /// <see cref="DeviceStatus.ERR_LIBRARY"/> if an error occurred with the native library.
+        /// </returns>
         public abstract DeviceStatus ConnectRFID();
 
+        /// <summary>
+        /// Disconnects from the RFID board.
+        /// </summary>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the board was disconnected successfuly or was not connected.<br />
+        /// <see cref="DeviceStatus.ERR_LIBRARY"/> if an error occurred with the native library.
+        /// </returns>
         public abstract DeviceStatus DisconnectRFID();
 
+        /// <summary>
+        /// Writes a payload to the card being printed.
+        /// </summary>
+        /// <param name="rc">The printer status code being returned.</param>
+        /// <param name="payload">The data to write.</param>
+        /// <param name="writtenCardId">The card ID of the card that was being written to or null on error or if no RFID board was configured.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was written successfully or no .<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="ConnectRFID"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the board was disconnected during the operation.<br />
+        /// <see cref="DeviceStatus.ERR_LIBRARY"/> if an error occurred with the native library.<br />
+        /// any other <see cref="DeviceStatus.DEVICE_STATUS_CODES_END"/> >= DeviceStatus >= <see cref="DeviceStatus.DEVICE_STATUS_CODES_START"/> to represent device error codes.
+        /// </returns>
         public abstract DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId);
 
+        /// <summary>
+        /// Verifies the RFID data being written to and throws an exception if this payload can not be written
+        /// </summary>
+        /// <param name="payload">The payload to be verified.</param>
+        /// <exception cref="InvalidOperationException">If a verification error occurrs.</exception>
+        /// <exception cref="ArgumentException">If a verification error occurrs.</exception>
         public abstract void VerifyRFIDData(byte[] payload);
 
+        /// <summary>
+        /// Returns the StartPage_* constant that is required for this printer's call to <see cref="INativeTrampolineCHC.CHC_startpage(ushort, ref ushort, ref ushort)"/>.
+        /// </summary>
+        /// <returns>the constant required for StartPage.</returns>
         protected abstract ushort GetStartPageParameter();
 
+        /// <summary>
+        /// Sets the last error code of a printer function that returns a status code and a return code and if <see cref="Device.IsUsingExceptions"/> is true, throw an exception.
+        /// </summary>
+        /// <remarks>
+        /// A non-ready non-busy status code will trigger a <see cref="Debugger.Break"/> if running in debug mode.
+        /// </remarks>
+        /// <param name="operationReturnCode">The return code of the printer method (any CHCUSB_RC_* constant).</param>
+        /// <param name="rc">The last printer status code that was obtained from a device call.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK" /> if <paramref name="operationReturnCode"/> == <see cref="CHCUSB_RC_OK"/> or <paramref name="rc"/> == <see cref="RESULT_STATUS_READY"/>.<br />
+        /// <see cref="DeviceStatus.BUSY" /> if <paramref name="operationReturnCode"/> == <see cref="CHCUSB_RC_BUSY"/> and <paramref name="rc"/> == <see cref="RESULT_STATUS_BUSY"/>.<br />
+        /// otherwise <paramref name="rc"/> cast to a <see cref="DeviceStatus"/>.
+        /// </returns>
+        /// <exception cref="IOException">If <see cref="Device.IsUsingExceptions"/> is true and the return value would neither be <see cref="DeviceStatus.OK"/> or <see cref="DeviceStatus.BUSY"/>.</exception>
         protected DeviceStatus SetLastErrorByRC(int operationReturnCode, ushort rc = RESULT_STATUS_READY) {
             if (operationReturnCode != CHCUSB_RC_OK && rc != RESULT_STATUS_READY) {
                 rc = GetPrinterStatusCode();
@@ -260,6 +373,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return SetLastError((DeviceStatus)rc);
         }
 
+        /// <summary>
+        /// Waits for a printer function to return anything that is not <see cref="CHCUSB_RC_BUSY"/> or within <paramref name="wait_codes"/>. The function is repeatedly called (thus this call will block) as long it returns <see cref="CHCUSB_RC_BUSY"/> or the status code is no longer part of <paramref name="wait_codes"/>.
+        /// </summary>
+        /// <param name="rc">The printer status code that was returned.</param>
+        /// <param name="printerFunction">The function to call.</param>
+        /// <param name="timeout">The amount in millisecond to wait for completion.</param>
+        /// <param name="wait_codes">Additional RESULT_* values that should be considered as "busy".</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> is <paramref name="printerFunction"/> completed successfully.<br />
+        /// If the timeout was hit, the last printer status code cast to a <see cref="DeviceStatus"/> will be returned.<br />
+        /// If an error occurrs, the last printer status code cast to a <see cref="DeviceStatus"/> will be returned.
+        /// </returns>
         protected DeviceStatus PrintWaitFor(ref ushort rc, StatusWaitDelegate printerFunction, int timeout, params ushort[] wait_codes) {
             DateTime start = DateTime.Now;
             while (printerFunction(ref rc) == CHCUSB_RC_BUSY || wait_codes.Contains(rc)) {
@@ -273,6 +398,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return SetLastError(DeviceStatus.OK, rc);
         }
 
+        /// <summary>
+        /// Sets the .icc files used for printing.
+        /// </summary>
+        /// <param name="icc1Filename">The first .icc file to be used.</param>
+        /// <param name="icc2Filename">The second .icc file to be used.</param>
+        /// <exception cref="FileNotFoundException">If one of the files cannot be found.</exception>
         public void SetIccTables(string icc1Filename, string icc2Filename) {
             ArgumentNullException.ThrowIfNull(icc1Filename);
             ArgumentNullException.ThrowIfNull(icc2Filename);
@@ -287,6 +418,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             Log.Write("ICC tables set to: " + IccTable1FileName + ", " + IccTable2FileName);
         }
 
+        /// <summary>
+        /// Sets the mtf.txt file used for printing.
+        /// </summary>
+        /// <param name="mtfFilename">The file to be used.</param>
+        /// <exception cref="FileNotFoundException">If the file cannot be found.</exception>
         public void SetMtfFile(string mtfFilename) {
             ArgumentNullException.ThrowIfNull(mtfFilename);
             if (!File.Exists(mtfFilename)) {
@@ -296,6 +432,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             Log.Write("MTF set to: " + MtfFileName);
         }
 
+        /// <inheritdoc/>
         public sealed override DeviceStatus Connect() {
             DeviceStatus ret;
 
@@ -383,6 +520,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
             Log.Write("Thread exited");
         }
+
+        /// <summary>
+        /// Runs the given function on the printer thread. This must be used for every call on a function contained in <see cref="Native"/>.
+        /// </summary>
+        /// <param name="func">The function to call</param>
+        /// <param name="waitForCompletion">Whether or not to wait for thread completion. If this is true, this call will block until then.</param>
+        /// <param name="waitForStart">Whether to wait for an already existing call. If this is true, this will block until this function can be started. If this is false, <see cref="DeviceStatus.BUSY"/> will be immediately returned instead.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if <paramref name="waitForCompletion"/> is false and the function was successfully started on the printer thread.<br />
+        /// <see cref="DeviceStatus.BUSY"/> if <paramref name="waitForStart"/> is false and something is already executing on the printer thread.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// otherwise the return value of <paramref name="func"/> will be returned.
+        /// </returns>
+        /// <exception cref="ThreadStateException">If the printer thread is not running (<see cref="Connect"/> was not called, <see cref="Disconnect"/> was called or an internal error occurred), or if this function itself is called from inside the printer thread.</exception>
         protected DeviceStatus ExecuteOnPrintThread(PrinterThreadDelegate func, bool waitForCompletion = true, bool waitForStart = false) {
             if (printThread == null) {
                 throw new ThreadStateException("printer thread has shut down");
@@ -427,6 +578,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return threadCallStatus.Value;
         }
 
+        /// <summary>
+        /// Checks if we are running on the printer thread, otherwise throw an exception.
+        /// </summary>
+        /// <param name="callerFunc">Auto-generated.</param>
+        /// <exception cref="ThreadStateException">if the printer thread has shut down or this function is not being called on the printer thread.</exception>
         protected void CheckCallingThread([CallerMemberName] string callerFunc = null) {
             if (printThread == null) {
                 throw new ThreadStateException(callerFunc + " must be called on printer thread, which is not active!");
@@ -500,6 +656,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return SetLastErrorByRC(Native.CHC_selectPrinterSN(printerId, ref rc), rc);
         }
 
+        /// <inheritdoc/>
         public sealed override DeviceStatus Disconnect() {
             isConnected = false;
             if (printThread != null) {
@@ -526,6 +683,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             threadFunc = null;
             currentStatusCode = RESULT_NOTCONNECT;
         }
+
         private DeviceStatus GetPrinterInfo(PrinterInfoTag tag, out byte[] data) {
             Log.Write("GetPrinterInfo: " + tag);
             uint len = tag.GetBufferSize();
@@ -546,6 +704,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return ret;
         }
 
+        /// <summary>
+        /// Queries the printer's serial number.
+        /// </summary>
+        /// <param name="serialno">The printer serial number or null on error.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, <see cref="DeviceStatus.BUSY"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrinterSerial(out string serialno) {
             Log.Write("GetPrinterSerial");
             serialno = null;
@@ -555,6 +718,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
             return ret;
         }
+
+        /// <summary>
+        /// Queries various printer statistics.
+        /// </summary>
+        /// <param name="printcnt">The printer statistics or null on error.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, <see cref="DeviceStatus.BUSY"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
+        public DeviceStatus GetPrintCnt2(out PrintCnt2? printcnt) {
+            Log.Write("GetPrintCnt2");
+            printcnt = null;
+            DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PRINTCNT2, out byte[] buf);
+            if (ret == DeviceStatus.OK) {
+                printcnt = StructUtils.FromBytes<PrintCnt2>(buf);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Queries the printer's "print ID" status. The only observed values are <see cref="RESULT_STATUS_PrinttingComplete"/> and <see cref="RESULT_STATUS_NoPrintting"/>.
+        /// </summary>
+        /// <param name="status">The print ID status.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, <see cref="DeviceStatus.BUSY"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrintIDStatus(out int status) {
             Log.Write("GetPrintIDStatus");
 
@@ -580,6 +764,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return ret;
         }
 
+        /// <summary>
+        /// Returns the status of the currently running print job.
+        /// </summary>
+        /// <remarks>
+        /// If this returns non-OK, non-BUSY, non-ERR_NOT_INITALIZED you must call <see cref="Disconnect"/> and <see cref="Connect"/> to reset the job and printer state.
+        /// </remarks>
+        /// <returns>
+        /// On success, returns the status of the currently running (or finished/errored) printer job.<br />
+        /// <see cref="DeviceStatus.BUSY"/> if the job is still running.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if no print job is running.
+        /// </returns>
+        /// <exception cref="Exception">If <see cref="Device.IsUsingExceptions"/> is true and a printer job exception occurred</exception>
         public DeviceStatus GetPrintJobResult() {
             PrintStatus status = Job?.JobStatus ?? PrintStatus.None;
             if (status == PrintStatus.None) {
@@ -597,6 +793,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
         }
 
+        /// <summary>
+        /// Returns the last written RFID card ID.
+        /// </summary>
+        /// <param name="cardid">The last written card ID or null if none is available.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK" /> if the print job has successfully passed <see cref="PrintStatus.RFIDWrite"/>.<br />
+        /// <see cref="DeviceStatus.BUSY"/> if it has not.
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if no print job was ever started.
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if the print job is in error state.
+        /// </returns>
         public DeviceStatus GetWrittenRFIDCardId(out byte[] cardid) {
             PrintStatus status = Job?.JobStatus ?? PrintStatus.None;
             if (status == PrintStatus.None) {
@@ -614,6 +820,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
         }
 
+        /// <summary>
+        /// Starts printing an image with optional holo image and RFID data.
+        /// </summary>
+        /// <param name="image">The image to print.</param>
+        /// <param name="rfidPayload">The RFID payload data (without card ID) to write or null for no RFID data.</param>
+        /// <param name="holo">The holo image to print or null for no holo.</param>
+        /// <param name="waitForCompletion">if this is true, this function will block until the print completes (or errors).</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the print completed successfully.<br />
+        /// <see cref="DeviceStatus.BUSY"/> if the print started successfully and <paramref name="waitForCompletion"/> is false or if a print is already in progress.<br />
+        /// any other status on various printer errors.
+        /// </returns>
+        /// <seealso cref="GetPrintJobResult"/>
+        /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
+        /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
         public DeviceStatus StartPrinting(Bitmap image, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false) {
             ArgumentNullException.ThrowIfNull(image);
             if (image.PhysicalDimension != ImageDimensions) {
@@ -659,21 +880,45 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             return SetLastError(ExecuteOnPrintThread(Job.Run, waitForCompletion));
         }
 
+        /// <summary>
+        /// Aborts the currently running print job with the given status codes.
+        /// </summary>
+        /// <param name="ret">The DeviceStatus that the job will be terminated with.</param>
+        /// <param name="rc">The printer status code that the job will be terminated with.</param>
+        /// <param name="pageId">The id of the page to cancel (or null) to not cancel.</param>
+        /// <returns><paramref name="ret"/></returns>
+        /// <exception cref="ThreadStateException">if no job is running</exception>
         protected DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
+            CheckCallingThread();
             if (Job == null) {
                 throw new ThreadStateException("Can't exit print job thread while no thread is running");
             }
             return Job.PrintExitThreadError(ret, rc, pageId);
         }
 
+        /// <summary>
+        /// Retrieves the printer error message for the given internal printer error code.
+        /// </summary>
+        /// <param name="error">the error code</param>
+        /// <returns>The printer error message or "Unknown Printer Error".</returns>
         public static string RCToErrorMessage(int error) {
             return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).Message;
         }
 
+        /// <summary>
+        /// Retrieves the printer external (SEGA) printer error code for the given internal printer error code.
+        /// </summary>
+        /// <param name="error">the error code</param>
+        /// <returns>The printer error code, or 6810 if the error code is not known.</returns>
         public static int RCToSegaError(int error) {
             return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).ErrorCodeExt;
         }
 
+        /// <summary>
+        /// Formats the given internal printer error code to a string for internal/logging use.
+        /// </summary>
+        /// <param name="error">the error code</param>
+        /// <returns>A string in the format "[ExternalErrorCode] Message (InternalErrorCode)"</returns>
         public static string RCToString(int error) {
             return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).ToString();
         }

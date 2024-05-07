@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
@@ -9,6 +11,10 @@ using System.Runtime.CompilerServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
+
+    /// <summary>
+    /// A CHC-310 Card Printer for Kantai Collection Arcade.
+    /// </summary>
     public class CHC310Printer : CHCSeriesCardPrinter {
 
         private const byte COMMAND_WRITE_START_STOP = 0x10;
@@ -18,9 +24,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
         private static readonly Native native = new Native(); // hack to pass the same Native to both parameters
 
+        /// <summary>
+        /// Creates a new CHC-310 printer.
+        /// </summary>
         public CHC310Printer() : base(native, new RFIDBackendCHCDLL(native), new Size(768, 1052)) {
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus ConnectRFID() {
             return SetLastError(ExecuteOnPrintThread((ref ushort rc) => {
                 DeviceStatus ret = RFIDBackend.Connect();
@@ -42,6 +52,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             }, true, true));
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus DisconnectRFID() {
             return SetLastError(RFIDBackend.Disconnect());
         }
@@ -106,10 +117,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return ret;
         }
 
+        /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "CHC330";
         }
 
+        /// <inheritdoc/>
         public unsafe override DeviceStatus GetLoadedCardId(out byte[] cardid) {
             byte[] buf = new byte[CARD_ID_LEN];
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort rc) => {
@@ -126,13 +139,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return SetLastError(ret);
         }
 
+        /// <inheritdoc/>
         public override string GetName() {
             return "SINFONIA Card Printer";
         }
 
+        /// <summary>
+        /// This does nothing.
+        /// </summary>
+        /// <param name="payload">Ignored.</param>
         public override void VerifyRFIDData(byte[] payload) {
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId) {
             DeviceStatus ret = DeviceStatus.OK;
             writtenCardId = null;
@@ -182,10 +201,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return ret;
         }
 
+        /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
             return StartPage_Standby_YMC;
         }
 
+        /// <summary>
+        /// Returns the RFID board's "app" version.
+        /// </summary>
+        /// <param name="version">The board version</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         public DeviceStatus GetRFIDAppVersion(out byte version) {
             version = 0;
 
@@ -198,6 +223,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return SetLastError(DeviceStatus.OK, status);
         }
 
+        /// <summary>
+        /// Returns the RFID board's "boot" version.
+        /// </summary>
+        /// <param name="version">The board version</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         public DeviceStatus GetRFIDBootVersion(out byte version) {
             version = 0;
 
@@ -210,6 +240,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return SetLastError(DeviceStatus.OK, status);
         }
 
+        /// <summary>
+        /// Returns the RFID board's board information.
+        /// </summary>
+        /// <param name="board">The board information</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         public DeviceStatus GetRFIDBoardInfo(out string board) {
             board = null;
 
@@ -223,3 +258,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
     }
 }
+
+#endif

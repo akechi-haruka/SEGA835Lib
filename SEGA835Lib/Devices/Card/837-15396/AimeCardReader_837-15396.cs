@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Graphics.Display;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 

@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
-    public unsafe partial class Native : INativeTrampolineCHC {
+    internal unsafe partial class Native : INativeTrampolineCHC {
 
         public const String DLL = "C310Ausb.dll";
 
@@ -641,3 +643,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
     }
 
 }
+
+#endif

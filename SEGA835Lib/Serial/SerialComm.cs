@@ -7,7 +7,6 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Devices.SerialCommunication;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
 

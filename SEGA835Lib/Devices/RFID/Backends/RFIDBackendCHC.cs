@@ -6,6 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
+
+    /// <summary>
+    /// A DLL based RFID backend (used by the CHC-310).
+    /// </summary>
     internal class RFIDBackendCHCDLL : RFIDBackend {
 
         protected const int CHCUSB_RC_OK = 1;
@@ -15,19 +19,26 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
         private INativeTrampolineCHC Native;
         private byte[] LastResponse;
 
+        /// <summary>
+        /// Creates a new RFID backend.
+        /// </summary>
+        /// <param name="native">The DLL trampoline to use.</param>
         public RFIDBackendCHCDLL(INativeTrampolineCHC native) {
             ArgumentNullException.ThrowIfNull(native);
             this.Native = native;
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus Connect() {
             return DeviceStatus.OK; // not supported
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             return DeviceStatus.OK; // not supported
         }
 
+        /// <inheritdoc/>
         public unsafe override DeviceStatus Write(byte[] packet) {
             ushort rc = 0;
             uint wlen = 2048;
@@ -49,6 +60,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
             return DeviceStatus.OK;
         }
 
+        /// <inheritdoc/>
         public override DeviceStatus Read(out byte[] packet) {
             packet = LastResponse;
             if (LastResponse == null) {
