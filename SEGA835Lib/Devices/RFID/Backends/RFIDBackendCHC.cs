@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
@@ -72,3 +74,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
 
     }
 }
+
+#endif

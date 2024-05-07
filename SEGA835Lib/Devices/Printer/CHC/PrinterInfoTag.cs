@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
+﻿#if NET8_0_OR_GREATER
+
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Collections.Generic;
@@ -110,3 +112,5 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
     }
 }
+
+#endif
