@@ -5,6 +5,8 @@ Licensed under the Server Side Public License.
 
 API to interface with SEGA 835/837-series arcade hardware and companion command line application.
 
+Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGA835Lib/workflows/dotnet/master?preview
+
 ----------------
 What can this be used for?
 
