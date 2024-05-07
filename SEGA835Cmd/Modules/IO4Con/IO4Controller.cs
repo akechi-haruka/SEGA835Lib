@@ -51,12 +51,14 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
                     break;
                 }
 
-                j.SetJoystickAxis(report.adcs[opts.XAxisADC], Axis.HID_USAGE_X);
-                j.SetJoystickAxis(report.adcs[opts.YAxisADC], Axis.HID_USAGE_Y);
+                int x = report.adcs[opts.XAxisADC] - short.MaxValue / 2;
+                int y = report.adcs[opts.YAxisADC] - short.MaxValue / 2;
+                j.SetJoystickAxis(opts.XFlip ? short.MaxValue - x : x, Axis.HID_USAGE_X);
+                j.SetJoystickAxis(opts.YFlip ? short.MaxValue - y : y, Axis.HID_USAGE_Y);
                 Axis currentAxis = Axis.HID_USAGE_Z;
                 for (int i = 0; i < JVSUSBReportIn.ADC_COUNT; i++) {
                     if (i != opts.XAxisADC && i != opts.YAxisADC) {
-                        j.SetJoystickAxis(report.adcs[i], currentAxis++);
+                        j.SetJoystickAxis(report.adcs[i] - short.MaxValue / 2, currentAxis++);
                     }
                 }
                 uint button_index = 0;
@@ -68,7 +70,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
 
                 j.Update();
 
-                Thread.Sleep(2);
+                Thread.Sleep(opts.PollDelay);
             }
 
             j.Release();

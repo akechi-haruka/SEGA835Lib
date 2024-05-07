@@ -19,6 +19,15 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
         [Option("y-adc", Required = false, HelpText = "The ADC to use for the Y axis.", Default = (uint)4)]
         public uint YAxisADC { get; set; }
 
+        [Option("invert-x", Required = false, HelpText = "Inverts the X-Axis.")]
+        public bool XFlip { get; set; }
+
+        [Option("invert-y", Required = false, HelpText = "Inverts the Y-Axis.")]
+        public bool YFlip { get; set; }
+
+        [Option("poll-delay", Required = false, HelpText = "Sets the amount of milliseconds between polls", Default = 10)]
+        public int PollDelay { get; set; }
+
         [Option("no-exit-button", Required = false, HelpText = "Disables pressing ESC to exit.")]
         public bool NoExitButton { get; set; }
 
