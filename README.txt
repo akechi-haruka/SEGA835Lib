@@ -8,12 +8,21 @@ API to interface with SEGA 835/837-series arcade hardware and companion command 
 Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGA835Lib/workflows/dotnet/master?preview
 
 ----------------
-What can this be used for?
+What can the application be used for?
+
+* Use IO4 as a VJoy controller.
+* Read MIFARE and FeliCa card UIDs via a real aime reader.
+* LED shenanigans
+* Print custom images to CHC-series card printers.
+* Watch a directory for images and auto-print those.
+* ... more to come
+
+----------------
+What can the library be used for?
 
 * Implement Arcade hardware I/O in your own projects
 * Replace/Mod an existing I/O handler in an existing game because it's causing issues (*cough* amdaemon)
 * Convert between different boards or devices (ex. Game that uses a CHC-310 printer to a CHC-330 printer)
-* (SEGA835Cmd) Interact with arcade hardware from command-line (ex. swipe a card to trigger a process, make an LED light show, print custom cards, ...)
 
 ----------------
 What devices are supported?
@@ -28,6 +37,14 @@ What devices are supported?
  - requires C330Ausb.dll
 * 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347)
 * 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
+
+TODOs:
+* figure out the wiring for the 837-15375 Tenkey
+* buy a IO3
+* figure out how to read e-money auth cards
+* CHC320 (Sangokushi Taisen)
+* buy a Y3
+* how does the coin blocker work
 
 ----------------
 Implementation Notes:
