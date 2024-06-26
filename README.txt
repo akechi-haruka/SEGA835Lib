@@ -39,7 +39,6 @@ What devices are supported?
 * 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
 
 TODOs:
-* IO4 LEDs/outputs
 * figure out the wiring for the 837-15375 Tenkey
 * buy a IO3
 * figure out how to read e-money auth cards
