@@ -26,7 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
         /// <param name="port">The COM port to use.</param>
         public RFIDBackendSerial(int port) {
             this.Port = port;
-            this.serial = new SProtSerial(port, 115200, 3000, true, true, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One, System.IO.Ports.Handshake.XOnXOff);
+            this.serial = new SProtSerial(port, 115200, 3000, true, true, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One, System.IO.Ports.Handshake.None);
         }
 
         /// <inheritdoc/>

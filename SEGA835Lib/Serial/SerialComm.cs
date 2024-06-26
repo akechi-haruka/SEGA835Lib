@@ -85,7 +85,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="stopBits">The amount of stop bits to use. This depends on the specific device being used.</param>
         /// <param name="flowControl">The type of flow control being used. This depends on the specific device being used.</param>
         public SerialComm(int portNumber, int baudrate = 115_200, int timeout = 1000, bool dtr = false, bool rts = false, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One, Handshake flowControl = Handshake.None) {
-            Log.Write("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts);
+            Log.Write("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts + ", handshake="+flowControl);
             Port = portNumber;
             Baudrate = baudrate;
             DTR = dtr;
@@ -102,12 +102,13 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <returns>true if successful, false if not</returns>
         public bool Connect() {
-            Log.Write("Connecting to port " + Port);
+            Log.Write("Connecting to port " + Port + " (" + Baudrate + ") DTR=" + DTR + ",RTS=" + RTS);
             device = new SerialPort("COM" + Port, Baudrate, Parity, DataBits, StopBits) {
                 DtrEnable = DTR,
                 RtsEnable = RTS,
                 ReadTimeout = Timeout,
-                WriteTimeout = Timeout
+                WriteTimeout = Timeout,
+                Handshake = Handshake
             };
             try {
                 device.Open();
