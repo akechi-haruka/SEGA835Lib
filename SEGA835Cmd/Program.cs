@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using Haruka.Arcade.SEGA835Cmd.Modules.AimeReader;
+using Haruka.Arcade.SEGA835Cmd.Modules.IO4;
 using Haruka.Arcade.SEGA835Cmd.Modules.IO4Con;
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher;
@@ -15,14 +16,15 @@ namespace Haruka.Arcade.SEGA835Cmd {
         static int Main(string[] args) {
             try {
                 return (int)Parser.Default.ParseArguments
-                    <Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options>(args)
-                    .MapResult<Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, DeviceStatus>(
+                    <Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options>(args)
+                    .MapResult<Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, DeviceStatus>(
                   IO4Controller.Run,
                   AimeReader.Run,
                   VFDRunner.Run,
                   PrinterRunner.Run,
                   PrinterWatcherRunner.Run,
                   RFIDRunner.Run,
+                  IO4Runner.Run,
                   errs => DeviceStatus.ERR_OTHER);
             }catch(Exception ex) {
                 Log.WriteFault(ex, "An error has occurred");

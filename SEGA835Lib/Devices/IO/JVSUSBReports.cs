@@ -36,9 +36,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         SetPWMOutput = 0x05,
         /// <summary>
-        /// Super Unknown.
+        /// Unknown.
         /// </summary>
-        UnknownChunithm = 0x41,
+        SetLEDs = 0x41,
         /// <summary>
         /// Unknown.
         /// </summary>
@@ -58,6 +58,44 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// Unknown.
         /// </summary>
         public fixed byte payload[62];
+    }
+
+    /// <summary>
+    /// The payload for the JVS packet <see cref="JVSUSBReports.SetGeneralOutput"/>.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public unsafe struct JVSUSBPayloadOutGPIO {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public byte padding;
+        /// <summary>
+        /// LED data, up to 32 LEDs, where every bit indicates LED on/off
+        /// </summary>
+        public fixed byte led[4];
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public fixed byte unknown[57];
+    }
+
+    /// <summary>
+    /// The payload for the JVS packet <see cref="JVSUSBReports.SetLEDs"/>.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public unsafe struct JVSUSBPayloadOutLED {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public byte padding;
+        /// <summary>
+        /// LED data, up to 32 LEDs, where every byte indicated LED state from 0 to 255.
+        /// </summary>
+        public fixed byte led[32];
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public fixed byte unknown[29];
     }
 
     /// <summary>

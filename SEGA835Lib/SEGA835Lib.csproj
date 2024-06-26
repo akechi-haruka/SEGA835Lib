@@ -19,6 +19,7 @@
     <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
     <PackageTags>Arcade;I/O;Serial</PackageTags>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">

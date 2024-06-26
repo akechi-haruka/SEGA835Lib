@@ -212,6 +212,46 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             }
         }
 
+        /// <summary>
+        /// Writes an arbitary struct to the USB device.
+        /// </summary>
+        /// <param name="command">The command being sent.</param>
+        /// <param name="struc">The payload data.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the data was successfully written.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// </returns>
+        protected DeviceStatus Write<StructType>(JVSUSBReports command, StructType struc) where StructType : struct {
+            if (device == null) {
+                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+            }
+            if (command == JVSUSBReports.Unset) {
+                throw new ArgumentException("JVS Report command must be set");
+            }
+            try {
+                byte[] data = StructUtils.GetBytes(struc);
+                byte[] payload = new byte[data.Length + 1];
+                payload[0] = (byte)command;
+                Array.Copy(data, 0, payload, 1, data.Length);
+                if (payload.Length != 63) {
+                    throw new ArgumentException("invalid payload size: " + payload.Length);
+                }
+                bool success = device.WriteReport(new HidReport(payload.Length) {
+                    ReportId = OUTGOING_REPORT_ID,
+                    Data = payload
+                }, Timeout);
+                if (!success) {
+                    Log.WriteError("HID Write failed");
+                }
+                return SetLastError(success ? DeviceStatus.OK : DeviceStatus.ERR_DEVICE, Marshal.GetLastWin32Error());
+            } catch (Exception ex) {
+                Log.WriteFault(ex, "Failed writing data to " + GetName());
+                return SetLastError(DeviceStatus.ERR_OTHER);
+            }
+        }
+
     }
 
 }
