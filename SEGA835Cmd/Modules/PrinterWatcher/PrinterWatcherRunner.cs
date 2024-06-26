@@ -51,11 +51,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                 Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
                 return DeviceStatus.ERR_OTHER;
             }
-            if (opts.HoloDirectory != null && !File.Exists(opts.HoloDirectory)) {
+            if (opts.HoloDirectory != null && !Directory.Exists(opts.HoloDirectory)) {
                 Log.WriteError("Holo directory does not exist: " + opts.HoloDirectory);
                 return DeviceStatus.ERR_OTHER;
             }
-            if (opts.RFIDDirectory != null && !File.Exists(opts.RFIDDirectory)) {
+            if (opts.RFIDDirectory != null && !Directory.Exists(opts.RFIDDirectory)) {
                 Log.WriteError("RFID directory does not exist: " + opts.RFIDDirectory);
                 return DeviceStatus.ERR_OTHER;
             }
