@@ -62,20 +62,22 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
 
             FileSystemWatcher watcher = new FileSystemWatcher {
                 Path = opts.ImageDirectory,
-                NotifyFilter = NotifyFilters.LastWrite,
+                NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
                 Filter = opts.ImageFilePattern
             };
             watcher.Changed += new FileSystemEventHandler(AddImageFile);
+            watcher.Created += new FileSystemEventHandler(AddImageFile);
             watcher.EnableRaisingEvents = true;
             Log.Write("Monitoring: " + opts.ImageDirectory);
 
             if (opts.HoloDirectory != null) {
                 FileSystemWatcher watcher2 = new FileSystemWatcher {
                     Path = opts.HoloDirectory,
-                    NotifyFilter = NotifyFilters.LastWrite,
+                    NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
                     Filter = opts.HoloFilePattern
                 };
                 watcher2.Changed += new FileSystemEventHandler(AddHoloFile);
+                watcher2.Created += new FileSystemEventHandler(AddHoloFile);
                 watcher2.EnableRaisingEvents = true;
 
                 Log.Write("Monitoring: " + opts.HoloDirectory);
@@ -84,10 +86,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
             if (opts.RFIDDirectory != null) {
                 FileSystemWatcher watcher3 = new FileSystemWatcher {
                     Path = opts.RFIDDirectory,
-                    NotifyFilter = NotifyFilters.LastWrite,
+                    NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
                     Filter = opts.RFIDFilePattern
                 };
                 watcher3.Changed += new FileSystemEventHandler(AddRFIDFile);
+                watcher3.Created += new FileSystemEventHandler(AddRFIDFile);
                 watcher3.EnableRaisingEvents = true;
                 Log.Write("Monitoring: " + opts.RFIDDirectory);
             }
