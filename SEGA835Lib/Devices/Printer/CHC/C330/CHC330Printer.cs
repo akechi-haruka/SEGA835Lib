@@ -68,6 +68,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             DeviceStatus ret = rfid.Scan(out byte[][] card);
             if (card != null && card.Length == 1) {
                 cardid = card[0];
+                Log.Dump(cardid, "Loaded card ID: ");
             } else {
                 cardid = null;
             }
