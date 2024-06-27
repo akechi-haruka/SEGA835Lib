@@ -855,9 +855,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
             if (holo != null && holo.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
-                    image = image.CopyStretched(ImageDimensions);
+                    holo = image.CopyStretched(ImageDimensions);
                 } else if (ImageStretchMode == StretchMode.Center) {
-                    image = image.CopyCentered(ImageDimensions);
+                    holo = image.CopyCentered(ImageDimensions);
                 } else {
                     throw new ArgumentException("Holo image to print with size " + holo.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }
