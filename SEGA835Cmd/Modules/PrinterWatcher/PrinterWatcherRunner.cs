@@ -152,6 +152,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                         Port = options.Port,
                         PrintCardId = false,
                         RFIDFileName = image.Item3,
+                        RFIDOverrideCardId = true,
                         Silent = options.Silent,
                         Stretch = options.Stretch
                     });

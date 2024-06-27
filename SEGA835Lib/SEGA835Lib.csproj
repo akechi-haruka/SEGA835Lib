@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>netstandard2.0;netstandard2.1;net6.0-windows7;net8.0-windows10.0.18362.0</TargetFrameworks>
+	<TargetFrameworks>net8.0-windows10.0.18362.0;netstandard2.0;netstandard2.1;net6.0-windows7</TargetFrameworks>
     <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>

@@ -29,17 +29,23 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         public override DeviceStatus ConnectRFID() {
             DeviceStatus ret;
             if (rfid != null) {
-                ret = rfid.Connect();
-                if (ret != DeviceStatus.OK) {
-                    Log.WriteError("RFID Connect failed");
-                    return SetLastError(ret);
-                }
 
-                ret = rfid.ResetWriter();
-                if (ret != DeviceStatus.OK) {
-                    Log.WriteError("RFID ResetWriter failed");
-                    return SetLastError(ret);
-                }
+                int attempt = 1;
+                do {
+                    rfid.Disconnect();
+                    ret = rfid.Connect();
+                    Log.Write("Attempt to connect: " + attempt);
+                    if (ret != DeviceStatus.OK) {
+                        Log.WriteError("RFID Connect failed");
+                        continue;
+                    }
+
+                    ret = rfid.ResetWriter();
+                    if (ret != DeviceStatus.OK) {
+                        Log.WriteError("RFID ResetWriter failed");
+                        continue;
+                    }
+                } while (attempt++ < 3 && ret != DeviceStatus.OK);
 
             } else {
                 ret = DeviceStatus.OK;
@@ -82,17 +88,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         }
 
         /// <inheritdoc/>
-        public override void VerifyRFIDData(byte[] payload) {
+        public override void VerifyRFIDData(byte[] payload, bool overrideCardId) {
             if (payload != null && rfid == null) {
                 throw new InvalidOperationException("Can't write RFID data to card if no RFID board was set when initializing printer");
             }
-            if (payload != null && payload.Length != rfid.GetCardPayloadSize() - CARD_ID_LEN) {
-                throw new ArgumentException("RFID data size (" + payload.Length + ") must be equal to RFID device's expected data size (" + (rfid.GetCardPayloadSize() - CARD_ID_LEN) + ")");
+            if (payload != null && payload.Length != rfid.GetCardPayloadSize() - (overrideCardId ? 0 : CARD_ID_LEN)) {
+                throw new ArgumentException("RFID data size (" + payload.Length + ") must be equal to RFID device's expected data size (" + (rfid.GetCardPayloadSize() - (overrideCardId ? 0 : CARD_ID_LEN)) + ", card ID override = "+overrideCardId+")");
             }
         }
 
         /// <inheritdoc/>
-        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId) {
+        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
             DeviceStatus ret = DeviceStatus.OK;
             writtenCardId = null;
             if (rfid != null) {
@@ -124,10 +130,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
                 if (payload != null) {
                     byte[] cardid = new byte[CARD_ID_LEN];
-                    Array.Copy(cardId, cardid, cardid.Length);
-                    writtenCardId = cardid;
+                    if (overrideCardId) {
+                        Array.Copy(payload, cardid, cardid.Length);
+                        byte[] payloadWithoutId = new byte[payload.Length - cardid.Length];
+                        Array.Copy(payload, cardid.Length, payloadWithoutId, 0, payloadWithoutId.Length);
 
-                    ret = rfid.Write(cardid, payload);
+                        ret = rfid.Write(cardid, payloadWithoutId);
+                    } else {
+                        Array.Copy(cardId, cardid, cardid.Length);
+                        writtenCardId = cardid;
+
+                        ret = rfid.Write(cardid, payload);
+                    }
                 } else {
                     Log.WriteWarning("No RFID data to write");
                 }

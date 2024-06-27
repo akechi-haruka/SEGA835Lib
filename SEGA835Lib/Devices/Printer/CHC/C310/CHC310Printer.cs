@@ -147,11 +147,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// This does nothing.
         /// </summary>
         /// <param name="payload">Ignored.</param>
-        public override void VerifyRFIDData(byte[] payload) {
+        public override void VerifyRFIDData(byte[] payload, bool overrideCardId) {
         }
 
         /// <inheritdoc/>
-        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId) {
+        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
             DeviceStatus ret = DeviceStatus.OK;
             writtenCardId = null;
             Log.Write("Initializing RFID Board");
@@ -176,8 +176,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
             if (payload != null) {
                 byte[] cardid = new byte[CARD_ID_LEN];
-                Array.Copy(cardId, cardid, cardid.Length);
-                writtenCardId = cardid;
+                if (overrideCardId) {
+                    Array.Copy(payload, cardid, cardid.Length);
+                    byte[] payloadWithoutId = new byte[payload.Length - cardid.Length];
+                    Array.Copy(payload, cardid.Length, payloadWithoutId, 0, payloadWithoutId.Length);
+                    payload = payloadWithoutId;
+                    writtenCardId = cardid;
+                } else {
+                    Array.Copy(cardId, cardid, cardid.Length);
+                    writtenCardId = cardid;
+                }
 
                 Log.Dump(cardid, "Write RFID ID:");
                 Log.Dump(payload, "Write RFID Data:");

@@ -52,8 +52,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly byte[] OutToneR = new byte[256];
             private readonly byte[] OutToneG = new byte[256];
             private readonly byte[] OutToneB = new byte[256];
+            private readonly bool OverrideCardId;
 
-            internal PrintJob(CHCSeriesCardPrinter printer, INativeTrampolineCHC native, Bitmap image, Bitmap holo, byte[] rfidPayload) {
+            internal PrintJob(CHCSeriesCardPrinter printer, INativeTrampolineCHC native, Bitmap image, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
                 ArgumentNullException.ThrowIfNull(printer);
                 ArgumentNullException.ThrowIfNull(native);
                 ArgumentNullException.ThrowIfNull(image);
@@ -70,6 +71,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 paperInfo[2] = (byte)((Printer.ImageDimensions.Width >> 8) % 0x100);
                 paperInfo[3] = (byte)(Printer.ImageDimensions.Height % 0x100);
                 paperInfo[4] = (byte)((Printer.ImageDimensions.Height >> 8) % 0x100);
+                OverrideCardId = overrideCardId;
             }
             internal DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
                 if (JobStatus == PrintStatus.Errored) {
@@ -134,7 +136,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(Printer.SetLastErrorByRC(Native.CHC_RC_OK, rc), rc);
                     }*/
 
-                    ret = Printer.WriteRFID(ref rc, RfidPayload, out byte[] writtenCardId);
+                    ret = Printer.WriteRFID(ref rc, RfidPayload, OverrideCardId, out byte[] writtenCardId);
                     if (ret != DeviceStatus.OK || JobStatus == PrintStatus.Errored) {
                         return PrintExitThreadError(ret, rc);
                     }

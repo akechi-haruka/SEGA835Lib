@@ -34,6 +34,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
         [Option("rfid-data", Required = false, HelpText = "The RFID .bin file to write.")]
         public string RFIDFileName { get; set; }
 
+        [Option("rfid-override-card-id", Required = false, Hidden = true)]
+        public bool RFIDOverrideCardId { get; set; }
+
         [Option("holo", Required = false, HelpText = "The holo image file to print.")]
         public string HoloFileName { get; set; }
 

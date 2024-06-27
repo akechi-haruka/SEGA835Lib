@@ -322,6 +322,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="rc">The printer status code being returned.</param>
         /// <param name="payload">The data to write.</param>
         /// <param name="writtenCardId">The card ID of the card that was being written to or null on error or if no RFID board was configured.</param>
+        /// <param name="overrideCardId">Whether or not the payload contains the card ID.</param>
         /// <returns>
         /// <see cref="DeviceStatus.OK"/> if the data was written successfully or no .<br />
         /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="ConnectRFID"/> was never called.<br />
@@ -329,15 +330,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <see cref="DeviceStatus.ERR_LIBRARY"/> if an error occurred with the native library.<br />
         /// any other <see cref="DeviceStatus.DEVICE_STATUS_CODES_END"/> >= DeviceStatus >= <see cref="DeviceStatus.DEVICE_STATUS_CODES_START"/> to represent device error codes.
         /// </returns>
-        public abstract DeviceStatus WriteRFID(ref ushort rc, byte[] payload, out byte[] writtenCardId);
+        public abstract DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId);
 
         /// <summary>
         /// Verifies the RFID data being written to and throws an exception if this payload can not be written
         /// </summary>
         /// <param name="payload">The payload to be verified.</param>
+        /// <param name="overrideCardId">Whether the card ID should be contained in the payload or not.</param>
         /// <exception cref="InvalidOperationException">If a verification error occurrs.</exception>
         /// <exception cref="ArgumentException">If a verification error occurrs.</exception>
-        public abstract void VerifyRFIDData(byte[] payload);
+        public abstract void VerifyRFIDData(byte[] payload, bool overrideCardId);
 
         /// <summary>
         /// Returns the StartPage_* constant that is required for this printer's call to <see cref="INativeTrampolineCHC.CHC_startpage(ushort, ref ushort, ref ushort)"/>.
@@ -831,6 +833,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="rfidPayload">The RFID payload data (without card ID) to write or null for no RFID data.</param>
         /// <param name="holo">The holo image to print or null for no holo.</param>
         /// <param name="waitForCompletion">if this is true, this function will block until the print completes (or errors).</param>
+        /// <param name="overrideCardId">if this is true, the card ID of the loaded card will be ignored and instead expected as an added 12 bytes in the rfidPayload.</param>
         /// <returns>
         /// <see cref="DeviceStatus.OK"/> if the print completed successfully.<br />
         /// <see cref="DeviceStatus.BUSY"/> if the print started successfully and <paramref name="waitForCompletion"/> is false or if a print is already in progress.<br />
@@ -839,7 +842,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <seealso cref="GetPrintJobResult"/>
         /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
         /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
-        public DeviceStatus StartPrinting(Bitmap image, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false) {
+        public DeviceStatus StartPrinting(Bitmap image, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false) {
             NetStandardBackCompatExtensions.ThrowIfNull(image, nameof(image));
             if (image.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
@@ -859,7 +862,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     throw new ArgumentException("Holo image to print with size " + holo.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }
             }
-            VerifyRFIDData(rfidPayload);
+            VerifyRFIDData(rfidPayload, overrideCardId);
             if (MtfFileName == null) {
                 throw new InvalidOperationException("MTF file must be set before attempting to print, call SetMtfFile");
             }
@@ -876,7 +879,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
             }
 
-            Job = new PrintJob(this, Native, image, holo, rfidPayload);
+            Job = new PrintJob(this, Native, image, holo, rfidPayload, overrideCardId);
 
             Log.Write("Start Printing");
             Log.Write("Current Status: " + RCToString(GetPrinterStatusCode()));

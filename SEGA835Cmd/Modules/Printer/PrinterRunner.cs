@@ -117,7 +117,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
                 printer.ImageStretchMode = opts.Stretch;
 
-                ret = printer.StartPrinting(image, rfid, holo, !opts.NoWait);
+                ret = printer.StartPrinting(image, rfid, holo, !opts.NoWait, opts.RFIDOverrideCardId);
 
                 if (opts.PrintCardId) {
                     ret = printer.GetWrittenRFIDCardId(out byte[] cardid);
