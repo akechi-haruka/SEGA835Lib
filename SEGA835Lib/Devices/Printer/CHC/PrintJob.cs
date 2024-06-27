@@ -215,14 +215,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
+                    uint writtenBytes;
+                    int imageSize;
+                    byte[] imageBytes;
+
                     Log.Write("Uploading image data (" + Printer.ImageDimensions.Width + "x" + Printer.ImageDimensions.Height + ")");
-                    int imageSize = Printer.ImageDimensions.Width * Printer.ImageDimensions.Height * COMPONENT_RGB;
-                    byte[] imageBytes = Image.GetRawPixelsRGBNoPadding();
+                    imageSize = Printer.ImageDimensions.Width * Printer.ImageDimensions.Height * COMPONENT_RGB;
+                    imageBytes = Image.GetRawPixelsRGBNoPadding();
                     if (imageBytes.Length != imageSize) {
                         throw new Exception("imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                     }
 
-                    uint writtenBytes = 0;
+                    writtenBytes = 0;
                     fixed (byte* ptr = imageBytes) {
                         for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
                             writtenBytes = (uint)imageBytes.Length - pos;
@@ -313,7 +317,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     JobStatus = PrintStatus.Ejecting;
 
                     Log.Write("Ejecting card");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_exitCard, 30_000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
+                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_exitCard, 180_000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("ExitCard failed");
                         return PrintExitThreadError(ret, rc, pageId);
