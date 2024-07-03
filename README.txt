@@ -40,7 +40,6 @@ What devices are supported?
 
 TODOs:
 * holo printing seems to break the image layer?
-* figure out the wiring for the 837-15375 Tenkey
 * buy a IO3
 * figure out how to read e-money auth cards
 * CHC320 (Sangokushi Taisen)

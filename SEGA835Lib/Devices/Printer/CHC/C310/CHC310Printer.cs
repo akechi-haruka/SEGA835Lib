@@ -147,6 +147,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// This does nothing.
         /// </summary>
         /// <param name="payload">Ignored.</param>
+        /// <param name="overrideCardId">Ignored.</param>
         public override void VerifyRFIDData(byte[] payload, bool overrideCardId) {
         }
 

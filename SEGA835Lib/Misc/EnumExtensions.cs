@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
     internal static class EnumExtensions {
-
+#if NET8_0_OR_GREATER
         /// <summary>
         /// Retrieves an attribute from an Enum, or null if no such attribute exists.
         /// </summary>
@@ -23,5 +23,6 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             var name = Enum.GetName(type, @enum);
             return type.GetField(name).GetCustomAttribute<TAttribute>();
         }
+#endif
     }
 }

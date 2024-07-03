@@ -28,6 +28,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// Communication timeout in ms to the board.
         /// </summary>
         public int Timeout { get; private set; } = 1000;
+        /// <summary>
+        /// Last received JVS poll report (from <see cref="Poll(out JVSUSBReportIn)"/>
+        /// </summary>
+        public JVSUSBReportIn? LastReport { get; private set; }
 
         private HidDevice device;
 
@@ -175,6 +179,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                     return SetLastError(DeviceStatus.ERR_INCOMPATIBLE);
                 }
                 report = StructUtils.FromBytes<JVSUSBReportIn>(data.Data);
+                LastReport = report;
                 return SetLastError(DeviceStatus.OK);
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading data from " + GetName());

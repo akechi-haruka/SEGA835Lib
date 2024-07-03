@@ -140,6 +140,22 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// Unknown.
         /// </summary>
         public fixed byte unknown[29];
+
+        /// <summary>
+        /// Checks if the given button is pressed.
+        /// </summary>
+        /// <param name="b">The button to check (across all player indicies)</param>
+        /// <returns>true if the button is pressed, false if not.</returns>
+        /// <exception cref="ArgumentException">if the given button is invalid</exception>
+        public bool GetButton(int b) {
+            const int max = BUTTON_COUNT * sizeof(ushort) * 8;
+            if (b < 0 || b > max) {
+                throw new ArgumentException("button must be within [0," + max + ")");
+            }
+            int p = b / 8;
+            int o = b % 8;
+            return (buttons[p] >> o & 1) != 0;
+        }
     }
 
 
