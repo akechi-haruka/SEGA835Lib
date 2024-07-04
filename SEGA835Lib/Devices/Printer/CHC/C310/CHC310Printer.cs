@@ -264,6 +264,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             board = packet.version;
             return SetLastError(DeviceStatus.OK, status);
         }
+
+        /// <inheritdoc />
+        protected override byte GetPolishParameter(bool isHolo) {
+            return (byte)(isHolo ? 5 : 2);
+        }
     }
 }
 

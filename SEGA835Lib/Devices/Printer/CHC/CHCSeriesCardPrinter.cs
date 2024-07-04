@@ -119,9 +119,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int RESULT_PRINT_TIMEOUT = 5001;
         protected const int RESULT_UPDATE_RFIDFIRM = 5003;
 
-        protected const byte POLISHTYPE_GLOSSY = 18;
-        protected const byte POLISHTYPE_GLOSSY_HOLO = 21;
-
         protected const int FORMAT_PIXEL_RGB = 3;
         protected const int FORMAT_PIXEL_BGR = 4;
         protected const int COMPONENT_RGB = 3;
@@ -346,6 +343,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// </summary>
         /// <returns>the constant required for StartPage.</returns>
         protected abstract ushort GetStartPageParameter();
+
+        /// <summary>
+        /// Returns the POLISH_* constant that tells the printer if the print is normal/holo/laminate.
+        /// </summary>
+        /// <param name="isHolo">Whether the print job includes a holo image or not.</param>
+        /// <returns>the constant required for setPrinterInfo(20)</returns>
+        protected abstract byte GetPolishParameter(bool isHolo);
 
         /// <summary>
         /// Sets the last error code of a printer function that returns a status code and a return code and if <see cref="Device.IsUsingExceptions"/> is true, throw an exception.

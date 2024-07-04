@@ -156,6 +156,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         protected override ushort GetStartPageParameter() {
             return StartPage_Standby_RFID;
         }
+
+        /// <inheritdoc />
+        protected override byte GetPolishParameter(bool isHolo) {
+            return (byte)(isHolo ? 0x11 : 0x02);
+        }
     }
 }
 

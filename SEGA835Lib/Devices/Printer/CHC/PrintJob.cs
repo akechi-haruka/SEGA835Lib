@@ -155,7 +155,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                     Log.Write("Setting polish info");
                     byte[] polish = new byte[2];
-                    polish[0] = Holo != null ? POLISHTYPE_GLOSSY_HOLO : POLISHTYPE_GLOSSY;
+                    polish[0] = Printer.GetPolishParameter(Holo != null);
                     fixed (byte* ptr = polish) {
                         len = (uint)polish.Length;
                         ret = Printer.SetLastErrorByRC(Native.CHC_setPrinterInfo(PrinterInfoTag.PRINTMODE, ptr, ref len, ref rc), rc);
