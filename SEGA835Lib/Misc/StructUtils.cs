@@ -79,5 +79,31 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             return str;
         }
 
+        internal static unsafe void Copy(byte[] from, byte* to, int length) {
+            NetStandardBackCompatExtensions.ThrowIfNull(from, nameof(from));
+            fixed (byte* ptr = from) {
+                Copy(ptr, 0, to, 0, length);
+            }
+        }
+
+        internal static unsafe void Copy(byte* from, byte[] to, int length) {
+            NetStandardBackCompatExtensions.ThrowIfNull(to, nameof(to));
+            fixed (byte* ptr = to) {
+                Copy(from, 0, ptr, 0, length);
+            }
+        }
+
+        internal static unsafe void Copy(byte* from, int from_offset, byte[] to, int to_offset, int length) {
+            NetStandardBackCompatExtensions.ThrowIfNull(to, nameof(to));
+            fixed (byte* ptr = to) {
+                Copy(from, from_offset, ptr, to_offset, length);
+            }
+        }
+
+        internal static unsafe void Copy(byte* from, int from_offset, byte* to, int to_offset, int length) {
+            for (int i = from_offset, j = to_offset; i < from_offset + length; i++, j++) {
+                to[j] = from[i];
+            }
+        }
     }
 }

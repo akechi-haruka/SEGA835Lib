@@ -116,6 +116,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 Log.WriteFault(ex, "Failed to connect to port " + Port);
                 return false;
             }
+            Log.Write("Connected");
             return true;
         }
 

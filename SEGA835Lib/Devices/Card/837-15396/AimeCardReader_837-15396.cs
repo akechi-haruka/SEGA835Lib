@@ -1,6 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             if (!serial.Connect()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
-            return Reset();
+            
+            DeviceStatus ret = Reset();
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            return SetMIFAREParameters();
         }
 
         private DeviceStatus Write(byte addr, byte seq, byte cmd, byte[] payload) {
@@ -255,13 +262,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                     byte type = data[offset++];
                     byte size = data[offset++];
 
-                    if (type == 0x10) { // MIFARE
+                    if (type == 0x10 && size == 4) { // MIFARE UID
                         byte[] id = new byte[size];
                         Array.Copy(data, offset, id, 0, size);
                         offset += size;
-                        lastReadCardUID = id;
+                        Log.Write("Found a MIFARE UID: \n" + Hex.Dump(id));
+
+                        ret = ReadMIFARECardID(BitConverter.ToUInt32(id, 0), out byte[] cardid);
+                        SetLastError(ret, resp?.Status);
+                        if (ret != DeviceStatus.OK) {
+                            return ret;
+                        }
+
                         lastReadCardType = CardType.MIFARE;
-                        Log.Write("Found a MIFARE card: \n" + Hex.Dump(id));
+                        lastReadCardUID = cardid;
+                        Log.Write("Found a MIFARE card: \n" + Hex.Dump(cardid));
                     } else if (type == 0x20) { // FeliCa
                         if (size == 0x10) {
                             byte[] id = new byte[size];
@@ -394,6 +409,72 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         public void ClearCard() {
             lastReadCardType = null;
             lastReadCardUID = null;
+        }
+
+        internal unsafe DeviceStatus SetMIFAREParameters() {
+
+            byte[] k1 = new byte[] { 0x57, 0x43, 0x43, 0x46, 0x76, 0x32 };
+            byte[] k2 = new byte[] { 0x60, 0x90, 0xd0, 0x06, 0x32, 0xf5 };
+            DeviceStatus ret;
+
+            Log.Write("Set Sega Key");
+            ReqPacketMIFARESetKeySega req = new ReqPacketMIFARESetKeySega();
+            StructUtils.Copy(k1, req.key, k1.Length);
+            ret = SetLastError(this.WriteAndRead(req, out RespPacketMIFARESetKeySega _, out byte status), status);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            Log.Write("Set Namco Key");
+            ReqPacketMIFARESetKeyNamco req2 = new ReqPacketMIFARESetKeyNamco();
+            StructUtils.Copy(k2, req2.key, k2.Length);
+            ret = SetLastError(this.WriteAndRead(req2, out RespPacketMIFARESetKeyNamco _, out status), status);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Reads the card ID from a MIFARE tag.
+        /// </summary>
+        /// <param name="uid">The card UID to read from.</param>
+        /// <param name="cardid">A 10 byte long array with the card ID.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public unsafe DeviceStatus ReadMIFARECardID(uint uid, out byte[] cardid) {
+            cardid = null;
+
+            Log.Write("Select Mifare (" + uid + ")");
+            DeviceStatus ret = SetLastError(this.WriteAndRead(new ReqPacketSelectMIFARE() {
+                uid = uid
+            }, out RespPacketSelectMIFARE _, out byte status), status);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            Log.Write("Authenticate Mifare (" + uid + ")");
+            ret = SetLastError(this.WriteAndRead(new ReqPacketAuthenticateMIFARE() {
+                uid = uid,
+                unk = 0x03
+            }, out RespPacketAuthenticateMIFARE _, out status), status);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            Log.Write("Read Mifare Block (" + uid + ")");
+            ret = SetLastError(this.WriteAndRead(new ReqPacketReadMIFARE() {
+                uid = uid,
+                block = 2,
+            }, out RespPacketAuthenticateMIFARE block, out status), status);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            cardid = new byte[10];
+
+            StructUtils.Copy(block.data, 6, cardid, 0, 10);
+            return ret;
         }
     }
 }
