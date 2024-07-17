@@ -2,6 +2,7 @@
 using Haruka.Arcade.SEGA835Cmd.Modules.AimeReader;
 using Haruka.Arcade.SEGA835Cmd.Modules.IO4;
 using Haruka.Arcade.SEGA835Cmd.Modules.IO4Con;
+using Haruka.Arcade.SEGA835Cmd.Modules.LED;
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher;
 using Haruka.Arcade.SEGA835Cmd.Modules.RFID;
