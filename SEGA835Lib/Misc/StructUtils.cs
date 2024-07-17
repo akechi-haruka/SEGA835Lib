@@ -100,6 +100,10 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             }
         }
 
+        internal static unsafe String Copy(byte* from, int length) {
+            return new string((sbyte*)from, 0, length, Encoding.ASCII);
+        }
+
         internal static unsafe void Copy(byte* from, int from_offset, byte* to, int to_offset, int length) {
             for (int i = from_offset, j = to_offset; i < from_offset + length; i++, j++) {
                 to[j] = from[i];
