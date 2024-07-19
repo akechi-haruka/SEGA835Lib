@@ -30,7 +30,7 @@
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
     <IsPublishable>True</IsPublishable>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
 
@@ -38,7 +38,7 @@
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
     <IsPublishable>True</IsPublishable>
-    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
 

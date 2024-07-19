@@ -14,10 +14,10 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
         public int Port { get; set; }
 
         [Option('s', "src-addr", Required = false, HelpText = "Sets the client's address.", Default = 1)]
-        public byte SourceAddress { get; set; }
+        public int SourceAddress { get; set; }
 
         [Option('d', "dest-addr", Required = false, HelpText = "Sets the destination's address.", Default = 2)]
-        public byte DestinationAddress { get; set; }
+        public int DestinationAddress { get; set; }
 
         [Option("monkey-reset", HelpText = "Resets configuration changes to MONKEY06 boards")]
         public bool MonkeyReset { get; set; }

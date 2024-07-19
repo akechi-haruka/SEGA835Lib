@@ -123,6 +123,9 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             while (len == null) {
                 ret = base.ReadByte(out byte b);
                 if (ret != DeviceStatus.OK) {
+                    if (DumpRWCommandsToLog) {
+                        Log.Write("Error occurred after reading " + pos);
+                    }
                     return ret;
                 }
                 if (pos == 0 && b != SYNC_BYTE) {

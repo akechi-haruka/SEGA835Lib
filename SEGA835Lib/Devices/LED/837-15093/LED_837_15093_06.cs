@@ -41,7 +41,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             Port = port;
             HostAddress = host_addr;
             BoardAddress = board_addr;
-            serial = new SProtSerial(port);
+            serial = new SProtSerial(port, dtr: true, rts: true);
         }
 
         /// <inheritdoc/>

@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
         internal unsafe static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
-            LED_MONKEY06 led = new LED_MONKEY06(opts.Port, opts.SourceAddress, opts.DestinationAddress);
+            LED_MONKEY06 led = new LED_MONKEY06(opts.Port, (byte)opts.SourceAddress, (byte)opts.DestinationAddress);
 
             DeviceStatus ret = led.Connect();
             if (ret != DeviceStatus.OK) {
