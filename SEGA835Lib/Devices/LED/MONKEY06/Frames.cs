@@ -65,4 +65,26 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         }
     }
 
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct ReqPacketMonkeySetChannels : SProtPayload {
+
+        public byte r;
+        public byte g;
+        public byte b;
+
+        public byte GetCommandID() {
+            return 0xA3;
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct RespPacketMonkeySetChannels : SProtPayload {
+
+        public byte GetCommandID() {
+            return 0xA3;
+        }
+    }
+
 }

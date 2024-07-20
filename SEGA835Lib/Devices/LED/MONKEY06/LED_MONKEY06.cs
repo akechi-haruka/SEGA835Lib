@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
@@ -58,6 +59,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         }
 
         /// <summary>
+        /// Sets the board checksum on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetChannels(Channel R, Channel G, Channel B) {
+            Log.Write("SetChannels(" + R + ", " + G + ", " + B + ")");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetChannels() {
+                r = (byte)R,
+                g = (byte)G,
+                b = (byte)B
+            }, out RespPacketMonkeySetChannels _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        /// <summary>
         /// Sets the LED translation table.
         /// </summary>
         /// <remarks>
@@ -75,6 +90,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
             StructUtils.Copy(mapping.ToArray(), req.translation, mapping.Count());
             DeviceStatus ret = this.WriteAndRead(req, out RespPacketMonkeySetTranslation _, out byte status);
             return SetLastError(ret, status);
+        }
+
+        /// <summary>
+        /// Color channels for <see cref="SetChannels(Channel, Channel, Channel)"/>
+        /// </summary>
+        public enum Channel {
+            /// <summary>
+            /// Red.
+            /// </summary>
+            Red = 0,
+            /// <summary>
+            /// Green.
+            /// </summary>
+            Green = 1,
+            /// <summary>
+            /// Blue.
+            /// </summary>
+            Blue = 2
         }
     }
 }
