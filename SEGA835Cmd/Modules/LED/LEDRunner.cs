@@ -54,7 +54,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
 
             if (opts.LEDTable != null) {
                 List<Color> data = new List<Color>();
-                string[] array = opts.MonkeyTable.Split(',');
+                string[] array = opts.LEDTable.Split(',');
                 for (int i = 0; i < array.Length; i+=3) {
                     data.Add(Color.FromArgb(byte.Parse(array[i]), byte.Parse(array[i+1]), byte.Parse(array[i+2])));
                 }
