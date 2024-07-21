@@ -11,7 +11,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
     <Title>SEGA 835 I/O Library</Title>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>Haruka Akechi</Authors>
     <Company />
     <Description>Libary to interface with SEGA(R) arcade hardware</Description>
