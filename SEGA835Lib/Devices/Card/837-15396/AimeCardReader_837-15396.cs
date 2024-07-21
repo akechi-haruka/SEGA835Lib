@@ -5,7 +5,6 @@ using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;

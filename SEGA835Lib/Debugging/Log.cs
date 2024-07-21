@@ -117,9 +117,15 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             }
         }
 
+        private static void SetConsoleColor(ConsoleColor c) { // fix for unity error
+            Console.ForegroundColor = c;
+        }
+
         private static void WriteOut(string message, ConsoleColor c, string section) {
             lock (logLock) {
-                Console.ForegroundColor = c;
+                if (!Mute) {
+                    SetConsoleColor(c);
+                }
                 string o;
                 if (message != null) {
                     string fullSection;
@@ -141,10 +147,11 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 if (Debugger.IsAttached) {
                     Debugger.Log(0, section, message + "\r\n");
                 }
-                if (!open) { return; }
-                log?.WriteLine(o);
-                if (AutoFlush) {
-                    Flush();
+                if (open) {
+                    log?.WriteLine(o);
+                    if (AutoFlush) {
+                        Flush();
+                    }
                 }
             }
             LogMessageWritten?.Invoke(new LogEntry(message, c));

@@ -26,7 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             for (int i = 0; i < h; i++) {
                 int num2 = i;
                 for (int j = 0; j < w; j++) {
-                    Color p = bitmap.GetPixel(j, i);
+                    System.Drawing.Color p = bitmap.GetPixel(j, i);
                     int num4 = (num2 * w + j) * 3;
                     data[num4] = p.R;
                     data[num4 + 1] = p.G;
@@ -51,7 +51,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 int num = h - i - 1;
                 int num2 = i;
                 for (int j = 0; j < w; j++) {
-                    Color p = bitmap.GetPixel(j, num);
+                    System.Drawing.Color p = bitmap.GetPixel(j, num);
                     int num4 = (num2 * w + j);
                     data[num4] = p.R;
                 }
@@ -83,7 +83,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// <param name="size">The new size of the bitmap.</param>
         /// <param name="background">The color to fill the background with, if the bitmap is smaller than size.</param>
         /// <returns>A centered copy of the input bitmap.</returns>
-        public static Bitmap CopyCentered(this Bitmap bitmap, Size size, Color? background = null) {
+        public static Bitmap CopyCentered(this Bitmap bitmap, Size size, System.Drawing.Color? background = null) {
             PointF oversize = new PointF((bitmap.Width - size.Width) / -2, (bitmap.Height - size.Height) / -2);
             Bitmap copy = new Bitmap(size.Width, size.Height);
             using (Graphics g = Graphics.FromImage(copy)) {

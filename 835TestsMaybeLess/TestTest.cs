@@ -7,7 +7,7 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T01_TestFramework() {
-            Assert.Pass();
+            Assert.Pass(Environment.Version.ToString());
         }
 
         [Test]

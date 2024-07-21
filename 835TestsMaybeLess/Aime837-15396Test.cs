@@ -2,11 +2,11 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;

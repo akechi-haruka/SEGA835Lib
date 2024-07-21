@@ -1,6 +1,6 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093;
-using System.Drawing;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using System.Reflection.PortableExecutable;
 
 namespace _835TestsMaybeLess {
@@ -30,7 +30,7 @@ namespace _835TestsMaybeLess {
             Assert.That(led.SetTimeout(3000), Is.EqualTo(DeviceStatus.OK));
             Assert.That(led.SetResponseDisabled(true), Is.EqualTo(DeviceStatus.OK));
             for (int i = 0; i < 10; i++) {
-                Assert.That(led.SetLEDs(new Color[] { Color.Red, Color.Green, Color.Blue, Color.Yellow, Color.White }), Is.EqualTo(DeviceStatus.OK));
+                Assert.That(led.SetLEDs(new Color[] { Color.Red, Color.Green, Color.Blue, Color.White }), Is.EqualTo(DeviceStatus.OK));
             }
             Thread.Sleep(5000);
             Assert.That(led.SetLEDs(new Color[] { }), Is.EqualTo(DeviceStatus.OK));

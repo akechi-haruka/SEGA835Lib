@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -61,6 +62,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// <param name="arr">The object.</param>
         /// <returns>A struct based on the input array.</returns>
         public static T FromBytes<T>(byte[] arr) where T : struct {
+
             T str = default;
 
             GCHandle h = default;
@@ -68,10 +70,15 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             try {
                 h = GCHandle.Alloc(arr, GCHandleType.Pinned);
 
-#if NET40_OR_GREATER
+#if NET6_0_OR_GREATER
                 str = Marshal.PtrToStructure<T>(h.AddrOfPinnedObject());
 #else
-                Marshal.PtrToStructure(h.AddrOfPinnedObject(), str);
+                /*if (IsZeroSizeStruct(typeof(T))) {
+                    Log.Write("empty struct, ignored");
+                    return str;
+                }*/
+
+                str = (T)Marshal.PtrToStructure(h.AddrOfPinnedObject(), typeof(T));
 #endif
 
             } finally {
