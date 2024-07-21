@@ -105,7 +105,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                 try {
                     Log.Write("Checking status");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 3000);
+                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 10000);
                     if (ret != DeviceStatus.OK) {
                         return PrintExitThreadError(ret, rc);
                     }
@@ -165,7 +165,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     }
 
                     Log.Write("Checking status");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 3000);
+                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 10000);
                     if (ret != DeviceStatus.OK) {
                         return PrintExitThreadError(ret, rc);
                     }

@@ -3,6 +3,7 @@ using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +37,12 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
         [Option("rfid-override-card-id", Required = false, Hidden = true)]
         public bool RFIDOverrideCardId { get; set; }
+
+        [Option("holo-rf", Required = false, HelpText = "Rotate and/or flip the holo image", Default = RotateFlipType.RotateNoneFlipNone)]
+        public RotateFlipType HoloRotateFlip { get; set; }
+
+        [Option("image-rf", Required = false, HelpText = "Rotate and/or flip the image", Default = RotateFlipType.RotateNoneFlipNone)]
+        public RotateFlipType ImageRotateFlip { get; set; }
 
         [Option("holo", Required = false, HelpText = "The holo image file to print.")]
         public string HoloFileName { get; set; }
