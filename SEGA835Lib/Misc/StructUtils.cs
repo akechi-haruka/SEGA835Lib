@@ -68,7 +68,11 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             try {
                 h = GCHandle.Alloc(arr, GCHandleType.Pinned);
 
+#if NET40_OR_GREATER
                 str = Marshal.PtrToStructure<T>(h.AddrOfPinnedObject());
+#else
+                Marshal.PtrToStructure(h.AddrOfPinnedObject(), str);
+#endif
 
             } finally {
                 if (h.IsAllocated) {

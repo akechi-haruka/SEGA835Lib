@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
 
@@ -155,7 +157,18 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         /// <param name="objects">The objects to stringify</param>
         /// <returns>A string in the format "object1, object2, object3, ..."</returns>
         public static String Args(params object[] objects) {
+#if NET40_OR_GREATER
             return String.Join(", ", objects);
+#else
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < objects.Length; i++) {
+                sb.Append(objects[i]);
+                if (i + 1 < objects.Length) {
+                    sb.Append(", ");
+                }
+            }
+            return sb.ToString();
+#endif
         }
 
         /// <summary>

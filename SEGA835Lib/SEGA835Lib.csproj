@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>net8.0-windows10.0.18362.0;netstandard2.0;netstandard2.1;net6.0-windows7;net481</TargetFrameworks>
+	<TargetFrameworks>net8.0-windows10.0.18362.0;netstandard2.0;netstandard2.1;net6.0-windows7;net481;net35</TargetFrameworks>
     <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -50,8 +50,8 @@
 
   <ItemGroup>
     <PackageReference Include="hidlibrary" Version="3.3.40" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.6" />
-    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.6" Condition="'$(TargetFramework)' != 'net35'" />
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" Condition="'$(TargetFramework)' != 'net35'" />
   </ItemGroup>
 
   <ItemGroup>

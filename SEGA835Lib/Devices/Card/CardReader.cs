@@ -56,6 +56,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         public abstract byte[] GetCardUID();
 
         /// <summary>
+        /// Returns the last read card UID since the last call to <see cref="StartPolling"/> as a string (ex. 010312345678...).
+        /// </summary>
+        /// <returns>the card UID</returns>
+        public String GetCardUIDAsString() {
+            byte[] uid = GetCardUID();
+            if (uid != null) {
+                return BitConverter.ToString(uid).Replace("-", "");
+            } else {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Returns the last read card type since the last call to <see cref="StartPolling"/>.
         /// </summary>
         /// <returns></returns>
