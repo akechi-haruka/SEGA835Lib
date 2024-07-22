@@ -145,5 +145,34 @@ namespace _835TestsMaybeLess {
             Assert.That(cardid, Has.Length.EqualTo(CHCSeriesCardPrinter.CARD_ID_LEN));
         }
 
+        [Test]
+        public void T10_SAOConvertAndPrint() {
+            Bitmap img = new Bitmap(Image.FromFile("TestFiles/Printer/TestImageSAO.png"));
+            img.RotateFlip(RotateFlipType.Rotate180FlipX);
+            img.Save("TestFiles/Printer/TestImageSAO_c.png", ImageFormat.Png);
+            Bitmap holo = new Bitmap(Image.FromFile("TestFiles/Printer/TestHoloSAO.png"));
+            holo.RotateFlip(RotateFlipType.RotateNoneFlipX);
+            /*for (int w = 0; w < holo.Width; w++) {
+                for (int h = 0; h < holo.Height; h++) {
+                    System.Drawing.Color p = holo.GetPixel(w, h);
+                    if (p.R != 0 || p.G != 0 || p.B != 0) {
+                        holo.SetPixel(w, h, System.Drawing.Color.White);
+                    }
+                }
+            }*/
+            holo.Save("TestFiles/Printer/TestHoloSAO_c.png", ImageFormat.Png);
+            printer.InitTimeout = 5_000;
+            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            ushort rc = printer.GetPrinterStatusCode();
+            Log.Write(CHCSeriesCardPrinter.RCToString(rc));
+            Assert.That(rc, Is.EqualTo(0));
+            printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C330-01.icc");
+            printer.SetMtfFile("TestFiles/Printer/mtf140.txt");
+            printer.ImageStretchMode = StretchMode.Stretch;
+            Assert.That(printer.StartPrinting(img, null, holo), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
+            Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
+        }
+
     }
 }

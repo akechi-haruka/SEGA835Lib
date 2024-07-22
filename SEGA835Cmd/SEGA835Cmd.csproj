@@ -19,6 +19,7 @@
 		<Copyright>(c) 2024 Haruka Akechi and contributors</Copyright>
 		<RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
 		<PackageTags>Arcade;I/O;Serial</PackageTags>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -30,6 +31,15 @@
 		<FileAlignment>512</FileAlignment>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+	  <DebugType>embedded</DebugType>
+	  <IsPublishable>True</IsPublishable>
+	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+	  <FileAlignment>512</FileAlignment>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
 		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
@@ -37,6 +47,15 @@
 		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+	  <DebugType>embedded</DebugType>
+	  <IsPublishable>True</IsPublishable>
+	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+	  <FileAlignment>512</FileAlignment>
 	</PropertyGroup>
 
 	<ItemGroup>

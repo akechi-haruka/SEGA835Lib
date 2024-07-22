@@ -31,5 +31,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
         [Option("no-exit-button", Required = false, HelpText = "Disables pressing ESC to exit.")]
         public bool NoExitButton { get; set; }
 
+        [Option("ignore-vjoy-errors", Required = false, Hidden = true)]
+        public bool IgnoreVJoyErrors { get; set; }
+
+        [Option("dump-axes", Required = false, HelpText = "Prints ADC values")]
+        public bool DumpAxes { get; set; }
+
     }
 }

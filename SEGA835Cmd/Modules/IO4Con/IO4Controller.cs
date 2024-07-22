@@ -28,13 +28,21 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
             }
 
             VirtualJoystick j = new VirtualJoystick(opts.ControllerId);
-            j.Aquire();
+            try {
+                j.Aquire();
+            }catch{
+                if (opts.IgnoreVJoyErrors) {
+                    j = null;
+                } else {
+                    throw;
+                }
+            }
 
             if (!opts.NoExitButton) {
                 Console.WriteLine("Press ESC to exit.");
             }
 
-            while (j.Aquired && dev.IsConnected()) {
+            while (j?.Aquired ?? true && dev.IsConnected()) {
 
                 if (!opts.NoExitButton) {
                     if (Console.KeyAvailable) {
@@ -53,22 +61,33 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
 
                 int x = report.adcs[opts.XAxisADC] - short.MaxValue / 2;
                 int y = report.adcs[opts.YAxisADC] - short.MaxValue / 2;
-                j.SetJoystickAxis(opts.XFlip ? short.MaxValue - x : x, Axis.HID_USAGE_X);
-                j.SetJoystickAxis(opts.YFlip ? short.MaxValue - y : y, Axis.HID_USAGE_Y);
+                j?.SetJoystickAxis(opts.XFlip ? short.MaxValue - x : x, Axis.HID_USAGE_X);
+                j?.SetJoystickAxis(opts.YFlip ? short.MaxValue - y : y, Axis.HID_USAGE_Y);
                 Axis currentAxis = Axis.HID_USAGE_Z;
                 for (int i = 0; i < JVSUSBReportIn.ADC_COUNT; i++) {
                     if (i != opts.XAxisADC && i != opts.YAxisADC) {
-                        j.SetJoystickAxis(report.adcs[i] - short.MaxValue / 2, currentAxis++);
+                        j?.SetJoystickAxis(report.adcs[i] - short.MaxValue / 2, currentAxis++);
                     }
                 }
                 uint button_index = 0;
                 for (int p = 0; p < JVSUSBReportIn.BUTTON_COUNT; p++) {
                     for (int b = 0; b < 16; b++) {
-                        j.SetJoystickButton(((report.buttons[p] >> b) & 1) != 0, button_index++);
+                        j?.SetJoystickButton(((report.buttons[p] >> b) & 1) != 0, button_index++);
                     }
                 }
 
-                j.Update();
+                j?.Update();
+
+                if (opts.DumpAxes) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < JVSUSBReportIn.ADC_COUNT; i++) {
+                        sb.Append(report.adcs[i]);
+                        if (i + 1 < JVSUSBReportIn.ADC_COUNT) {
+                            sb.Append(',');
+                        }
+                    }
+                    Log.Write(sb.ToString());
+                }
 
                 Thread.Sleep(opts.PollDelay);
             }

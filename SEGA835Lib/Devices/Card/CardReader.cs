@@ -58,11 +58,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// <summary>
         /// Returns the last read card UID since the last call to <see cref="StartPolling"/> as a string (ex. 010312345678...).
         /// </summary>
+        /// <param name="felica_include_pmm">If the card is a FeliCa card, whether or not the PMm value should be retained. If this is false, this will only return the IDm part of a FeliCa. This has no effect for MIFARE cards.</param>
         /// <returns>the card UID</returns>
-        public String GetCardUIDAsString() {
+        public String GetCardUIDAsString(bool felica_include_pmm = false) {
             byte[] uid = GetCardUID();
             if (uid != null) {
-                return BitConverter.ToString(uid).Replace("-", "");
+                int len = uid.Length;
+                if (GetCardType() == CardType.FeliCa && !felica_include_pmm) {
+                    len = 8;
+                }
+                return BitConverter.ToString(uid, 0, len).Replace("-", "");
             } else {
                 return null;
             }

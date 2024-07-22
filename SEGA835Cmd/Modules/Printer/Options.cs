@@ -38,6 +38,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
         [Option("rfid-override-card-id", Required = false, Hidden = true)]
         public bool RFIDOverrideCardId { get; set; }
 
+        [Option("holo-simplify", Required = false, HelpText = "Strips everything except fully black (0,0,0) pixels from the holo")]
+        public bool HoloSimplify { get; set; }
+
         [Option("holo-rf", Required = false, HelpText = "Rotate and/or flip the holo image", Default = RotateFlipType.RotateNoneFlipNone)]
         public RotateFlipType HoloRotateFlip { get; set; }
 

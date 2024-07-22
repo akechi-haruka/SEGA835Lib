@@ -264,6 +264,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         private DeviceStatus? threadCallStatus;
         private ushort threadStatusCode;
         private ushort currentStatusCode;
+        internal int InitTimeout = 120_000;
 
         /// <summary>
         /// Creates a new CHCSeriesCardPrinter.
@@ -477,7 +478,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
 
                 Log.Write("Waiting until printer has finished initalizing");
-                return PrintWaitFor(ref rc, Native.CHC_status, 120_000, RESULT_STATUS_MainCpuInitialize, RESULT_STATUS_RibbonInitialize, RESULT_STATUS_CardLoading, RESULT_STATUS_Operation, RESULT_STATUS_Selfdiagnosis, RESULT_STATUS_DownLoading, RESULT_STATUS_BootMode);
+                return PrintWaitFor(ref rc, Native.CHC_status, InitTimeout, RESULT_STATUS_MainCpuInitialize, RESULT_STATUS_RibbonInitialize, RESULT_STATUS_CardLoading, RESULT_STATUS_Operation, RESULT_STATUS_Selfdiagnosis, RESULT_STATUS_DownLoading, RESULT_STATUS_BootMode);
             });
 
             if (ret != DeviceStatus.OK) {
@@ -859,9 +860,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
             if (holo != null && holo.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
-                    holo = image.CopyStretched(ImageDimensions);
+                    holo = holo.CopyStretched(ImageDimensions);
                 } else if (ImageStretchMode == StretchMode.Center) {
-                    holo = image.CopyCentered(ImageDimensions);
+                    holo = holo.CopyCentered(ImageDimensions);
                 } else {
                     throw new ArgumentException("Holo image to print with size " + holo.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }

@@ -94,6 +94,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 Bitmap image, holo;
                 try {
                     image = new Bitmap(Image.FromFile(opts.ImageFileName));
+                    Log.Write("Image rotate: " + opts.ImageRotateFlip);
                     if (opts.ImageRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                         image.RotateFlip(opts.ImageRotateFlip);
                     }
@@ -105,8 +106,20 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 if (opts.HoloFileName != null) {
                     try {
                         holo = new Bitmap(Image.FromFile(opts.HoloFileName));
+                        Log.Write("Holo rotate: " + opts.HoloRotateFlip);
                         if (opts.HoloRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                             holo.RotateFlip(opts.HoloRotateFlip);
+                        }
+                        if (opts.HoloSimplify) {
+                            Log.Write("Holo simplify");
+                            for (int w = 0; w < holo.Width; w++) {
+                                for (int h = 0; h < holo.Height; h++) {
+                                    Color p = holo.GetPixel(w, h);
+                                    if (p.R != 0 || p.G != 0 || p.B != 0) {
+                                        holo.SetPixel(w, h, Color.White);
+                                    }
+                                }
+                            }
                         }
                     } catch (Exception ex) {
                         Log.WriteFault(ex, "Failed loading holo image from " + opts.HoloFileName);
