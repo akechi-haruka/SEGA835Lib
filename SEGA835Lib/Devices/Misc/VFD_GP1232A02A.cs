@@ -261,6 +261,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         public DeviceStatus WriteScrollingText(string str, bool truncate = false) {
             Log.Write("Write Text: " + str);
             NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
+            str += " ";
             const int max_str_len = 0x95;
             if (str.Length >= max_str_len) {
                 if (truncate) {
@@ -297,11 +298,51 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// Enables or disables text scrolling.
+        /// Writes text to the device. Deletes all existing text and scroll windows.
         /// </summary>
-        /// <param name="scroll">true if text scrolling should be enabled, false if the text should not scroll.</param>
+        /// <param name="str1">The string to write in the first row. (maximum 149 characters)</param>
+        /// <param name="str2">The string to write in the first row. (maximum 149 characters)</param>
+        /// <param name="scroll1">If the first line should scroll.</param>
+        /// <param name="scroll2">If the second line should scroll.</param>
+        /// <param name="truncate">If the string should be truncated if it's too long, otherwise <see cref="DeviceStatus.ERR_PAYLOAD_TOO_LARGE"/> will be returned.</param>
+        /// <param name="width">The text position width?</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public DeviceStatus SetTextScroll(bool scroll) {
+        /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
+        /// <exception cref="ArgumentException">If the configured encoding is not supported on this computer.</exception>
+        public DeviceStatus SetText(string str1, string str2, bool scroll1 = false, bool scroll2 = false, bool truncate = false, byte width = 140) {
+            DeviceStatus ret = ClearScreen();
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            ret = SetTextPosition(0, 0, width);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            ret = WriteScrollingText(str1, truncate);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            ret = SetTextScroll(scroll1);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            ret = SetTextPosition(0, 16, width);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            ret = WriteScrollingText(str2, truncate);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            return SetTextScroll(scroll2);
+        }
+
+            /// <summary>
+            /// Enables or disables text scrolling.
+            /// </summary>
+            /// <param name="scroll">true if text scrolling should be enabled, false if the text should not scroll.</param>
+            /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
+            public DeviceStatus SetTextScroll(bool scroll) {
             Log.Write("Set Text Scrolling: " + scroll);
             return SetLastError(Write(new byte[] { (byte)(scroll ? 0x51 : 0x52) }));
         }
