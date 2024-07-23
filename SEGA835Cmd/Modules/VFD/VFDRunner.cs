@@ -27,9 +27,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
             try {
                 ret = vfd.SetEncoding(opts.Encoding);
                 ret = vfd.SetOn(true);
-                ret = vfd.SetTextPosition(20, 0, 120);
+                ret = vfd.SetScrollWindowPosition(20, 0, 120);
                 ret = vfd.WriteScrollingText(opts.Text);
-                ret = vfd.SetTextScroll(!opts.NoScroll);
+                ret = vfd.SetTextDrawing(!opts.NoScroll);
                 ret = vfd.SetBrightness(opts.Brightness);
             } catch {
                 Log.WriteError("VFD setup failed");

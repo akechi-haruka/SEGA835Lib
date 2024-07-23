@@ -221,9 +221,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="x">The x coordinate.</param>
         /// <param name="y">The y coordinate.</param>
         /// <param name="w">Unknown. The text width??</param>
+        /// <param name="h">Unknown. The text height??</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x is not in [0,512), x+w is not in [0,512], y not in [0,32) or not a multiple of 8.</exception>
-        public DeviceStatus SetTextPosition(ushort x, byte y, ushort w) {
+        public DeviceStatus SetScrollWindowPosition(ushort x, byte y, ushort w, ushort h = 0) {
             Log.Write("Set Text: " + x + "/" + y + "("+w+")");
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
@@ -237,7 +238,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (y % 8 != 0) {
                 throw new ArgumentException("y (" + y + ") must be a multiple of 8");
             }
-            return SetLastError(Write(new byte[] { 0x40, (byte)(x >> 8), (byte)x, (byte)(y / 8), (byte)(w >> 8), (byte)w, 0x00 }));
+            if (y >= 32) {
+                throw new ArgumentException("h (" + h + ") must be within [0,32)");
+            }
+            if (y % 8 != 0) {
+                throw new ArgumentException("h (" + h + ") must be a multiple of 8");
+            }
+            return SetLastError(Write(new byte[] { 0x40, (byte)(x >> 8), (byte)x, (byte)(y / 8), (byte)(w >> 8), (byte)w, (byte)(h / 8) }));
         }
 
         /// <summary>
@@ -251,7 +258,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// Writes text to the device. If the text should actually not scroll, use <see cref="SetTextScroll(bool)"/> with false.
+        /// Writes text to the device. If the text should actually not scroll, use <see cref="SetTextDrawing(bool)"/> with false.
         /// </summary>
         /// <param name="str">The string to write. (maximum 149 characters)</param>
         /// <param name="truncate">If the string should be truncated if it's too long, otherwise <see cref="DeviceStatus.ERR_PAYLOAD_TOO_LARGE"/> will be returned.</param>
@@ -309,41 +316,120 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
         /// <exception cref="ArgumentException">If the configured encoding is not supported on this computer.</exception>
-        public DeviceStatus SetText(string str1, string str2, bool scroll1 = false, bool scroll2 = false, bool truncate = false, byte width = 140) {
+        public DeviceStatus SetText(string str1, string str2, bool scroll1 = false, bool scroll2 = false, bool truncate = false, byte width = 190) {
             DeviceStatus ret = ClearScreen();
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
-            ret = SetTextPosition(0, 0, width);
+            ret = SetTextDrawing(false);
+            if (!scroll1 && !scroll2) {
+                ret = SetScrollWindowPosition(0, 0, 0, 0);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+                ret = WriteScrollingText("");
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+            }
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
-            ret = WriteScrollingText(str1, truncate);
-            if (ret != DeviceStatus.OK) {
-                return ret;
+            if (scroll1) {
+                ret = SetScrollWindowPosition(0, 0, width, 16);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+                ret = WriteScrollingText(str1, truncate);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+            } else {
+                ret = SetCursorPosition(0, 0);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+                ret = WriteStaticText(str1, truncate);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
             }
-            ret = SetTextScroll(scroll1);
-            if (ret != DeviceStatus.OK) {
-                return ret;
+            if (scroll2) {
+                ret = SetScrollWindowPosition(0, 16, width, 32);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+                ret = WriteScrollingText(str2, truncate);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+            } else {
+                ret = SetCursorPosition(0, 16);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+                ret = WriteStaticText(str2, truncate);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
             }
-            ret = SetTextPosition(0, 16, width);
-            if (ret != DeviceStatus.OK) {
-                return ret;
-            }
-            ret = WriteScrollingText(str2, truncate);
-            if (ret != DeviceStatus.OK) {
-                return ret;
-            }
-            return SetTextScroll(scroll2);
+            return SetTextDrawing(true);
         }
 
-            /// <summary>
-            /// Enables or disables text scrolling.
-            /// </summary>
-            /// <param name="scroll">true if text scrolling should be enabled, false if the text should not scroll.</param>
-            /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-            public DeviceStatus SetTextScroll(bool scroll) {
-            Log.Write("Set Text Scrolling: " + scroll);
+        /// <summary>
+        /// Writes static text to the VFD at the current cursor position.
+        /// </summary>
+        /// <seealso cref="SetCursorPosition(ushort, byte)"/>
+        /// <param name="str">The string to write.</param>
+        /// <param name="truncate">If the string should be truncated if it's too long, otherwise <see cref="DeviceStatus.ERR_PAYLOAD_TOO_LARGE"/> will be returned.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
+        /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
+        public DeviceStatus WriteStaticText(string str, bool truncate = true) {
+
+            Log.Write("Write Static Text: " + str);
+            NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
+            str += " ";
+            const int max_str_len = 0x95;
+            if (str.Length >= max_str_len) {
+                if (truncate) {
+                    str = str.Substring(0, max_str_len);
+                } else {
+                    return SetLastError(DeviceStatus.ERR_PAYLOAD_TOO_LARGE);
+                }
+            }
+
+            Encoding enc;
+            switch (EncodingSetting) {
+                case VFDEncoding.GB2312:
+                    enc = Encoding.GetEncoding("gb2312");
+                    break;
+                case VFDEncoding.KSC5601:
+                    enc = Encoding.GetEncoding("ks_c_5601-1987");
+                    break;
+                case VFDEncoding.BIG5:
+                    enc = Encoding.GetEncoding("big5");
+                    break;
+                case VFDEncoding.SHIFT_JIS:
+                    enc = Encoding.GetEncoding("shift_jis");
+                    break;
+                default:
+                    throw new InvalidOperationException("Can't encode string for VFD with encoding: " + EncodingSetting);
+            }
+
+            byte[] strbytes = enc.GetBytes(str);
+            byte[] packet = new byte[1 + str.Length];
+            packet[0] = 0x00;
+            Array.Copy(strbytes, 0, packet, 1, str.Length);
+            return SetLastError(Write(packet));
+        }
+
+        /// <summary>
+        /// Enables or disables text drawing. This is useful for batch operations.
+        /// </summary>
+        /// <param name="scroll">true if text drawing should be enabled, false if the text should not be drawn.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
+        public DeviceStatus SetTextDrawing(bool scroll) {
+            Log.Write("Set Text Drawing: " + scroll);
             return SetLastError(Write(new byte[] { (byte)(scroll ? 0x51 : 0x52) }));
         }
 
