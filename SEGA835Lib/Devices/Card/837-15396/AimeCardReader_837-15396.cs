@@ -314,11 +314,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return ret;
         }
 
-        /// <summary>
-        /// Resets the card reader's LED sub-board.
-        /// </summary>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus LEDReset() {
+        /// <inheritdoc/>
+        public override DeviceStatus LEDReset() {
             Log.Write("LEDReset");
             DeviceStatus ret = this.WriteAndRead(new ReqPacketLEDReset(), out RespPacketLEDReset _, out byte status, LED_BOARD_ADDRESS);
             return SetLastError(ret, status);
@@ -384,14 +381,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return LEDSetColor(c.R, c.G, c.B);
         }
 
-        /// <summary>
-        /// Sets the card reader's LED color.
-        /// </summary>
-        /// <param name="red">The R value of the color. [0-255]</param>
-        /// <param name="green">The G value of the color. [0-255]</param>
-        /// <param name="blue">The B value of the color. [0-255]</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus LEDSetColor(byte red, byte green, byte blue) {
+        /// <inheritdoc />
+        public override DeviceStatus LEDSetColor(byte red, byte green, byte blue) {
             Log.Write("LEDSetColor");
             DeviceStatus ret = Write(new ReqPacketLEDSetColor() {
                 red = red,
@@ -401,11 +392,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return SetLastError(ret);
         }
 
-        /// <summary>
-        /// Clears the last card values from the reader.
-        /// </summary>
-        /// <seealso cref="GetCardUID"/>
-        public void ClearCard() {
+        /// <inheritdoc/>
+        public override void ClearCard() {
             lastReadCardType = null;
             lastReadCardUID = null;
         }

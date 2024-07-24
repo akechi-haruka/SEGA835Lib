@@ -1,4 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
@@ -84,5 +85,26 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
 
         /// <inheritdoc/>
         public abstract DeviceStatus Read(out SProtFrame recv);
+
+        /// <summary>
+        /// Clears the last card values from the reader.
+        /// </summary>
+        /// <seealso cref="GetCardUID"/>
+        public abstract void ClearCard();
+
+        /// <summary>
+        /// Sets the card reader's LED color.
+        /// </summary>
+        /// <param name="red">The R value of the color. [0-255]</param>
+        /// <param name="green">The G value of the color. [0-255]</param>
+        /// <param name="blue">The B value of the color. [0-255]</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public abstract DeviceStatus LEDSetColor(byte red, byte green, byte blue);
+
+        /// <summary>
+        /// Resets the card reader's LEDs to default and/or initializes the LED sub-board.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public abstract DeviceStatus LEDReset();
     }
 }
