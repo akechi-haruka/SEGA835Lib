@@ -1,4 +1,6 @@
-﻿using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
+﻿#if !RASPBERRY
+
+using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.IO;
@@ -190,3 +192,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
         }
     }
 }
+
+#endif

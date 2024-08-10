@@ -29,6 +29,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
+        private RadioOnType? radioType;
 
         /// <summary>
         /// Initializes a new card reader on the specified port.
@@ -46,6 +47,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 return DeviceStatus.OK;
             }
             lastReadCardUID = null;
+            radioType = null;
             Log.Write("Connecting on Port " + Port);
             if (!serial.Connect()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
@@ -166,6 +168,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus RadioOn(RadioOnType type) {
             Log.Write("RadioOn("+type+")");
+            radioType = type;
             DeviceStatus ret = this.WriteAndRead(new ReqPacketRadioOn() { type = (byte)type }, out RespPacketRadioOn _, out byte status);
             return SetLastError(ret, status);
         }
@@ -176,14 +179,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus RadioOff() {
             Log.Write("RadioOff");
+            radioType = null;
             DeviceStatus ret = this.WriteAndRead(new ReqPacketRadioOff(), out RespPacketRadioOff _, out byte status);
             return SetLastError(ret, status);
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
-            Log.Write("Disconnected on Port " + Port);
+            Log.Write("Disconnecting on Port " + Port);
             serial?.Disconnect();
+            Log.Write("Disconnected on Port " + Port);
             return DeviceStatus.OK;
         }
 
@@ -217,6 +222,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             Log.Write("Starting polling of Aime reader on port " + Port);
             if (IsPolling()) {
                 return DeviceStatus.OK;
+            }
+            if (radioType == null) {
+                DeviceStatus ret = RadioOn(RadioOnType.Both);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
             }
             pollingThread = new Thread(PollT);
             pollingThread.Start();

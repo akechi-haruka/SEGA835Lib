@@ -1,4 +1,6 @@
-﻿using CommandLine;
+﻿#if !RASPBERRY
+
+using CommandLine;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
@@ -64,3 +66,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
     }
 }
+
+#endif

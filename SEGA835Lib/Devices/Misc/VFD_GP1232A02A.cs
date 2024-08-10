@@ -63,8 +63,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <returns>Always returns <see cref="DeviceStatus.OK"/>.</returns>
         public override DeviceStatus Disconnect() {
-            Log.Write("Disconnected on Port " + Port);
+            Log.Write("Disconnecting on Port " + Port);
             serial?.Disconnect();
+            Log.Write("Disconnected on Port " + Port);
             return DeviceStatus.OK;
         }
 

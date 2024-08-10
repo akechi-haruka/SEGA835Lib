@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Haruka.Arcade.SEGA835Cmd</RootNamespace>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -12,14 +11,15 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
 		<Title>SEGA 835 I/O Application</Title>
-		<Version>0.1.1</Version>
+		<Version>0.2.0</Version>
 		<Authors>Haruka Akechi</Authors>
 		<Company />
 		<Description>Command-line applicaton to interface with SEGA(R) arcade hardware</Description>
 		<Copyright>(c) 2024 Haruka Akechi and contributors</Copyright>
 		<RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
 		<PackageTags>Arcade;I/O;Serial</PackageTags>
-		<Platforms>AnyCPU;x64</Platforms>
+		<Platforms>AnyCPU;x64;ARM64</Platforms>
+		<Configurations>Debug;Release;Raspberry</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -29,15 +29,27 @@
 		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-	  <DebugType>embedded</DebugType>
-	  <IsPublishable>True</IsPublishable>
-	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-	  <FileAlignment>512</FileAlignment>
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -47,26 +59,68 @@
 		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|AnyCPU'">
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|ARM64'">
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-	  <DebugType>embedded</DebugType>
-	  <IsPublishable>True</IsPublishable>
-	  <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-	  <FileAlignment>512</FileAlignment>
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|x64'">
+		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<IsPublishable>True</IsPublishable>
+		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+		<FileAlignment>512</FileAlignment>
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="publish\**" />
-	  <EmbeddedResource Remove="publish\**" />
-	  <None Remove="publish\**" />
+		<Compile Remove="publish\**" />
+		<EmbeddedResource Remove="publish\**" />
+		<None Remove="publish\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="CommandLineParser" Version="2.9.1" />
-	  <PackageReference Include="vJoy.Wrapper" Version="1.0.0.5" />
+		<PackageReference Include="CommandLineParser" Version="2.9.1" />
+		<PackageReference Include="vJoy.Wrapper" Version="1.0.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -74,7 +128,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
+		<Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
 	</Target>
 
 </Project>

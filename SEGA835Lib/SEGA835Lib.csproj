@@ -20,10 +20,15 @@
     <PackageTags>Arcade;I/O;Serial</PackageTags>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	<Configurations>Debug;Release;Raspberry</Configurations>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Raspberry'">
+	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -35,6 +40,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <DebugType>embedded</DebugType>
+    <IsPublishable>True</IsPublishable>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|AnyCPU'">
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
     <IsPublishable>True</IsPublishable>

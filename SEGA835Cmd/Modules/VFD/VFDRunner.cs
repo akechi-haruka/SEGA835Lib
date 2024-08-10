@@ -31,9 +31,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
                 ret = vfd.WriteScrollingText(opts.Text);
                 ret = vfd.SetTextDrawing(!opts.NoScroll);
                 ret = vfd.SetBrightness(opts.Brightness);
-            } catch {
-                Log.WriteError("VFD setup failed");
+            } catch (Exception ex) {
+                Log.WriteFault(ex, "VFD setup failed");
                 return (DeviceStatus)vfd.GetLastError();
+            } finally {
+                vfd?.Disconnect();
             }
 
             return ret;

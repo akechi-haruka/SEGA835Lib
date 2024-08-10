@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -103,7 +104,12 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <returns>true if successful, false if not</returns>
         public bool Connect() {
             Log.Write("Connecting to port " + Port + " (" + Baudrate + ") DTR=" + DTR + ",RTS=" + RTS);
-            device = new SerialPort("COM" + Port, Baudrate, Parity, DataBits, StopBits) {
+#if RASPBERRY
+            string portPrefix = "/dev/ttySC";
+#else
+            string portPrefix = "COM";
+#endif
+            device = new SerialPort(portPrefix + Port, Baudrate, Parity, DataBits, StopBits) {
                 DtrEnable = DTR,
                 RtsEnable = RTS,
                 ReadTimeout = Timeout,
