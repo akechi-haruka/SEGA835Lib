@@ -25,12 +25,15 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
 
             vfd.SetUseExceptions(true);
             try {
-                ret = vfd.SetEncoding(opts.Encoding);
-                ret = vfd.SetOn(true);
-                ret = vfd.SetScrollWindowPosition(20, 0, 120);
-                ret = vfd.WriteScrollingText(opts.Text);
-                ret = vfd.SetTextDrawing(!opts.NoScroll);
-                ret = vfd.SetBrightness(opts.Brightness);
+                if (opts.GetVersion) {
+                    ret = vfd.GetVersion(out string ver);
+                    Console.WriteLine(ver);
+                } else {
+                    ret = vfd.SetEncoding(opts.Encoding);
+                    ret = vfd.SetOn(true);
+                    ret = vfd.SetText(opts.Text, opts.Text2, opts.ScrollLine == 1, opts.ScrollLine == 2);
+                    ret = vfd.SetBrightness(opts.Brightness);
+                }
             } catch (Exception ex) {
                 Log.WriteFault(ex, "VFD setup failed");
                 return (DeviceStatus)vfd.GetLastError();
