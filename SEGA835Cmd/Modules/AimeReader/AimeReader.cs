@@ -41,7 +41,15 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Operation failed");
                     }
-                    Console.WriteLine(version);
+                    Console.WriteLine(version + " (0x" + (Encoding.ASCII.GetBytes(version)[0].ToString("X2")) + ")");
+                    Log.Dump(Encoding.ASCII.GetBytes(version), "Hex Dump");
+                    return ret;
+                } else if (opts.GetFirmwareChecksum) {
+                    ret = aime.GetFWChecksum(out ushort checksum);
+                    if (ret != DeviceStatus.OK) {
+                        Log.WriteError("Operation failed");
+                    }
+                    Console.WriteLine(checksum);
                     return ret;
                 } else if (opts.GetHardware) {
                     ret = aime.GetHWVersion(out string version);

@@ -42,6 +42,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
         [Option("get-firmware", Required = false, HelpText = "Prints the Aime reader's firmware revision.", Group = "ScanType")]
         public bool GetFirmware { get; set; }
 
+        [Option("get-firmware-checksum", Required = false, HelpText = "Prints the Aime reader's firmware checksum.", Group = "ScanType")]
+        public bool GetFirmwareChecksum { get; set; }
+
         [Option("timeout", Required = false, HelpText = "(Default: Infinite) Maximum number of seconds to wait for a card.")]
         public int Timeout { get; set; }
 

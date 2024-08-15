@@ -1,6 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card;
+using Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
@@ -85,6 +86,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 payload = null;
                 return ret;
             }
+            // data[0] = sync
+            // data[1] = full packet length
             addr = data[2];
             seq = data[3];
             cmd = data[4];
@@ -120,7 +123,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <returns><see cref="DeviceStatus.OK"/> on success, or if the reader was already reset (which will log a warning), or any other DeviceStatus on failure.</returns>
         public DeviceStatus Reset() {
             Log.Write("Reset");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out byte status);
+            DeviceStatus ret;
+            byte status;
+            try {
+                ret = this.WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out status);
+            }catch (ArgumentException) {
+                Log.WriteError("There was an error reading from the reset response. You may have connected the TXD1/RXD2 lines incorrectly. (or there may be a different problem)");
+                throw;
+            }
             if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
                 return SetLastError(DeviceStatus.OK, status);
             }
@@ -157,6 +167,23 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 version = resp.version;
             } else {
                 version = null;
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Queries the card reader's firmware checksum.
+        /// </summary>
+        /// <param name="checksum">The reader's firmware checksum</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public DeviceStatus GetFWChecksum(out ushort checksum) {
+            Log.Write("GetFWChecksum");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
+            SetLastError(ret, status);
+            if (ret == DeviceStatus.OK) {
+                checksum = resp.fw_checksum;
+            } else {
+                checksum = 0;
             }
             return ret;
         }
