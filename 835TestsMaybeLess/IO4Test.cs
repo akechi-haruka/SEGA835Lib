@@ -49,7 +49,7 @@ namespace _835TestsMaybeLess {
         [Test]
         public void T03_TestLEDs() {
             Assert.That(io4.Connect(), Is.EqualTo(DeviceStatus.OK));
-            for (int i = 0; i < 48; i++) {
+            for (int i = 0; i < 32; i++) {
                 Assert.That(io4.SetLED(i, byte.MaxValue, true), Is.EqualTo(DeviceStatus.OK));
                 Thread.Sleep(250);
             }

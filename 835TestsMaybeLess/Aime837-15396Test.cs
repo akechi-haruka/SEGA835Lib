@@ -19,7 +19,7 @@ namespace _835TestsMaybeLess {
 
         [SetUp]
         public void Setup() {
-            reader = new AimeCardReader_837_15396(10, true);
+            reader = new AimeCardReader_837_15396(3, true);
             reader.serial.DumpRWCommandsToLog = true;
             reader.serial.DumpBytesToLog = true;
         }
@@ -36,6 +36,8 @@ namespace _835TestsMaybeLess {
             Assert.That(version, Is.Not.Null);
             Assert.That(reader.GetFWVersion(out string version2), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version2, Is.Not.Null);
+            Assert.That(reader.GetFWChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(checksum, Is.GreaterThan(0));
         }
 
         [Test]
