@@ -157,16 +157,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <summary>
         /// Queries the card reader's firmware version.
         /// </summary>
-        /// <param name="version">The reader's firmware version (ex. "TN32MSEC003S F/W Ver1.2") or null on failure</param>
+        /// <param name="version">The reader's firmware version (ex. "TN32MSEC003S F/W Ver1.2"), null if the reader is a gen 2 or newer reader, or on failure</param>
+        /// <param name="version_byte">The reader's firmware version (ex. 0x93), 0 if the reader is a gen 1 reader, or on failure</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus GetFWVersion(out string version) {
+        public DeviceStatus GetFWVersion(out string version, out byte version_byte) {
             Log.Write("GetFWVersion");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetFWVersion(), out RespPacketGetFWVersion resp, out byte status);
+            DeviceStatus ret = Write(new SProtFrame(new ReqPacketGetFWVersion())); // special handling here since data could be returned in two variants
+            Read(out _, out _, out _, out byte status, out byte[] payload);
             SetLastError(ret, status);
             if (ret == DeviceStatus.OK) {
-                version = resp.version;
+                if (payload.Length == 1) {
+                    RespPacketGetFWVersion1Byte resp = StructUtils.FromBytes<RespPacketGetFWVersion1Byte>(payload);
+                    version = null;
+                    version_byte = resp.version;
+                } else {
+                    RespPacketGetFWVersion resp = StructUtils.FromBytes<RespPacketGetFWVersion>(payload);
+                    version = resp.version;
+                    version_byte = 0;
+                }
             } else {
                 version = null;
+                version_byte = 0;
             }
             return ret;
         }

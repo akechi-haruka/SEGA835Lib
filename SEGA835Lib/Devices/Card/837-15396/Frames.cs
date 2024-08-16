@@ -41,6 +41,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct RespPacketGetFWVersion1Byte : SProtPayload {
+
+        internal byte version;
+
+        public byte GetCommandID() {
+            return 0x30;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketGetHWVersion : SProtPayload {
         public byte GetCommandID() {
             return 0x32;

@@ -24,7 +24,7 @@ namespace Haruka.Arcade.SEGA835Lib {
         /// <summary>
         /// The global API version. This will change only if base API is modified and incompatible with previous versions.
         /// </summary>
-        public const int LIB_API_VERSION = 2;
+        public const int LIB_API_VERSION = 3;
 
     }
 }

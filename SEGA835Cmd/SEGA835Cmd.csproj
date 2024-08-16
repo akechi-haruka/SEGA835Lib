@@ -11,7 +11,7 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
 		<Title>SEGA 835 I/O Application</Title>
-		<Version>0.2.0</Version>
+		<Version>0.2.1</Version>
 		<Authors>Haruka Akechi</Authors>
 		<Company />
 		<Description>Command-line applicaton to interface with SEGA(R) arcade hardware</Description>
@@ -128,7 +128,7 @@
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
+		<Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\segacmd\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
 	</Target>
 
 </Project>
