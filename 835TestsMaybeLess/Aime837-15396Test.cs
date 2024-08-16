@@ -34,8 +34,10 @@ namespace _835TestsMaybeLess {
             Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.GetHWVersion(out string version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.Null);
-            Assert.That(reader.GetFWVersion(out string version2), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(version2, Is.Not.Null);
+            Assert.That(reader.GetFWVersion(out string version2, out byte version3), Is.EqualTo(DeviceStatus.OK));
+            if (version3 == 0) {
+                Assert.That(version2, Is.Not.Null);
+            }
             Assert.That(reader.GetFWChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.OK));
             Assert.That(checksum, Is.GreaterThan(0));
         }
