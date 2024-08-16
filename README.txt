@@ -55,12 +55,19 @@ Implementation Notes:
 * As this is a highly experimental API right now, consumer applications should check Haruka.Arcade.SEGA835Lib.VersionInfo.LIB_API_VERSION. This number will be incremented on any breaking changes for consumers.
 * All device implementations operate by default on C-style error codes (enum DeviceStatus) as the devices themselves or dependent libaries do so. If you prefer exceptions, call SetUseExceptions on the device. (Invalid arguments, etc. will always throw exceptions regardless of this preference.)
 
-* To use before Unity 2018, or if your Unity version does not use netstandard.dll, use the "net35" version.
-* To use in Unity 2018 and later, use the "netstandard2.0" version.
-* To use in Unity 2021.2 and later, use the "netstandard2.1" version.
-* Otherwise use the "net8" version.
+Support Table:
 
-net35, net481 and net6 do not support printing.
++----------------+--------------------------+-------------+--------------------------------------------+
+|    Version     | Compatible Unity Version |   Support   |                   Notes                    |
++----------------+--------------------------+-------------+--------------------------------------------+
+| net35          | Before Unity 2018        | No Printing | or if netstandard.dll is not used in Unity |
+| net48          | N/A                      | No Printing | Usable without .NET core                   |
+| net6           | N/A                      | No Printing | Usable on Windows 7 if needed              |
+| netstandard2.0 | Unity 2018 and later     | Full        |                                            |
+| netstandard2.1 | Unity 2021.2 and later   | Full        |                                            |
+| net8           | N/A                      | Full        | Default version used by Sega835Cmd         |
++----------------+--------------------------+-------------+--------------------------------------------+
+
 
 ----------------
 Contributing:
