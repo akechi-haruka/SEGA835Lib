@@ -163,7 +163,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
-                if (b == ESCAPE_BYTE) {
+                if (b == ESCAPE_BYTE && pos + 1 < len) { // do not unescape the checksum byte
                     escapeFlag = true;
                 } else {
                     if (escapeFlag) {
