@@ -10,8 +10,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
     [Verb("led", HelpText = "Set outputs on LED or Monkey06 boards")]
     internal class Options : GlobalOptions {
 
-        [Option('p', "port", Required = false, HelpText = "Sets the LED board's COM port.", Default = 10)]
+        [Option('p', "port", Required = false, HelpText = "Sets the LED board's COM port.", Default = 9)]
         public int Port { get; set; }
+
+        [Option('o', "offset", Required = false, HelpText = "The offset from which to start setting LEDs (note that existing will be cleared)")]
+        public int Offset { get; set; }
 
         [Option('s', "src-addr", Required = false, HelpText = "Sets the client's address.", Default = 1)]
         public int SourceAddress { get; set; }
