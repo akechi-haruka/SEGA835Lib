@@ -58,7 +58,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 for (int i = 0; i < opts.Offset; i++) {
                     data.Add(Color.Black);
                 }
-                for (int i = opts.Offset * 3; i < array.Length; i+=3) {
+                for (int i = 0; i < array.Length; i+=3) {
                     data.Add(Color.FromArgb(byte.Parse(array[i]), byte.Parse(array[i+1]), byte.Parse(array[i+2])));
                 }
                 ret = led.SetLEDs(data);
