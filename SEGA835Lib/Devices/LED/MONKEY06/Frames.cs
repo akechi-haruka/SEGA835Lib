@@ -29,7 +29,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketMonkeySetChecksum : SProtPayload {
 
-        public ushort checksum;
+        public byte fw_checksum_b1;
+        public byte fw_checksum_b2;
 
         public byte GetCommandID() {
             return 0xA1;
@@ -84,6 +85,67 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
         public byte GetCommandID() {
             return 0xA3;
+        }
+    }
+
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct ReqPacketMonkeySetFirmwareVersion : SProtPayload {
+
+        public byte ver;
+
+        public byte GetCommandID() {
+            return 0xA5;
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct RespPacketMonkeySetFirmwareVersion : SProtPayload {
+
+        public byte GetCommandID() {
+            return 0xA5;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct ReqPacketMonkeySetChipNumber : SProtPayload {
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 6)]
+        public String chip_no;
+
+        public byte GetCommandID() {
+            return 0xA4;
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct RespPacketMonkeySetChipNumber : SProtPayload {
+
+        public byte GetCommandID() {
+            return 0xA4;
+        }
+    }
+
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct ReqPacketMonkeySetBoardName : SProtPayload {
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 9)]
+        public String board_name;
+
+        public byte GetCommandID() {
+            return 0xA6;
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    internal struct RespPacketMonkeySetBoardName : SProtPayload {
+
+        public byte GetCommandID() {
+            return 0xA6;
         }
     }
 

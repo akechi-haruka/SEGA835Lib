@@ -192,7 +192,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             DeviceStatus ret = this.WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
             SetLastError(ret, status);
             if (ret == DeviceStatus.OK) {
-                checksum = resp.fw_checksum;
+                checksum = (ushort)(resp.fw_checksum_b2 << 8 | resp.fw_checksum_b1);
             } else {
                 checksum = 0;
             }

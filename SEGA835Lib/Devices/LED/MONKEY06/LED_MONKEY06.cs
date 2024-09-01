@@ -20,7 +20,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         /// Creates a new LED board.
         /// </summary>
         /// <param name="port">The COM board to use.</param>
-        /// <param name="host_addr">The address for the client. This may not actually matter.</param>
+        /// <param name="host_addr">The address for the client. This might not actually matter.</param>
         /// <param name="board_addr">The address for the LED board.</param>
         public LED_MONKEY06(int port, byte host_addr = 0x01, byte board_addr = 0x02) : base(port, host_addr, board_addr) {
         }
@@ -52,13 +52,68 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         public DeviceStatus SetFirmwareChecksum(ushort checksum) {
             Log.Write("SetFirmwareChecksum(" + checksum + ")");
             DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetChecksum() {
-                checksum = checksum
+                fw_checksum_b1 = (byte)checksum,
+                fw_checksum_b2 = (byte)(checksum >> 8)
             }, out RespPacketMonkeySetChecksum _, out byte status);
             return SetLastError(ret, status);
         }
 
         /// <summary>
-        /// Sets the board checksum on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// Sets the board version on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetFirmwareVersion(byte version) {
+            Log.Write("SetFirmwareVersion(" + version + ")");
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetFirmwareVersion() {
+                ver = version
+            }, out RespPacketMonkeySetFirmwareVersion _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        /// <summary>
+        /// Sets the chip number on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// </summary>
+        /// <param name="chip_no">The chip number to set. Maximum 5 characters. Missing characters are padded with the space character (0x20)</param>
+        /// <exception cref="ArgumentException">If chip_no is too long.</exception>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetChipNumber(string chip_no) {
+            Log.Write("SetChipNumber(" + chip_no + ")");
+            NetStandardBackCompatExtensions.ThrowIfNull(chip_no, nameof(chip_no));
+            if (chip_no.Length > 5) {
+                throw new ArgumentException("chip_no is too long", nameof(chip_no));
+            }
+            if (chip_no.Length < 5) {
+                chip_no = chip_no.PadRight(5);
+            }
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetChipNumber() {
+                chip_no = chip_no
+            }, out RespPacketMonkeySetChipNumber _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        /// <summary>
+        /// Sets the board name on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// </summary>
+        /// <param name="board_name">The board name to set. Maximum 8 characters. Missing characters are padded with the space character (0x20)</param>
+        /// <exception cref="ArgumentException">If board_name is too long.</exception>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetBoardName(string board_name) {
+            Log.Write("SetBoardName(" + board_name + ")");
+            NetStandardBackCompatExtensions.ThrowIfNull(board_name, nameof(board_name));
+            if (board_name.Length > 8) {
+                throw new ArgumentException("board_name is too long", nameof(board_name));
+            }
+            if (board_name.Length < 8) {
+                board_name = board_name.PadRight(8);
+            }
+            DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetBoardName() {
+                board_name = board_name
+            }, out RespPacketMonkeySetBoardName _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        /// <summary>
+        /// Sets the order of channels for the data sent to <see cref="LED_837_15093_06.SetLEDs(IEnumerable{Color})"/>. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
         /// </summary>
         /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetChannels(Channel R, Channel G, Channel B) {

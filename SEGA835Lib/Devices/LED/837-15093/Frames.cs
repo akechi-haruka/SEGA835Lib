@@ -60,7 +60,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketGetFirmwareChecksum : SProtPayload {
 
-        public ushort fw_checksum;
+        public byte fw_checksum_b1;
+        public byte fw_checksum_b2;
 
         public byte GetCommandID() {
             return 0xF2;

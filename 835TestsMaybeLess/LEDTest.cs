@@ -10,7 +10,7 @@ namespace _835TestsMaybeLess {
 
         [SetUp]
         public void Setup() {
-            led = new LED_837_15093_06(12);
+            led = new LED_837_15093_06(9);
             led.serial.DumpRWCommandsToLog = true;
             led.serial.DumpBytesToLog = true;
         }
@@ -27,6 +27,8 @@ namespace _835TestsMaybeLess {
             Assert.That(board_number, Is.Not.Null);
             Assert.That(chip_number, Is.Not.Null);
             Assert.That(fv, Is.GreaterThan(0));
+            Assert.That(led.GetFirmwareChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(checksum, Is.GreaterThan(0));
             Assert.That(led.SetTimeout(3000), Is.EqualTo(DeviceStatus.OK));
             Assert.That(led.SetResponseDisabled(true), Is.EqualTo(DeviceStatus.OK));
             for (int i = 0; i < 10; i++) {
@@ -35,7 +37,7 @@ namespace _835TestsMaybeLess {
             Thread.Sleep(5000);
             Assert.That(led.SetLEDs(new Color[] { }), Is.EqualTo(DeviceStatus.OK));
             Assert.That(led.SetResponseDisabled(false), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(led.GetFirmwareChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(led.GetFirmwareChecksum(out checksum), Is.EqualTo(DeviceStatus.OK));
             Assert.That(checksum, Is.GreaterThan(0));
         }
 

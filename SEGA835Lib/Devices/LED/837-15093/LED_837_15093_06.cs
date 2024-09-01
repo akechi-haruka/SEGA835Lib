@@ -117,6 +117,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             cmd = data[5];
             status = (byte)(data[4] - 1); // 1 here means success
             report = (byte)(data[6] - 1);
+            if (report != 0) {
+                Log.WriteWarning("Report received from LED board: " + report);
+            }
             payload = new byte[data[3] - 3];
             Array.Copy(data, 7, payload, 0, payload.Length);
             if (status != 0) {
@@ -191,7 +194,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             Log.Write("GetFirmwareChecksum");
             DeviceStatus ret = this.WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
             if (ret == DeviceStatus.OK) {
-                checksum = resp.fw_checksum;
+                checksum = (ushort)(resp.fw_checksum_b2 << 8 | resp.fw_checksum_b1);
             } else {
                 checksum = 0;
             }

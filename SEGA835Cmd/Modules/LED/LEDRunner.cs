@@ -24,6 +24,22 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 return ret;
             }
 
+            ret = led.GetBoardInfo(out string board_number, out string chip_number, out byte fw_ver);
+            if (ret != DeviceStatus.OK) {
+                Log.WriteError("Getting board info failed");
+                return ret;
+            }
+            Log.Write("Board Number: " + board_number);
+            Log.Write("Chip Number: " + chip_number);
+            Log.Write("FW version: " + fw_ver);
+
+            ret = led.GetFirmwareChecksum(out ushort chk);
+            if (ret != DeviceStatus.OK) {
+                Log.WriteError("Getting board info failed");
+                return ret;
+            }
+            Log.Write("Board Checksum: " + chk);
+
             if (opts.MonkeyReset) {
                 ret = led.ResetMonkey();
                 if (ret != DeviceStatus.OK) {
@@ -40,6 +56,30 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 }
             }
 
+            if (opts.MonkeyVersion > 0) {
+                ret = led.SetFirmwareVersion(opts.MonkeyVersion);
+                if (ret != DeviceStatus.OK) {
+                    Log.WriteError("Setting version failed");
+                    return ret;
+                }
+            }
+
+            if (opts.MonkeyBoardName != null) {
+                ret = led.SetBoardName(opts.MonkeyBoardName);
+                if (ret != DeviceStatus.OK) {
+                    Log.WriteError("Setting board name failed");
+                    return ret;
+                }
+            }
+
+            if (opts.MonkeyChipNumber != null) {
+                ret = led.SetChipNumber(opts.MonkeyChipNumber);
+                if (ret != DeviceStatus.OK) {
+                    Log.WriteError("Setting chip number failed");
+                    return ret;
+                }
+            }
+
             if (opts.MonkeyTable != null) {
                 List<byte> data = new List<byte>();
                 foreach (String s in opts.MonkeyTable.Split(',')) {
@@ -50,6 +90,15 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                     Log.WriteError("Setting translation table failed");
                     return ret;
                 }
+            }
+
+            if (opts.MonkeyChannels != null) {
+                string[] channels = opts.MonkeyChannels.Split(',');
+                if (channels.Length != 3) {
+                    Log.WriteError("Invalid argument for channels");
+                    return ret;
+                }
+                led.SetChannels(Enum.Parse<LED_MONKEY06.Channel>(channels[0]), Enum.Parse<LED_MONKEY06.Channel>(channels[1]), Enum.Parse<LED_MONKEY06.Channel>(channels[2]));
             }
 
             if (opts.LEDTable != null) {
