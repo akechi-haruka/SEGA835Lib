@@ -147,6 +147,41 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         }
 
         /// <summary>
+        /// Sets auxiliary LED colors. This is a second output pin or LED strip that can be fed in addition to the SEGA-supported protocol. If the output is a singular PIN, only colors[0] will be set. If the output is a LED strip, it will behave like <see cref="LED_837_15093_06.SetLEDs(IEnumerable{Color})"/>.
+        /// </summary>
+        /// <param name="colors">A list of colors to set.</param>
+        /// <exception cref="ArgumentException">If more than 66 colors are given.</exception>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public unsafe DeviceStatus SetAuxiliaryLEDs(IEnumerable<Color> colors) {
+            int cnt = colors.Count();
+            Log.Write("SetAuxiliaryLEDs(" + cnt + ")");
+
+            if (colors.Count() > 66) {
+                throw new ArgumentException("too many colors: " + cnt);
+            }
+
+            ReqPacketMonkeySetAuxiliaryLEDs req = new ReqPacketMonkeySetAuxiliaryLEDs();
+            byte* ledptr = req.pixels;
+            int i = 0;
+            foreach (Color c in colors) {
+                ledptr[i] = c.R;
+                ledptr[i + 1] = c.G;
+                ledptr[i + 2] = c.B;
+                i += 3;
+            }
+            DeviceStatus ret = SetLastError(Write(BoardAddress, HostAddress, req.GetCommandID(), StructUtils.GetBytes(req)));
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            if (!responseDisabled) {
+                ret = SetLastError(Read(out SProtFrame f), f.Status);
+            }
+
+            return ret;
+        }
+
+        /// <summary>
         /// Color channels for <see cref="SetChannels(Channel, Channel, Channel)"/>
         /// </summary>
         public enum Channel {

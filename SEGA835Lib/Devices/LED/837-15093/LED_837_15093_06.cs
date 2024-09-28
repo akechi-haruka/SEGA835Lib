@@ -28,7 +28,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         public byte BoardAddress { get; private set; }
 
         internal SProtSerial serial;
-        private bool responseDisabled;
+        protected bool responseDisabled;
 
         /// <summary>
         /// Creates a new LED board.
@@ -78,7 +78,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             return "IC BD I/O 7CH CONT RS232 12V";
         }
 
-        private DeviceStatus Write(byte dest, byte src, byte cmd, byte[] payload) {
+        protected DeviceStatus Write(byte dest, byte src, byte cmd, byte[] payload) {
             byte[] packet = new byte[payload.Length + 4];
             if (packet.Length > 0xFF) {
                 return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
