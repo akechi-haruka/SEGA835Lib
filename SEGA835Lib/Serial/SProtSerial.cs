@@ -32,61 +32,65 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         public bool DumpBytesToLog { get; set; }
 
+        private object locker = new object();
+
         /// <inheritdoc/>
         public SProtSerial(int portNumber, int baudrate = 115200, int timeout = 1000, bool dtr = false, bool rts = false, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One, Handshake flowControl = Handshake.None) : base(portNumber, baudrate, timeout, dtr, rts, parity, dataBits, stopBits, flowControl) {
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Read(int len, out byte[] data) {
-            if (DumpRWCommandsToLog) {
-                Log.Write("SProtSerial Port " + Port + ", Read Len=" + len);
-            }
-            int pos = 0;
-            List<byte> bytes = new List<byte>();
-            data = null;
-            int checksum = 0;
-            bool escapeFlag = false;
-            DeviceStatus ret = DeviceStatus.OK;
-            while (pos < len) {
-                ret = base.ReadByte(out byte b);
-                if (ret != DeviceStatus.OK) {
-                    return ret;
+            lock (locker) {
+                if (DumpRWCommandsToLog) {
+                    Log.Write("SProtSerial Port " + Port + ", Read Len=" + len);
                 }
-                if (pos == 0 && b != SYNC_BYTE) {
-                    Log.WriteError("SProtSerial Read failed, expected sync byte, got " + b);
-                    return DeviceStatus.ERR_CHECKSUM;
-                }
-                if (b == ESCAPE_BYTE) {
-                    escapeFlag = true;
-                } else {
-                    if (escapeFlag) {
-                        bytes.Add((byte)(b + 1));
-                        checksum += 1;
-                        escapeFlag = false;
-                    } else {
-                        bytes.Add(b);
+                int pos = 0;
+                List<byte> bytes = new List<byte>();
+                data = null;
+                int checksum = 0;
+                bool escapeFlag = false;
+                DeviceStatus ret = DeviceStatus.OK;
+                while (pos < len) {
+                    ret = base.ReadByte(out byte b);
+                    if (ret != DeviceStatus.OK) {
+                        return ret;
                     }
-                    pos++;
+                    if (pos == 0 && b != SYNC_BYTE) {
+                        Log.WriteError("SProtSerial Read failed, expected sync byte, got " + b);
+                        return DeviceStatus.ERR_CHECKSUM;
+                    }
+                    if (b == ESCAPE_BYTE) {
+                        escapeFlag = true;
+                    } else {
+                        if (escapeFlag) {
+                            bytes.Add((byte)(b + 1));
+                            checksum += 1;
+                            escapeFlag = false;
+                        } else {
+                            bytes.Add(b);
+                        }
+                        pos++;
+                    }
+                    if (pos > 1 && pos < len && !escapeFlag) { // don't add sync and checksum byte
+                        checksum += b;
+                    }
                 }
-                if (pos > 1 && pos < len && !escapeFlag) { // don't add sync and checksum byte
-                    checksum += b;
+
+                data = bytes.ToArray();
+
+                if (DumpBytesToLog) {
+                    Log.Dump(data, "SProtSerial Read:");
                 }
+
+                checksum %= 0x100;
+                byte data_checksum = data[data.Length - 1];
+                if (checksum != data_checksum) {
+                    Log.WriteError("SProtSerial Read failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
+                    ret = DeviceStatus.ERR_CHECKSUM;
+                }
+
+                return ret;
             }
-
-            data = bytes.ToArray();
-
-            if (DumpBytesToLog) {
-                Log.Dump(data, "SProtSerial Read:");
-            }
-
-            checksum %= 0x100;
-            byte data_checksum = data[data.Length - 1];
-            if (checksum != data_checksum) {
-                Log.WriteError("SProtSerial Read failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
-                ret = DeviceStatus.ERR_CHECKSUM;
-            }
-
-            return ret;
         }
 
         /// <summary>
@@ -110,112 +114,116 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </returns>
         /// <exception cref="ArgumentException">if the byte at lenByteOffset minus the bytes read up to this point is negative</exception>
         public DeviceStatus ReadLenByOffset(int lenByteOffset, out byte[] data, bool lenIncludesSelf = false, bool lenIncludesChecksumByte = false) {
-            if (DumpRWCommandsToLog) {
-                Log.Write("SProtSerial Port " + Port + ", Read Len By Offset=" + lenByteOffset);
-            }
-            int pos = 0;
-            int? len = null;
-            List<byte> bytes = new List<byte>();
-            data = null;
-            int checksum = 0;
-            bool escapeFlag = false;
-            DeviceStatus ret = DeviceStatus.OK;
-            while (len == null) {
-                ret = base.ReadByte(out byte b);
-                if (ret != DeviceStatus.OK) {
-                    if (DumpRWCommandsToLog) {
-                        Log.Write("Error occurred after reading " + pos);
+            lock (locker) {
+                if (DumpRWCommandsToLog) {
+                    Log.Write("SProtSerial Port " + Port + ", Read Len By Offset=" + lenByteOffset);
+                }
+                int pos = 0;
+                int? len = null;
+                List<byte> bytes = new List<byte>();
+                data = null;
+                int checksum = 0;
+                bool escapeFlag = false;
+                DeviceStatus ret = DeviceStatus.OK;
+                while (len == null) {
+                    ret = base.ReadByte(out byte b);
+                    if (ret != DeviceStatus.OK) {
+                        if (DumpRWCommandsToLog) {
+                            Log.Write("Error occurred after reading " + pos);
+                        }
+                        return ret;
                     }
-                    return ret;
-                }
-                if (pos == 0 && b != SYNC_BYTE) {
-                    Log.WriteError("SProtSerial ReadLenByOffset failed, expected sync byte, got " + b);
-                    return DeviceStatus.ERR_CHECKSUM;
-                }
-                if (b == ESCAPE_BYTE) {
-                    escapeFlag = true;
-                } else {
-                    if (escapeFlag) {
-                        bytes.Add((byte)(b + 1));
-                        checksum += 1;
-                        escapeFlag = false;
+                    if (pos == 0 && b != SYNC_BYTE) {
+                        Log.WriteError("SProtSerial ReadLenByOffset failed, expected sync byte, got " + b);
+                        return DeviceStatus.ERR_CHECKSUM;
+                    }
+                    if (b == ESCAPE_BYTE) {
+                        escapeFlag = true;
                     } else {
-                        bytes.Add(b);
+                        if (escapeFlag) {
+                            bytes.Add((byte)(b + 1));
+                            checksum += 1;
+                            escapeFlag = false;
+                        } else {
+                            bytes.Add(b);
+                        }
+                        if (pos++ == lenByteOffset) {
+                            len = b; // checksum byte
+                        }
                     }
-                    if (pos++ == lenByteOffset) {
-                        len = b; // checksum byte
+                    if (pos > 1 && !escapeFlag) { // don't add sync byte
+                        checksum += b;
                     }
                 }
-                if (pos > 1 && !escapeFlag) { // don't add sync byte
-                    checksum += b;
+                pos = lenIncludesSelf ? 1 : 0;
+                len += lenIncludesChecksumByte ? 0 : 1;
+                if (DumpRWCommandsToLog) {
+                    Log.Write("SProtSerial Port " + Port + ", Read Len Remaining=" + (len - pos));
                 }
-            }
-            pos = lenIncludesSelf ? 1 : 0;
-            len += lenIncludesChecksumByte ? 0 : 1;
-            if (DumpRWCommandsToLog) {
-                Log.Write("SProtSerial Port " + Port + ", Read Len Remaining=" + (len - pos));
-            }
-            if (len - pos < 0) {
-                throw new ArgumentException("Bytes to read from stream are negative (len: " + len + ", pos: " + pos + ")");
-            }
-            while (pos < len) {
-                ret = base.ReadByte(out byte b);
-                if (ret != DeviceStatus.OK) {
-                    return ret;
+                if (len - pos < 0) {
+                    throw new ArgumentException("Bytes to read from stream are negative (len: " + len + ", pos: " + pos + ")");
                 }
-                if (b == ESCAPE_BYTE && pos + 1 < len) { // do not unescape the checksum byte
-                    escapeFlag = true;
-                } else {
-                    if (escapeFlag) {
-                        bytes.Add((byte)(b + 1));
-                        checksum += 1;
-                        escapeFlag = false;
+                while (pos < len) {
+                    ret = base.ReadByte(out byte b);
+                    if (ret != DeviceStatus.OK) {
+                        return ret;
+                    }
+                    if (b == ESCAPE_BYTE && pos + 1 < len) { // do not unescape the checksum byte
+                        escapeFlag = true;
                     } else {
-                        bytes.Add(b);
+                        if (escapeFlag) {
+                            bytes.Add((byte)(b + 1));
+                            checksum += 1;
+                            escapeFlag = false;
+                        } else {
+                            bytes.Add(b);
+                        }
+                        pos++;
                     }
-                    pos++;
+                    if (pos < len && !escapeFlag) { // don't add sync and checksum byte
+                        checksum += b;
+                    }
                 }
-                if (pos < len && !escapeFlag) { // don't add sync and checksum byte
-                    checksum += b;
+
+                checksum %= 0x100;
+
+                data = bytes.ToArray();
+                if (DumpBytesToLog) {
+                    Log.Dump(data, "SProtSerial Read:");
                 }
+
+                byte data_checksum = data[data.Length - 1];
+                if (checksum != data_checksum) {
+                    Log.WriteError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
+                    ret = DeviceStatus.ERR_CHECKSUM;
+                }
+
+                return ret;
             }
-
-            checksum %= 0x100;
-
-            data = bytes.ToArray();
-            if (DumpBytesToLog) {
-                Log.Dump(data, "SProtSerial Read:");
-            }
-
-            byte data_checksum = data[data.Length - 1];
-            if (checksum != data_checksum) {
-                Log.WriteError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
-                ret = DeviceStatus.ERR_CHECKSUM;
-            }
-
-            return ret;
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Write(byte[] data) {
-            List<byte> bytes = new List<byte>();
-            bytes.Add(SYNC_BYTE);
-            int checksum = 0;
-            foreach (byte b in data) {
-                if (b == ESCAPE_BYTE || b == SYNC_BYTE) {
-                    bytes.Add(ESCAPE_BYTE);
-                    bytes.Add((byte)(b - 1));
-                } else {
-                    bytes.Add(b);
+            lock (locker) {
+                List<byte> bytes = new List<byte>();
+                bytes.Add(SYNC_BYTE);
+                int checksum = 0;
+                foreach (byte b in data) {
+                    if (b == ESCAPE_BYTE || b == SYNC_BYTE) {
+                        bytes.Add(ESCAPE_BYTE);
+                        bytes.Add((byte)(b - 1));
+                    } else {
+                        bytes.Add(b);
+                    }
+                    checksum += b;
                 }
-                checksum += b;
+                bytes.Add((byte)(checksum % 0x100));
+                byte[] encoded = bytes.ToArray();
+                if (DumpBytesToLog) {
+                    Log.Dump(encoded, "SProtSerial Write:");
+                }
+                return base.Write(encoded);
             }
-            bytes.Add((byte)(checksum % 0x100));
-            byte[] encoded = bytes.ToArray();
-            if (DumpBytesToLog) {
-                Log.Dump(encoded, "SProtSerial Write:");
-            }
-            return base.Write(encoded);
         }
 
         /// <summary>
@@ -236,12 +244,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
         public DeviceStatus WriteAndRead(byte[] send, int recvLen, out byte[] recv) {
-            DeviceStatus ret = Write(send);
-            if (ret != DeviceStatus.OK) {
-                recv = null;
-                return ret;
+            lock (locker) {
+                DeviceStatus ret = Write(send);
+                if (ret != DeviceStatus.OK) {
+                    recv = null;
+                    return ret;
+                }
+                return Read(recvLen, out recv);
             }
-            return Read(recvLen, out recv);
         }
 
         /// <summary>
@@ -265,12 +275,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
         public DeviceStatus WriteAndReadByOffset(byte[] send, int lenByteOffset, out byte[] recv) {
-            DeviceStatus ret = Write(send);
-            if (ret != DeviceStatus.OK) {
-                recv = null;
-                return ret;
+            lock (locker) {
+                DeviceStatus ret = Write(send);
+                if (ret != DeviceStatus.OK) {
+                    recv = null;
+                    return ret;
+                }
+                return ReadLenByOffset(lenByteOffset, out recv);
             }
-            return ReadLenByOffset(lenByteOffset, out recv);
         }
     }
 }
