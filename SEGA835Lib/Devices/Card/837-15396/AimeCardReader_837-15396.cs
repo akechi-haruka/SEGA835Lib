@@ -337,7 +337,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                             }
                             byte[] id = new byte[size];
                             Array.Copy(data, offset, id, 0, size);
-                            offset += size;
+                            offset += 0x10;
                             lastReadCardUID = id;
                             lastReadCardType = CardType.FeliCa;
                             Log.Write("Found a FeliCa card (PMm reading is " + FeliCaIncludePMM + "): \n" + Hex.Dump(id));
