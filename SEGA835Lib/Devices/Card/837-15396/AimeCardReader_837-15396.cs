@@ -26,6 +26,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         public int Port { get; private set; }
 
+        /// <summary>
+        /// Whether or not to include the PMM part when a FeliCa is read. If true, <see cref="GetCardUID"/> will return 16 bytes (8 bytes IDm + 8 bytes PMm), if false, only the 8 bytes IDm are returned.
+        /// </summary>
+        public bool FeliCaIncludePMM { get; set; } = false;
+
         internal readonly SProtSerial serial;
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
@@ -327,12 +332,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                         Log.Write("Found a MIFARE card: \n" + Hex.Dump(cardid));
                     } else if (type == 0x20) { // FeliCa
                         if (size == 0x10) {
+                            if (!FeliCaIncludePMM) {
+                                size = 0x8;
+                            }
                             byte[] id = new byte[size];
                             Array.Copy(data, offset, id, 0, size);
                             offset += size;
                             lastReadCardUID = id;
                             lastReadCardType = CardType.FeliCa;
-                            Log.Write("Found a FeliCa card: \n" + Hex.Dump(id));
+                            Log.Write("Found a FeliCa card (PMm reading is " + FeliCaIncludePMM + "): \n" + Hex.Dump(id));
                         } else {
                             ret = DeviceStatus.ERR_INCOMPATIBLE;
                         }
