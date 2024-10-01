@@ -19,97 +19,23 @@
 		<RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
 		<PackageTags>Arcade;I/O;Serial</PackageTags>
 		<Platforms>AnyCPU;x64;ARM64</Platforms>
-		<Configurations>Debug;Release;Raspberry</Configurations>
+		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
+	
+	<PropertyGroup>
 		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
 		<DebugType>embedded</DebugType>
 		<IsPublishable>True</IsPublishable>
 		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
 		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|AnyCPU'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
+	<PropertyGroup Condition="'$(Platform)'=='ARM64'">
 		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|ARM64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
+	<PropertyGroup Condition="'$(Platform)'!='ARM64'">
 		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Raspberry|x64'">
-		<DefineConstants>$(DefineConstants);835_LIB_BUILD</DefineConstants>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>

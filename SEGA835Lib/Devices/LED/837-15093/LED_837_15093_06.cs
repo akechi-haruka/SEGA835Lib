@@ -12,12 +12,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     /// <summary>
     /// A 837-15093-06 LED board.
     /// </summary>
-    public class LED_837_15093_06 : Device, ISProtRW {
+    public class LED_837_15093_06 : SProtDevice {
 
-        /// <summary>
-        /// The COM port being used.
-        /// </summary>
-        public int Port { get; private set; }
         /// <summary>
         /// The address being used by the client.
         /// </summary>
@@ -27,8 +23,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// </summary>
         public byte BoardAddress { get; private set; }
 
-        internal SProtSerial serial;
-        protected bool responseDisabled;
+        /// <summary>
+        /// Whether or not board responses are currently disabled. If this is true, <see cref="Read(out SProtFrame)" /> should not be called until <see cref="SetResponseDisabled(bool)"/> is called with false.
+        /// </summary>
+        public bool ResponsesDisabled { get; protected set; }
 
         /// <summary>
         /// Creates a new LED board.
@@ -36,21 +34,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <param name="port">The COM board to use.</param>
         /// <param name="host_addr">The address for the client. This may not actually matter.</param>
         /// <param name="board_addr">The address for the LED board.</param>
-        public LED_837_15093_06(int port, byte host_addr = 0x02, byte board_addr = 0x01) {
-            Port = port;
+        public LED_837_15093_06(int port, byte host_addr = 0x02, byte board_addr = 0x01) : base(new SProtSerial(port, dtr: true, rts: true)) {
             HostAddress = host_addr;
             BoardAddress = board_addr;
-            serial = new SProtSerial(port, dtr: true, rts: true);
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Connect() {
-            if (serial != null && serial.IsConnected()) {
-                return DeviceStatus.OK;
-            }
-            Log.Write("Connecting on Port " + Port);
-            if (!serial.Connect()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
+            lock (SerialLocker) {
+                if (serial != null && serial.IsConnected()) {
+                    return DeviceStatus.OK;
+                }
+                Log.Write("Connecting on Port " + Port);
+                if (!serial.Connect()) {
+                    return DeviceStatus.ERR_NOT_CONNECTED;
+                }
             }
 
             DeviceStatus ret = SetResponseDisabled(false);
@@ -64,7 +62,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             Log.Write("Disconnected on Port " + Port);
-            serial?.Disconnect();
+            lock (SerialLocker) {
+                serial?.Disconnect();
+            }
             return DeviceStatus.OK;
         }
 
@@ -78,21 +78,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             return "IC BD I/O 7CH CONT RS232 12V";
         }
 
+        /// <inheritdoc/>
         protected DeviceStatus Write(byte dest, byte src, byte cmd, byte[] payload) {
-            byte[] packet = new byte[payload.Length + 4];
-            if (packet.Length > 0xFF) {
-                return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+            lock (SerialLocker) {
+                byte[] packet = new byte[payload.Length + 4];
+                if (packet.Length > 0xFF) {
+                    return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+                }
+                packet[0] = dest;
+                packet[1] = src;
+                packet[2] = (byte)(payload.Length + 1);
+                packet[3] = cmd;
+                Array.Copy(payload, 0, packet, 4, payload.Length);
+                return serial.Write(packet);
             }
-            packet[0] = dest;
-            packet[1] = src;
-            packet[2] = (byte)(payload.Length + 1);
-            packet[3] = cmd;
-            Array.Copy(payload, 0, packet, 4, payload.Length);
-            return serial.Write(packet);
         }
 
         private DeviceStatus Read(out byte src, out byte dest, out byte cmd, out byte status, out byte report, out byte[] payload) {
-            if (responseDisabled) {
+            if (ResponsesDisabled) {
                 Log.Write("Responses are disabled");
                 src = 0;
                 dest = 0;
@@ -102,7 +105,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 payload = new byte[0];
                 return DeviceStatus.OK;
             }
-            DeviceStatus ret = serial.ReadLenByOffset(3, out byte[] data, false, false);
+
+            byte[] data;
+            DeviceStatus ret;
+            lock (SerialLocker) {
+                ret = serial.ReadLenByOffset(3, out data, false, false);
+            }
+            
             if (ret != DeviceStatus.OK) {
                 src = 0;
                 dest = 0;
@@ -130,12 +139,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         }
 
         /// <inheritdoc/>
-        public DeviceStatus Write(SProtFrame send) {
+        public override DeviceStatus Write(SProtFrame send) {
             return Write(BoardAddress, HostAddress, send.Command, send.Payload);
         }
 
         /// <inheritdoc/>
-        public DeviceStatus Read(out SProtFrame recv) {
+        public override DeviceStatus Read(out SProtFrame recv) {
             DeviceStatus ret = Read(out byte addr, out byte _, out byte cmd, out byte status, out byte _, out byte[] payload);
             if (ret != DeviceStatus.OK) {
                 recv = null;
@@ -155,7 +164,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 reset_type = 0xD9
             }, out RespPacketReset _, out byte status);
 
-            responseDisabled = false;
+            ResponsesDisabled = false;
 
             if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
                 return SetLastError(DeviceStatus.OK, status);
@@ -243,7 +252,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetResponseDisabled(bool enabled) {
             Log.Write("SetResponseDisabled(" + enabled + ")");
-            responseDisabled = enabled;
+            ResponsesDisabled = enabled;
             DeviceStatus ret = this.WriteAndRead(new ReqPacketSetDisableResponse() {
                 enable = (byte)(enabled ? 1 : 0)
             }, out RespPacketSetDisableResponse _, out byte status);
@@ -278,7 +287,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 return ret;
             }
 
-            if (!responseDisabled) {
+            if (!ResponsesDisabled) {
                 ret = SetLastError(Read(out SProtFrame f), f.Status);
             }
 

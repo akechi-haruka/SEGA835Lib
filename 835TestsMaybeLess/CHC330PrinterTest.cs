@@ -40,7 +40,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T02_TestGetPrinterSerial() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.OK));
             Assert.That(serial, Is.Not.Null);
             Log.Write(serial);
@@ -48,7 +50,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T03_TestRFIDBoardGetInfo() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             RFIDRWPrinter_837_15347 rfid = printer.GetRFIDBoard();
             Assert.That(rfid, Is.Not.Null);
             Assert.That(rfid.GetBootVersion(out byte version), Is.EqualTo(DeviceStatus.OK));
@@ -96,6 +100,7 @@ namespace _835TestsMaybeLess {
             Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height));
         }
 
+        [Test]
         public void T07_TestImageConversionHolo() {
             Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo330.png"));
             byte[] data = image.GetRawPixelsMonochrome();
@@ -111,7 +116,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T08_Print() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             ushort rc = printer.GetPrinterStatusCode();
             Log.Write(CHCSeriesCardPrinter.RCToString(rc));
             Assert.That(rc, Is.EqualTo(0));
@@ -129,7 +136,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T09_PrintOversizedNoHolo() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             ushort rc = printer.GetPrinterStatusCode();
             Log.Write(CHCSeriesCardPrinter.RCToString(rc));
             Assert.That(rc, Is.EqualTo(0));
@@ -162,7 +171,9 @@ namespace _835TestsMaybeLess {
             }*/
             holo.Save("TestFiles/Printer/TestHoloSAO_c.png", ImageFormat.Png);
             printer.InitTimeout = 5_000;
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             ushort rc = printer.GetPrinterStatusCode();
             Log.Write(CHCSeriesCardPrinter.RCToString(rc));
             Assert.That(rc, Is.EqualTo(0));

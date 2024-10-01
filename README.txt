@@ -76,7 +76,7 @@ If you own some of these obscure boards, feel free to add support and make PRs a
 
 The only things to keep in mind are:
 * Any actual board/device should inherit from Haruka.Arcade.SEGA835Lib.Devices.Device
-* Any board that uses the JVS-like protocol (0xE0 as sync, 0xD0 as escape - I call it "SProt") should also implement Haruka.Arcade.SEGA835Lib.Serial.ISProtRW
+* Any board that uses the JVS-like protocol (0xE0 as sync, 0xD0 as escape - I call it "SProt") should inherit from Haruka.Arcade.SEGA835Lib.Devices.SProtDevice
 * Devices that share base functionality should have an appropriate superclass (ex. Haruka.Arcade.SEGA835Lib.Devices.Card.CardReader)
 * Everything that's public should have appropriate documentation. (If you build in Release mode, missing documentation warnings will be generated)
-* Unit tests should expect the device to be connected on it's default port (usually defined by the game it's from). Devices that are not present should FAIL the tests.
+* Unit tests should expect the device to be connected on its default port (usually defined by the game it's from). Devices that are not present should throw a warning and be skipped.

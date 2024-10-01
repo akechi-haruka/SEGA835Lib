@@ -27,7 +27,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T01_TestVersion() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.GetBootVersion(out byte version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.EqualTo(0));
             Log.Write("Boot: " + version);
@@ -41,7 +43,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T02_TestRead() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.GetUnknown81(out byte _), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.SetUnknown4(), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.SetUnknown5(), Is.EqualTo(DeviceStatus.OK));

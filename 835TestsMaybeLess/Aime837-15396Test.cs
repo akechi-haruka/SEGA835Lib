@@ -31,7 +31,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T01_TestGetInfo() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.GetHWVersion(out string version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.Null);
             Assert.That(reader.GetFWVersion(out string version2, out byte version3), Is.EqualTo(DeviceStatus.OK));
@@ -44,7 +46,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T02_TestOfflineRead() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.RadioOn(RadioOnType.Both), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.StartPolling(), Is.EqualTo(DeviceStatus.OK));
             Thread.Sleep(100);
@@ -54,7 +58,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T03_TestDisco() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.LEDReset(), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.LEDGetInfo(out string info), Is.EqualTo(DeviceStatus.OK));
             Log.Write(info);
@@ -79,7 +85,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T04_TestRead() {
-            Assert.That(reader.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(reader.Connect)) {
+                return;
+            }
             Assert.That(reader.RadioOn(RadioOnType.Both), Is.EqualTo(DeviceStatus.OK));
             Assert.That(reader.StartPolling(), Is.EqualTo(DeviceStatus.OK));
             Thread.Sleep(100);

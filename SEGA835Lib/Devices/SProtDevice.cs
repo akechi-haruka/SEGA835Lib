@@ -1,15 +1,45 @@
-﻿using Haruka.Arcade.SEGA835Lib.Devices;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Haruka.Arcade.SEGA835Lib.Serial;
 
-
-namespace Haruka.Arcade.SEGA835Lib.Serial {
+namespace Haruka.Arcade.SEGA835Lib.Devices {
 
     /// <summary>
-    /// An interface that declares that this device can read and write <see cref="SProtFrame"/> objects.
-    /// This usually means the implementing class has an <see cref="SProtSerial"/> device that can receive and send those frames.
+    /// The base class for any device that uses a serial connection with <see cref="SProtSerial"/>.
     /// </summary>
-    /// <seealso cref="SProtSerial"/>
-    public interface ISProtRW {
+    public abstract class SProtDevice : Device {
+
+        /// <summary>
+        /// The COM port being used.
+        /// </summary>
+        public int Port { get; private set; }
+
+        /// <summary>
+        /// The object used to synchronize Serial reads and writes. You must use this in your implementation of <see cref="Read(out SProtFrame)"/> and <see cref="Write(SProtFrame)"/> to stay thread-safe.
+        /// </summary>
+        protected object SerialLocker { get; private set; } = new object();
+
+        internal readonly SProtSerial serial;
+
+        /// <summary>
+        /// Creates a new SProtDevice.
+        /// </summary>
+        /// <param name="port">The COM port to use.</param>
+        /// <param name="baudrate">The baudrate to use.</param>
+        public SProtDevice(int port, int baudrate) : this(new SProtSerial(port, baudrate)) {
+        }
+
+        /// <summary>
+        /// Creates a new SProtDevice.
+        /// </summary>
+        /// <param name="serial">The SProtSerial object to use for communication.</param>
+        public SProtDevice(SProtSerial serial) {
+            this.serial = serial;
+        }
 
         /// <summary>
         /// Writes the given frame to the device. This call may block.
@@ -22,7 +52,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if a timeout occurred during writing.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        DeviceStatus Write(SProtFrame send);
+        public abstract DeviceStatus Write(SProtFrame send);
 
         /// <summary>
         /// Reads a frame from the device. This call may block.
@@ -36,22 +66,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        DeviceStatus Read(out SProtFrame recv);
-
-    }
-
-    /// <summary>
-    /// Miscellancelous helper methods for reading and writing <see cref="SProtFrame"/> objects.
-    /// </summary>
-    public static class IFrameRWExtensions {
+        public abstract DeviceStatus Read(out SProtFrame recv);
 
         /// <summary>
         /// Writes the given frame to the device and then immediately reads a response.
         /// This call may block.
         /// </summary>
-        /// <seealso cref="ISProtRW.Read(out SProtFrame)"/>
-        /// <seealso cref="ISProtRW.Write(SProtFrame)"/>
-        /// <param name="frame">The current frame object.</param>
+        /// <seealso cref="Read(out SProtFrame)"/>
+        /// <seealso cref="Write(SProtFrame)"/>
         /// <param name="send">The frame to send.</param>
         /// <param name="recv">The frame that was received in response, or null if an error occurred.</param>
         /// <returns>
@@ -62,14 +84,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        public static DeviceStatus WriteAndRead(this ISProtRW frame, SProtFrame send, out SProtFrame recv) {
-            lock (frame) {
-                DeviceStatus ret = frame.Write(send);
+        public DeviceStatus WriteAndRead(SProtFrame send, out SProtFrame recv) {
+            lock (SerialLocker) {
+                DeviceStatus ret = Write(send);
                 if (ret != DeviceStatus.OK) {
                     recv = null;
                     return ret;
                 }
-                return frame.Read(out recv);
+                return Read(out recv);
             }
         }
 
@@ -77,11 +99,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// Writes the given <see cref="SProtPayload"/> to the device and then immediately reads a response.
         /// This call may block.
         /// </summary>
-        /// <seealso cref="ISProtRW.Read(out SProtFrame)"/>
-        /// <seealso cref="ISProtRW.Write(SProtFrame)"/>
+        /// <seealso cref="Read(out SProtFrame)"/>
+        /// <seealso cref="Write(SProtFrame)"/>
         /// <typeparam name="In">The <see cref="SProtPayload"/> struct to be written.</typeparam>
         /// <typeparam name="Out">The <see cref="SProtPayload"/> struct to be read.</typeparam>
-        /// <param name="frame">The current frame object.</param>
         /// <param name="send">The object to send.</param>
         /// <param name="recv">The object that was received in response, or null if an error occurred.</param>
         /// <returns>
@@ -92,19 +113,18 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        public static DeviceStatus WriteAndRead<In, Out>(this ISProtRW frame, In send, out Out recv) where In : struct, SProtPayload where Out : struct, SProtPayload {
-            return WriteAndRead(frame, send, out recv, out byte _, 0);
+        public DeviceStatus WriteAndRead<In, Out>(In send, out Out recv) where In : struct, SProtPayload where Out : struct, SProtPayload {
+            return WriteAndRead(send, out recv, out byte _, 0);
         }
 
         /// <summary>
         /// Writes the given <see cref="SProtPayload"/> to the device and then immediately reads a response.
         /// This call may block.
         /// </summary>
-        /// <seealso cref="ISProtRW.Read(out SProtFrame)"/>
-        /// <seealso cref="ISProtRW.Write(SProtFrame)"/>
+        /// <seealso cref="Read(out SProtFrame)"/>
+        /// <seealso cref="Write(SProtFrame)"/>
         /// <typeparam name="In">The <see cref="SProtPayload"/> struct to be written.</typeparam>
         /// <typeparam name="Out">The <see cref="SProtPayload"/> struct to be read.</typeparam>
-        /// <param name="frame">The current frame object.</param>
         /// <param name="send">The object to send.</param>
         /// <param name="recv">The object that was received in response, or null if an error occurred.</param>
         /// <param name="status">The device status code received in the response. Non-zero indicates error. This is independent from the return code, as the device itself may return different status codes.</param>
@@ -117,15 +137,15 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
         /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
         /// </returns>
-        public static DeviceStatus WriteAndRead<In, Out>(this ISProtRW frame, In send, out Out recv, out byte status, byte addr = 0x0) where In : struct, SProtPayload where Out : struct, SProtPayload {
-            lock (frame) {
-                DeviceStatus ret = frame.Write(new SProtFrame(send, addr));
+        public DeviceStatus WriteAndRead<In, Out>(In send, out Out recv, out byte status, byte addr = 0x0) where In : struct, SProtPayload where Out : struct, SProtPayload {
+            lock (SerialLocker) {
+                DeviceStatus ret = Write(new SProtFrame(send, addr));
                 if (ret != DeviceStatus.OK) {
                     status = 0;
                     recv = default;
                     return ret;
                 }
-                ret = frame.Read(out SProtFrame recv_frame);
+                ret = Read(out SProtFrame recv_frame);
                 if (ret != DeviceStatus.OK) {
                     recv = default;
                     status = 0;

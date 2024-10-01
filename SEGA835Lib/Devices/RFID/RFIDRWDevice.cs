@@ -8,7 +8,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// <summary>
     /// The base class for a device that can read (and possibly write) to SEGA RFID cards. The actual frequency or parameters these use are unknown.
     /// </summary>
-    public abstract class RFIDRWDevice : Device, ISProtRW {
+    public abstract class RFIDRWDevice : Device {
 
         /// <summary>
         /// The backend that is used.
@@ -104,12 +104,50 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         }
 
         /// <summary>
+        /// Writes the given <see cref="SProtPayload"/> to the device and then immediately reads a response.
+        /// This call may block.
+        /// </summary>
+        /// <seealso cref="Read(out SProtFrame)"/>
+        /// <seealso cref="Write(SProtFrame)"/>
+        /// <typeparam name="In">The <see cref="SProtPayload"/> struct to be written.</typeparam>
+        /// <typeparam name="Out">The <see cref="SProtPayload"/> struct to be read.</typeparam>
+        /// <param name="send">The object to send.</param>
+        /// <param name="recv">The object that was received in response, or null if an error occurred.</param>
+        /// <param name="status">The device status code received in the response. Non-zero indicates error. This is independent from the return code, as the device itself may return different status codes.</param>
+        /// <param name="addr">The bus address of the device to communicate with. This is only used for very specific SProt devices, ignored otherwise.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.OK"/> if the object was successfully sent and received.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if "Connect" was never called.<br />
+        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or "Disconnect" was called while this call was waiting.<br />
+        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.<br />
+        /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.<br />
+        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// </returns>
+        public DeviceStatus WriteAndRead<In, Out>(In send, out Out recv, out byte status, byte addr = 0x0) where In : struct, SProtPayload where Out : struct, SProtPayload {
+            DeviceStatus ret = Write(new SProtFrame(send, addr));
+            if (ret != DeviceStatus.OK) {
+                status = 0;
+                recv = default;
+                return ret;
+            }
+            ret = Read(out SProtFrame recv_frame);
+            if (ret != DeviceStatus.OK) {
+                recv = default;
+                status = 0;
+                return ret;
+            }
+            recv = StructUtils.FromBytes<Out>(recv_frame.Payload);
+            status = recv_frame.Status;
+            return ret;
+        }
+
+        /// <summary>
         /// Resets the board.
         /// </summary>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus Reset() {
             Log.Write("Reset");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out byte status);
+            DeviceStatus ret = WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out byte status);
             ret = SetLastError(ret, status);
             if (status == 3) {
                 Log.WriteWarning("Board was already reset");
@@ -124,7 +162,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetBootVersion(out byte version) {
             Log.Write("GetBootVersion");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion resp, out byte status);
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion resp, out byte status);
             if (ret != DeviceStatus.OK) {
                 version = 0;
                 return SetLastError(ret, status);
@@ -140,7 +178,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetAppVersion(out byte version) {
             Log.Write("GetAppVersion");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion resp, out byte status);
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion resp, out byte status);
             if (ret != DeviceStatus.OK) {
                 version = 0;
                 return SetLastError(ret, status);
@@ -156,7 +194,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetBoardInfo(out string version) {
             Log.Write("GetBoardInfo");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo resp, out byte status);
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo resp, out byte status);
             if (ret != DeviceStatus.OK) {
                 version = null;
                 return SetLastError(ret, status);
@@ -172,7 +210,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetUnknown81(out byte b) {
             Log.Write("GetUnknown81");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketUnknown81(), out RespPacketUnknown81 resp, out byte status);
+            DeviceStatus ret = WriteAndRead(new ReqPacketUnknown81(), out RespPacketUnknown81 resp, out byte status);
             if (ret != DeviceStatus.OK) {
                 b = 0;
                 return SetLastError(ret, status);
@@ -187,7 +225,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus SetUnknown4() {
             Log.Write("SetUnknown4");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketUnknown4() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketUnknown4() {
                 unk2 = 0x01
             }, out RespPacketUnknown4 _, out byte status);
             return SetLastError(ret, status);
@@ -199,7 +237,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus SetUnknown5() {
             Log.Write("SetUnknown5");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketUnknown5() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketUnknown5() {
                 unk = 0x10
             }, out RespPacketUnknown5 _, out byte status);
             return SetLastError(ret, status);

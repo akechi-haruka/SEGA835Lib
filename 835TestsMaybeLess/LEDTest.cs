@@ -22,7 +22,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T01_TestLEDCommands() {
-            Assert.That(led.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(led.Connect)) {
+                return;
+            }
             Assert.That(led.GetBoardInfo(out string board_number, out string chip_number, out byte fv), Is.EqualTo(DeviceStatus.OK));
             Assert.That(board_number, Is.Not.Null);
             Assert.That(chip_number, Is.Not.Null);

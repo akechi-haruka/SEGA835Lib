@@ -1,9 +1,10 @@
-﻿using System.Runtime.InteropServices;
+﻿using Haruka.Arcade.SEGA835Lib.Devices;
+using System.Runtime.InteropServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
 
     /// <summary>
-    /// This interface defines a payload for <see cref="ISProtRW"/>. Implementors must be a struct.
+    /// This interface defines a payload for a <see cref="SProtDevice"/>. Implementors must be a struct.
     /// </summary>
     public interface SProtPayload {
 

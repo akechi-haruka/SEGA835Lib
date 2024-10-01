@@ -32,7 +32,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         public bool DumpBytesToLog { get; set; }
 
-        private object locker = new object();
+        private readonly object locker = new object();
 
         /// <inheritdoc/>
         public SProtSerial(int portNumber, int baudrate = 115200, int timeout = 1000, bool dtr = false, bool rts = false, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One, Handshake flowControl = Handshake.None) : base(portNumber, baudrate, timeout, dtr, rts, parity, dataBits, stopBits, flowControl) {
@@ -205,8 +205,9 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <inheritdoc/>
         public override DeviceStatus Write(byte[] data) {
             lock (locker) {
-                List<byte> bytes = new List<byte>();
-                bytes.Add(SYNC_BYTE);
+                List<byte> bytes = new List<byte> {
+                    SYNC_BYTE
+                };
                 int checksum = 0;
                 foreach (byte b in data) {
                     if (b == ESCAPE_BYTE || b == SYNC_BYTE) {

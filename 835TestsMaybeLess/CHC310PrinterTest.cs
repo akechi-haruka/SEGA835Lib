@@ -40,7 +40,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T02_TestGetPrinterSerial() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.OK));
             Assert.That(serial, Is.Not.Null);
             Log.Write(serial);
@@ -48,7 +50,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T03_TestRFIDBoardGetInfo() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             Assert.That(printer.GetRFIDBootVersion(out byte version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.EqualTo(0));
             Log.Write("Boot: " + version);
@@ -76,7 +80,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T05_Print() {
-            Assert.That(printer.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
             ushort rc = printer.GetPrinterStatusCode();
             Log.Write(CHCSeriesCardPrinter.RCToString(rc));
             Assert.That(rc, Is.EqualTo(0));

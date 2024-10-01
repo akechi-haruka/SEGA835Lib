@@ -22,16 +22,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         private const byte LED_BOARD_ADDRESS = 0x00;
 
         /// <summary>
-        /// The COM port being used.
-        /// </summary>
-        public int Port { get; private set; }
-
-        /// <summary>
         /// Whether or not to include the PMM part when a FeliCa is read. If true, <see cref="GetCardUID"/> will return 16 bytes (8 bytes IDm + 8 bytes PMm), if false, only the 8 bytes IDm are returned.
         /// </summary>
         public bool FeliCaIncludePMM { get; set; } = false;
 
-        internal readonly SProtSerial serial;
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
@@ -42,21 +36,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         /// <param name="port">The COM port to use.</param>
         /// <param name="high_baudrate">Whether to use high baudrate (115200). This seems to depend on dipswitches on the reader?</param>
-        public AimeCardReader_837_15396(int port, bool high_baudrate = true) {
-            this.Port = port;
-            this.serial = new SProtSerial(port, high_baudrate ? 115200 : 38400);
+        public AimeCardReader_837_15396(int port, bool high_baudrate = true) : base(port, high_baudrate ? 115200 : 38400) {
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Connect() {
-            if (serial != null && serial.IsConnected()) {
-                return DeviceStatus.OK;
-            }
-            lastReadCardUID = null;
-            radioType = null;
-            Log.Write("Connecting on Port " + Port);
-            if (!serial.Connect()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
+            lock (SerialLocker) {
+                if (serial != null && serial.IsConnected()) {
+                    return DeviceStatus.OK;
+                }
+                lastReadCardUID = null;
+                radioType = null;
+                Log.Write("Connecting on Port " + Port);
+                if (!serial.Connect()) {
+                    return DeviceStatus.ERR_NOT_CONNECTED;
+                }
             }
             
             DeviceStatus ret = Reset();
@@ -68,42 +62,46 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         }
 
         private DeviceStatus Write(byte addr, byte seq, byte cmd, byte[] payload) {
-            byte[] packet = new byte[payload.Length + 5];
-            if (packet.Length > 0xFF) {
-                return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+            lock (SerialLocker) {
+                byte[] packet = new byte[payload.Length + 5];
+                if (packet.Length > 0xFF) {
+                    return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+                }
+                packet[0] = (byte)packet.Length;
+                packet[1] = addr;
+                packet[2] = seq;
+                packet[3] = cmd;
+                packet[4] = (byte)payload.Length;
+                Array.Copy(payload, 0, packet, 5, payload.Length);
+                return serial.Write(packet);
             }
-            packet[0] = (byte)packet.Length;
-            packet[1] = addr;
-            packet[2] = seq;
-            packet[3] = cmd;
-            packet[4] = (byte)payload.Length;
-            Array.Copy(payload, 0, packet, 5, payload.Length);
-            return serial.Write(packet);
         }
 
         private DeviceStatus Read(out byte addr, out byte seq, out byte cmd, out byte status, out byte[] payload) {
-            DeviceStatus ret = serial.ReadLenByOffset(1, out byte[] data, false, true);
-            if (ret != DeviceStatus.OK) {
-                addr = 0;
-                seq = 0;
-                cmd = 0;
-                status = 0;
-                payload = null;
+            lock (SerialLocker) {
+                DeviceStatus ret = serial.ReadLenByOffset(1, out byte[] data, false, true);
+                if (ret != DeviceStatus.OK) {
+                    addr = 0;
+                    seq = 0;
+                    cmd = 0;
+                    status = 0;
+                    payload = null;
+                    return ret;
+                }
+                // data[0] = sync
+                // data[1] = full packet length
+                addr = data[2];
+                seq = data[3];
+                cmd = data[4];
+                status = data[5];
+                payload = new byte[data[6]];
+                Array.Copy(data, 7, payload, 0, payload.Length);
+                if (status != 0) {
+                    ret = DeviceStatus.ERR_DEVICE;
+                    SetLastError(ret, status);
+                }
                 return ret;
             }
-            // data[0] = sync
-            // data[1] = full packet length
-            addr = data[2];
-            seq = data[3];
-            cmd = data[4];
-            status = data[5];
-            payload = new byte[data[6]];
-            Array.Copy(data, 7, payload, 0, payload.Length);
-            if (status != 0) {
-                ret = DeviceStatus.ERR_DEVICE;
-                SetLastError(ret, status);
-            }
-            return ret;
         }
 
         /// <inheritdoc/>
@@ -230,7 +228,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             Log.Write("Disconnecting on Port " + Port);
-            serial?.Disconnect();
+            lock (SerialLocker) {
+                serial?.Disconnect();
+            }
             Log.Write("Disconnected on Port " + Port);
             return DeviceStatus.OK;
         }
@@ -520,5 +520,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             StructUtils.Copy(block.data, 6, cardid, 0, 10);
             return ret;
         }
+
     }
 }

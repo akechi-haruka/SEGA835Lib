@@ -1,6 +1,5 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
-using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +10,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
 
     /// <summary>
     /// Base class for any Aime card reader board.
-    /// A CardReader can read NFC cards of certain types with communication based on <see cref="ISProtRW"/>.
+    /// A CardReader can read NFC cards of certain types with communication based on an <see cref="SProtDevice"/>.
     /// </summary>
-    public abstract class CardReader : Device, ISProtRW {
+    public abstract class CardReader : SProtDevice {
+        
+        /// <summary>
+        /// Creates a new CardReader object.
+        /// </summary>
+        /// <param name="port">The serial COM port to use.</param>
+        /// <param name="baudrate">The baudrate to use.</param>
+        protected CardReader(int port, int baudrate) : base(port, baudrate) {
+        }
 
         /// <summary>
         /// Starts scanning (polling) for cards.
@@ -79,12 +86,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// </summary>
         /// <returns></returns>
         public abstract CardType? GetCardType();
-
-        /// <inheritdoc/>
-        public abstract DeviceStatus Write(SProtFrame send);
-
-        /// <inheritdoc/>
-        public abstract DeviceStatus Read(out SProtFrame recv);
 
         /// <summary>
         /// Clears the last card values from the reader.

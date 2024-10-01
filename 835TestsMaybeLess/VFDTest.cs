@@ -20,7 +20,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T01_TestVersion() {
-            Assert.That(vfd.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(vfd.Connect)) {
+                return;
+            }
             Assert.That(vfd.GetVersion(out string version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.Null);
             Log.Write(version);
@@ -28,7 +30,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T02_TestWritingText() {
-            Assert.That(vfd.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(vfd.Connect)) {
+                return;
+            }
             Assert.That(vfd.SetEncoding(VFDEncoding.SHIFT_JIS), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetOn(true), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetScrollWindowPosition(0, 0, 120), Is.EqualTo(DeviceStatus.OK));
@@ -39,7 +43,9 @@ namespace _835TestsMaybeLess {
 
         [Test]
         public void T03_TestDoubleText() {
-            Assert.That(vfd.Connect(), Is.EqualTo(DeviceStatus.OK));
+            if (!Util.CheckConnect(vfd.Connect)) {
+                return;
+            }
             Assert.That(vfd.SetEncoding(VFDEncoding.SHIFT_JIS), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetOn(true), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetBrightness(VFDBrightnessLevel.LEVEL2), Is.EqualTo(DeviceStatus.OK));

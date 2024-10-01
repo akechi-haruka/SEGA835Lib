@@ -174,7 +174,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
                 return ret;
             }
 
-            if (!responseDisabled) {
+            if (!ResponsesDisabled) {
                 ret = SetLastError(Read(out SProtFrame f), f.Status);
             }
 
