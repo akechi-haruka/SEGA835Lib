@@ -203,7 +203,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             int pos = 0;
             try {
                 while (pos < data.Length) {
-                    int read = device.Read(data, pos, len);
+                    int read = device.Read(data, pos, len - pos);
                     if (read <= 0) {
                         throw new TimeoutException();
                     }
