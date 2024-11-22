@@ -44,7 +44,6 @@ What devices are supported?
 
 TODOs:
 * buy a IO3
-* figure out how to read e-money auth cards
 * CHC320 (Sangokushi Taisen)
 * buy a Y3
 * how does the coin blocker work
