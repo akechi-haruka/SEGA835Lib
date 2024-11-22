@@ -156,6 +156,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
          */
         ERR_LIBRARY,
         /**
+         * An error occurred while trying to de- or encrypt data for this device.
+         */
+        ERR_CRYPT,
+        /**
          * An exception has occurred.
          */
         ERR_OTHER = 9999999,

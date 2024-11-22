@@ -7,7 +7,10 @@ using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,10 +29,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         public bool FeliCaIncludePMM { get; set; } = false;
 
+        /// <summary>
+        /// Whether the card reader LEDs should flash while card scanning is in progress.
+        /// </summary>
+        public bool FlashLEDsWhilePolling { get; set; }
+
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
         private RadioOnType? radioType;
+        private uint lastMifareCardLUID;
 
         /// <summary>
         /// Initializes a new card reader on the specified port.
@@ -47,6 +56,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 }
                 lastReadCardUID = null;
                 radioType = null;
+                lastMifareCardLUID = 0;
                 Log.Write("Connecting on Port " + Port);
                 if (!serial.Connect()) {
                     return DeviceStatus.ERR_NOT_CONNECTED;
@@ -284,12 +294,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         private void PollT() {
             DeviceStatus ret = DeviceStatus.OK;
+            int count = 0;
             do {
                 try {
                     ret = Poll();
                     SetLastError(ret);
                     if (ret != DeviceStatus.OK) {
                         break;
+                    }
+                    count++;
+                    if (FlashLEDsWhilePolling && count % 4 == 0) {
+                        ret = LEDSetColor(count % 8 == 0 ? Color.White : Color.Black);
+                        if (ret != DeviceStatus.OK) {
+                            break;
+                        }
                     }
                     Thread.Sleep(250);
                 } catch (ThreadInterruptedException) {
@@ -321,7 +339,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                         offset += size;
                         Log.Write("Found a MIFARE UID: \n" + Hex.Dump(id));
 
-                        ret = ReadMIFARECardID(BitConverter.ToUInt32(id, 0), out byte[] cardid);
+                        lastMifareCardLUID = BitConverter.ToUInt32(id, 0);
+
+                        ret = ReadMIFARECardID(lastMifareCardLUID, out byte[] cardid);
                         SetLastError(ret, resp?.Status);
                         if (ret != DeviceStatus.OK) {
                             return ret;
@@ -480,15 +500,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return ret;
         }
 
-        /// <summary>
-        /// Reads the card ID from a MIFARE tag.
-        /// </summary>
-        /// <param name="uid">The card UID to read from.</param>
-        /// <param name="cardid">A 10 byte long array with the card ID.</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public unsafe DeviceStatus ReadMIFARECardID(uint uid, out byte[] cardid) {
-            cardid = null;
-
+        private DeviceStatus PrepareMIFARECommunication(uint uid) {
             Log.Write("Select Mifare (" + uid + ")");
             DeviceStatus ret = SetLastError(this.WriteAndRead(new ReqPacketSelectMIFARE() {
                 uid = uid
@@ -502,23 +514,170 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 uid = uid,
                 unk = 0x03
             }, out RespPacketAuthenticateMIFARE _, out status), status);
+            return ret;
+        }
+
+        private unsafe DeviceStatus ReadMIFAREBlock(uint uid, byte block_no, out byte* block_content) {
+            Log.Write("Read Mifare Block (" + uid + ", "+block_no+")");
+            DeviceStatus ret = SetLastError(this.WriteAndRead(new ReqPacketReadMIFARE() {
+                uid = uid,
+                block = block_no,
+            }, out RespPacketAuthenticateMIFARE block, out byte status), status);
+            block_content = block.data;
+            return ret;
+        }
+
+        /// <summary>
+        /// Reads the card ID from a MIFARE tag.
+        /// </summary>
+        /// <param name="uid">The card UID to read from.</param>
+        /// <param name="cardid">A 10 byte long array with the card ID.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        public unsafe DeviceStatus ReadMIFARECardID(uint uid, out byte[] cardid) {
+            cardid = null;
+
+            DeviceStatus ret = PrepareMIFARECommunication(uid);
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
 
-            Log.Write("Read Mifare Block (" + uid + ")");
-            ret = SetLastError(this.WriteAndRead(new ReqPacketReadMIFARE() {
-                uid = uid,
-                block = 2,
-            }, out RespPacketAuthenticateMIFARE block, out status), status);
+            ret = ReadMIFAREBlock(uid, 2, out byte* block);
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
 
             cardid = new byte[10];
 
-            StructUtils.Copy(block.data, 6, cardid, 0, 10);
+            StructUtils.Copy(block, 6, cardid, 0, 10);
             return ret;
+        }
+
+#if NET8_0_OR_GREATER
+        /// <summary>
+        /// Reads the binary blob contained on a e-money/Thinca authentication card.
+        /// </summary>
+        /// <param name="uid">The card UID to read from.</param>
+        /// <param name="decryption_key">The 0x40 byte long decryption key for this card. Can be null to simply check if the scanned card is a e-money authentication card.</param>
+        /// <param name="proxy_type">The proxy_type stored on the card.</param>
+        /// <param name="unk1">Unkown byte stored on the card.</param>
+        /// <param name="store_card_id">Data stored on the card.</param>
+        /// <param name="store_branch_id">Data stored on the card.</param>
+        /// <param name="merchant_code">Data stored on the card.</param>
+        /// <param name="passphrase">The password for the e-money authentication server server-supplied client certificate.</param>
+        /// <exception cref="ArgumentException">If the given decryption key is not null and not 0x40 bytes long.</exception>
+        /// <returns>
+        /// * <see cref="DeviceStatus.OK"/> on success.<br />
+        /// * <see cref="DeviceStatus.ERR_INCOMPATIBLE"/> if the scanned card is not an e-money auth card.<br />
+        /// * <see cref="DeviceStatus.ERR_CRYPT"/> if the decryption key is invalid. In this case, <paramref name="proxy_type"/> and <paramref name="unk1"/> will however be set.<br />
+        /// * Any other DeviceStatus on misc. reader failures.</returns>
+        public unsafe DeviceStatus ReadMIFAREeMoneyAuthentication(uint uid, byte[] decryption_key, out byte proxy_type, out byte unk1, out String store_card_id, out String merchant_code, out UInt128 store_branch_id, out String passphrase) {
+            proxy_type = 0;
+            unk1 = 0;
+            store_branch_id = 0;
+            store_card_id = null;
+            passphrase = null;
+            merchant_code = null;
+
+            if (decryption_key != null && decryption_key.Length != 0x40) {
+                throw new ArgumentException("Decryption key has invalid length: " + decryption_key.Length);
+            }
+
+            DeviceStatus ret = PrepareMIFARECommunication(uid);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+
+            ret = ReadMIFAREBlock(uid, 3, out byte* header);
+            if (ret != DeviceStatus.OK) {
+                return ret;
+            }
+            if (header[0] != 'T' || header[1] != 'C') {
+                Log.WriteError("Scanned card is not a e-money authentication card!");
+                return DeviceStatus.ERR_INCOMPATIBLE;
+            }
+
+            proxy_type = header[2];
+            unk1 = header[3];
+
+            if (decryption_key == null) {
+                return ret;
+            }
+
+            const int AUTH_BLOCK_SIZE = 16;
+            byte[] blocks = new byte[] { 5, 6, 8, 9, 10, 12, 13, 14 };
+            byte[] encrypted = new byte[160];
+
+            for (int i = 0; i < blocks.Length; i++) {
+
+                ret = ReadMIFAREBlock(uid, blocks[i], out byte* content);
+                if (ret != DeviceStatus.OK) {
+                    return ret;
+                }
+
+                int offset = i * 16;
+                StructUtils.Copy(content, AUTH_BLOCK_SIZE, encrypted, offset, AUTH_BLOCK_SIZE);
+            }
+
+            byte[] authcardid = new byte[0x20];
+            byte[] uidbytes = BitConverter.GetBytes(uid);
+            for (int i = 0; i < authcardid.Length; i += uidbytes.Length) {
+                Array.Copy(uidbytes, 0, authcardid, i, uidbytes.Length);
+            }
+
+            for (int i = 0; i < decryption_key.Length; i++) {
+                decryption_key[i] ^= 0x1C;
+            }
+
+            try {
+                HMACSHA256 hash = new HMACSHA256(decryption_key);
+                byte[] hmac = hash.ComputeHash(authcardid);
+                byte[] iv = new byte[16];
+                for (int i = 0; i < 16; i++) {
+                    iv[i] = (byte)(hmac[i + 16] ^ hmac[i]);
+                }
+
+                Aes aes = Aes.Create();
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+                aes.Key = decryption_key;
+                aes.IV = iv;
+                ICryptoTransform dec = aes.CreateDecryptor();
+                byte[] decrypted = dec.TransformFinalBlock(encrypted, 0, encrypted.Length);
+
+                if (decrypted.Length != 0x41) {
+                    throw new CryptographicException("Decrypted card data has invalid size: " + decrypted.Length);
+                }
+                if (decrypted[decrypted.Length - 1] != 0x00) {
+                    throw new CryptographicException("Decrypted card data failed verification check");
+                }
+
+                store_card_id = Encoding.ASCII.GetString(decrypted, 0, 0x10);
+                merchant_code = Encoding.ASCII.GetString(decrypted, 0x10, 0x14);
+                store_branch_id = Unsafe.ReadUnaligned<UInt128>(ref decrypted[0x24]);
+                passphrase = Encoding.ASCII.GetString(decrypted, 0x30, 0x10);
+
+            } catch (Exception ex) {
+                Log.WriteFault(ex, "Cryptographic error while decrypting data from card");
+                return DeviceStatus.ERR_CRYPT;
+            }
+
+            return ret;
+        }
+#endif
+
+        /// <summary>
+        /// Returns the last MIFARE card LUID.
+        /// </summary>
+        /// <returns>The last read MIFARE LUID or null if the last card was not a MIFARE card or no card was read.</returns>
+        public uint? GetMIFARECardLUID() {
+            if (lastReadCardType != CardType.MIFARE) {
+                return null;
+            }
+            if (lastMifareCardLUID > 0) {
+                return lastMifareCardLUID;
+            } else {
+                return null;
+            }
         }
 
     }

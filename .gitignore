@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Project specific
 /testenvironments.json
 /SEGA835Lib/C3*.dll
+emoney.key
