@@ -16,7 +16,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
     internal class Options : GlobalOptions {
 
         public enum PrinterModel {
-            CHC310, CHC330, Any
+            CHC310, CHC310B, CHC330, Any
         }
 
         [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port.", Default = 4)]

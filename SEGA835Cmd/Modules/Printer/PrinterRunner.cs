@@ -57,6 +57,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
             if (opts.Model == Options.PrinterModel.CHC310 || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC310Printer());
             }
+            if (opts.Model == Options.PrinterModel.CHC310B || opts.Model == Options.PrinterModel.Any) {
+                printers.Add(new CHC310BPrinter());
+            }
             if (opts.Model == Options.PrinterModel.CHC330 || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC330Printer(opts.RFIDFileName != null ? new RFIDRWPrinter_837_15347(opts.Port) : null));
             }
