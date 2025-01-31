@@ -82,7 +82,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
             SProtFrame reqFrame = new SProtFrame(cmd, payloadIn);
             byte[] payload = reqFrame.Payload;
-            byte[] packet = new byte[payload.Length + 2];
+            byte[] packet = new byte[payload.Length + 3];
             if (packet.Length > 0xFF) {
                 payloadOut = null;
                 status = 0;

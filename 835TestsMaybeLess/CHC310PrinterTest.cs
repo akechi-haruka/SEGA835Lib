@@ -79,7 +79,21 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T05_Print() {
+        public void T05_RFID() {
+            if (!Util.CheckConnect(printer.Connect)) {
+                return;
+            }
+            ushort rc = printer.GetPrinterStatusCode();
+            Log.Write(CHCSeriesCardPrinter.RCToString(rc));
+            Assert.That(rc, Is.EqualTo(0));
+            Assert.That(printer.WriteRFID(ref rc, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x72, 0x50, 0x5C, 0x70, 0x05, 0x52, 0x05, 0xCD, 0x61, 0x16, 0x62, 0xD0, 0xD6, 0x12, 0xC4, 0xAF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, false, out byte[] writtenCardId), Is.EqualTo(DeviceStatus.OK));
+            Log.Dump(writtenCardId);
+            Assert.That(writtenCardId, Is.Not.Null);
+            Assert.That(writtenCardId, Has.Length.EqualTo(CHCSeriesCardPrinter.CARD_ID_LEN));
+        }
+
+        [Test]
+        public void T06_Print() {
             if (!Util.CheckConnect(printer.Connect)) {
                 return;
             }
