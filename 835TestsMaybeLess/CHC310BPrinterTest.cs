@@ -49,23 +49,7 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T03_TestRFIDBoardGetInfo() {
-            if (!Util.CheckConnect(printer.Connect)) {
-                return;
-            }
-            Assert.That(printer.GetRFIDBootVersion(out byte version), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(version, Is.Not.EqualTo(0));
-            Log.Write("Boot: " + version);
-            Assert.That(printer.GetRFIDAppVersion(out byte version2), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(version2, Is.Not.EqualTo(0));
-            Log.Write("App: " + version2);
-            Assert.That(printer.GetRFIDBoardInfo(out string board), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(board, Is.Not.Null);
-            Log.Write("Board: " + board);
-        }
-
-        [Test]
-        public void T04_TestImageConversion() {
+        public void T03_TestImageConversion() {
             Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
             byte[] data = image.GetRawPixelsRGBNoPadding();
             Log.Write("pixels total = " + data.Length);
@@ -79,21 +63,7 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T05_RFID() {
-            if (!Util.CheckConnect(printer.Connect)) {
-                return;
-            }
-            ushort rc = printer.GetPrinterStatusCode();
-            Log.Write(CHCSeriesCardPrinter.RCToString(rc));
-            Assert.That(rc, Is.EqualTo(0));
-            Assert.That(printer.WriteRFID(ref rc, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x72, 0x50, 0x5C, 0x70, 0x05, 0x52, 0x05, 0xCD, 0x61, 0x16, 0x62, 0xD0, 0xD6, 0x12, 0xC4, 0xAF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, false, out byte[] writtenCardId), Is.EqualTo(DeviceStatus.OK));
-            Log.Dump(writtenCardId);
-            Assert.That(writtenCardId, Is.Not.Null);
-            Assert.That(writtenCardId, Has.Length.EqualTo(CHCSeriesCardPrinter.CARD_ID_LEN));
-        }
-
-        [Test]
-        public void T06_Print() {
+        public void T04_Print() {
             if (!Util.CheckConnect(printer.Connect)) {
                 return;
             }
@@ -104,12 +74,9 @@ namespace _835TestsMaybeLess {
             printer.SetMtfFile("TestFiles/Printer/MTF220.txt");
             Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
             Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo310.png"));
-            Assert.That(printer.StartPrinting(image, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x72, 0x50, 0x5C, 0x70, 0x05, 0x52, 0x05, 0xCD, 0x61, 0x16, 0x62, 0xD0, 0xD6, 0x12, 0xC4, 0xAF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, image2), Is.EqualTo(DeviceStatus.OK));
+            Assert.That(printer.StartPrinting(image, null, image2), Is.EqualTo(DeviceStatus.OK));
             Assert.That(printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
             Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(printer.GetWrittenRFIDCardId(out byte[] cardid), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(cardid, Is.Not.Null);
-            Assert.That(cardid, Has.Length.EqualTo(CHCSeriesCardPrinter.CARD_ID_LEN));
         }
 
     }

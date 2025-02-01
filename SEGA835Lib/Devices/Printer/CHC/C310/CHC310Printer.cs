@@ -227,7 +227,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// </summary>
         /// <param name="version">The board version</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public DeviceStatus GetRFIDAppVersion(out byte version) {
+        public virtual DeviceStatus GetRFIDAppVersion(out byte version) {
             version = 0;
 
             DeviceStatus ret = SendRFIDCommand(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion packet, out byte status);
@@ -244,7 +244,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// </summary>
         /// <param name="version">The board version</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public DeviceStatus GetRFIDBootVersion(out byte version) {
+        public virtual DeviceStatus GetRFIDBootVersion(out byte version) {
             version = 0;
 
             DeviceStatus ret = SendRFIDCommand(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion packet, out byte status);
@@ -261,7 +261,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// </summary>
         /// <param name="board">The board information</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public DeviceStatus GetRFIDBoardInfo(out string board) {
+        public virtual DeviceStatus GetRFIDBoardInfo(out string board) {
             board = null;
 
             DeviceStatus ret = SendRFIDCommand(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo packet, out byte status);
