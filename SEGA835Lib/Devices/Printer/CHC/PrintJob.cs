@@ -136,11 +136,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(Printer.SetLastErrorByRC(Native.CHC_RC_OK, rc), rc);
                     }*/
 
-                    ret = Printer.WriteRFID(ref rc, RfidPayload, OverrideCardId, out byte[] writtenCardId);
-                    if (ret != DeviceStatus.OK || JobStatus == PrintStatus.Errored) {
-                        return PrintExitThreadError(ret, rc);
+                    if (RfidPayload != null) {
+                        ret = Printer.WriteRFID(ref rc, RfidPayload, OverrideCardId, out byte[] writtenCardId);
+                        if (ret != DeviceStatus.OK || JobStatus == PrintStatus.Errored) {
+                            return PrintExitThreadError(ret, rc);
+                        }
+
+                        WrittenRFIDCardId = writtenCardId;
+                    } else {
+                        Log.WriteWarning("No RFID data to write");
                     }
-                    WrittenRFIDCardId = writtenCardId;
 
                     JobStatus = PrintStatus.SetPrinterProperties;
 

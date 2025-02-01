@@ -322,7 +322,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="writtenCardId">The card ID of the card that was being written to or null on error or if no RFID board was configured.</param>
         /// <param name="overrideCardId">Whether or not the payload contains the card ID.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was written successfully or no .<br />
+        /// <see cref="DeviceStatus.OK"/> if the data was written successfully or payload was null.<br />
         /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="ConnectRFID"/> was never called.<br />
         /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the board was disconnected during the operation.<br />
         /// <see cref="DeviceStatus.ERR_LIBRARY"/> if an error occurred with the native library.<br />
