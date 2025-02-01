@@ -30,10 +30,12 @@ What devices are supported?
 * Aime 837-15396 NFC Card Reader (Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396.AimeCardReader_837_15396)
 * "IO4" 835-15257-01 JVS USB I/O Board (Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01.IO4USB_835_15257_01)
 * GP1232A02A Futaba VFD (Haruka.Arcade.SEGA835Lib.Devices.Misc.VFD_GP1232A02A)
-* SINFONIA CHC-310 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310_Printer)
+* SINFONIA CHC-310 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310Printer)
  - including embedded RFID
  - requires C310Ausb.dll
-* SINFONIA CHC-330 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.CHC330_Printer)
+* SINFONIA CHC-310B card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310BPrinter)
+ - requires C310Busb.dll
+* SINFONIA CHC-330 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.CHC330Printer)
  - requires C330Ausb.dll
 * 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347)
 * 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
