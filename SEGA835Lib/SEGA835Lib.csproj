@@ -21,6 +21,8 @@
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	<Configurations>Debug;Release</Configurations>
+	<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib/</PackageProjectUrl>
+	<PackageLicenseUrl>https://github.com/akechi-haruka/SEGA835Lib/blob/master/LICENSE.txt</PackageLicenseUrl>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">

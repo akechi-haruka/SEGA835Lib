@@ -20,6 +20,8 @@
 		<PackageTags>Arcade;I/O;Serial</PackageTags>
 		<Platforms>AnyCPU;x64;ARM64</Platforms>
 		<Configurations>Debug;Release</Configurations>
+		<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/akechi-haruka/SEGA835Lib/blob/master/LICENSE.txt</PackageLicenseUrl>
 	</PropertyGroup>
 	
 	<PropertyGroup>
