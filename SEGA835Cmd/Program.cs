@@ -3,6 +3,7 @@ using Haruka.Arcade.SEGA835Cmd.Modules.AimeReader;
 using Haruka.Arcade.SEGA835Cmd.Modules.IO4;
 using Haruka.Arcade.SEGA835Cmd.Modules.IO4Con;
 using Haruka.Arcade.SEGA835Cmd.Modules.LED;
+using Haruka.Arcade.SEGA835Cmd.Modules.PrinterInfo;
 #if !RASPBERRY
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher;
@@ -34,12 +35,13 @@ namespace Haruka.Arcade.SEGA835Cmd {
                   errs => DeviceStatus.ERR_OTHER);
 #else
                 return (int)Parser.Default.ParseArguments
-                    <Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options>(args)
-                    .MapResult<Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, DeviceStatus>(
+                    <Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options>(args)
+                    .MapResult<Modules.IO4Con.Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, DeviceStatus>(
                   IO4Controller.Run,
                   AimeReader.Run,
                   VFDRunner.Run,
                   PrinterRunner.Run,
+                  PrinterInfoRunner.Run,
                   PrinterWatcherRunner.Run,
                   RFIDRunner.Run,
                   IO4Runner.Run,
