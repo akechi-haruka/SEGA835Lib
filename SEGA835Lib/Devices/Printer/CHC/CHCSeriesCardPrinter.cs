@@ -729,6 +729,22 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
             return ret;
         }
+        
+        
+        /// <summary>
+        /// Queries various printer statistics.
+        /// </summary>
+        /// <param name="printcnt">The printer statistics or null on error.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, <see cref="DeviceStatus.BUSY"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
+        public DeviceStatus GetPrintCnt(out PrintCnt? printcnt) {
+            Log.Write("GetPrintCnt");
+            printcnt = null;
+            DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PRINTCNT, out byte[] buf);
+            if (ret == DeviceStatus.OK) {
+                printcnt = StructUtils.FromBytes<PrintCnt>(buf);
+            }
+            return ret;
+        }
 
         /// <summary>
         /// Queries various printer statistics.
@@ -741,6 +757,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PRINTCNT2, out byte[] buf);
             if (ret == DeviceStatus.OK) {
                 printcnt = StructUtils.FromBytes<PrintCnt2>(buf);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Queries various page statistics.
+        /// </summary>
+        /// <param name="pageStatus">The page statistics or null on error.</param>
+        /// <returns><see cref="DeviceStatus.OK"/> on success, <see cref="DeviceStatus.BUSY"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
+        public DeviceStatus GetPageStatus(out PageStatus? pageStatus) {
+            Log.Write("GetPageStatus");
+            pageStatus = null;
+            DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PAGESTATUS, out byte[] buf);
+            if (ret == DeviceStatus.OK) {
+                pageStatus = StructUtils.FromBytes<PageStatus>(buf);
             }
             return ret;
         }

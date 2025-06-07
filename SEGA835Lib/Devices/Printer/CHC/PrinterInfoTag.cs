@@ -30,7 +30,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         [PrinterTagBufferSize(0x99)]
         ENGID = 3,
         /// <summary>
-        /// Unknown.
+        /// A <see cref="PrintCnt"/> structure.
         /// </summary>
         PRINTCNT = 4,
         /// <summary>
@@ -39,10 +39,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         [PrinterTagBufferSize(0x28)]
         PRINTCNT2 = 5,
         /// <summary>
-        /// Really unknown.
+        /// A <see cref="PageStatus"/> structure.
         /// </summary>
         [PrinterTagBufferSize(0x20)]
-        UNKNOWN = 6,
+        PAGESTATUS = 6,
         /// <summary>
         /// Unknown.
         /// </summary>
