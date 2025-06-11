@@ -157,23 +157,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// <inheritdoc/>
         public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
             DeviceStatus ret = DeviceStatus.OK;
-            
+
             if (payload != null) {
                 writtenCardId = null;
                 Log.Write("Initializing RFID Board");
 
                 Log.Write("Reading Card ID from RFID board");
-                byte[] cardId = null;
+                byte[] cardId = new byte[CARD_ID_LEN];
                 ret = PrintWaitFor(ref rc, (ref ushort rc) => {
-                    ret = GetLoadedCardId(out cardId);
-                    if (cardId != null) {
-                        rc = RESULT_NOERROR;
-                        return CHCUSB_RC_OK;
-                    } else {
-                        return CHCUSB_RC_BUSY;
+                    unsafe {
+                        fixed (byte* ptr = cardId) {
+                            ret = SetLastErrorByRC(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
+                        }
                     }
+
+                    if (rc == RESULT_CARDRFID_ReadA) {
+                        rc = RESULT_NOERROR;
+                    }
+
+                    return rc;
                 }, 20000);
-                if (ret != DeviceStatus.OK || cardId == null) {
+                if (ret != DeviceStatus.OK) {
                     Log.WriteError("RFID Read failed");
                     return PrintExitThreadError(ret, RESULT_CARDRFID_CommandError);
                 }

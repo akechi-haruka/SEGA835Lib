@@ -394,7 +394,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <returns>
         /// <see cref="DeviceStatus.OK"/> is <paramref name="printerFunction"/> completed successfully.<br />
         /// If the timeout was hit, the last printer status code cast to a <see cref="DeviceStatus"/> will be returned.<br />
-        /// If an error occurrs, the last printer status code cast to a <see cref="DeviceStatus"/> will be returned.
+        /// If an error occurs, the last printer status code cast to a <see cref="DeviceStatus"/> will be returned.
         /// </returns>
         protected DeviceStatus PrintWaitFor(ref ushort rc, StatusWaitDelegate printerFunction, int timeout, params ushort[] wait_codes) {
             DateTime start = DateTime.Now;
