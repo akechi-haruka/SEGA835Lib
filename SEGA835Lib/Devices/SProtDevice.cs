@@ -39,6 +39,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
         /// <param name="serial">The SProtSerial object to use for communication.</param>
         public SProtDevice(SProtSerial serial) {
             this.serial = serial;
+            Port = serial.Port;
         }
 
         /// <summary>
