@@ -11,8 +11,11 @@ Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGA835Lib/workfl
 What can the application be used for?
 
 * Use IO4 as a VJoy controller.
-* Read MIFARE and FeliCa card UIDs via a real aime reader.
-* LED shenanigans
+* Read MIFARE and FeliCa card UIDs via a real Aime reader.
+* Display text on VFDs.
+* LED shenanigans.
+* Read data from KCA/FGO RFID cards.
+* Retrieve information from CHC-series card printers.
 * Print custom images to CHC-series card printers.
 * Watch a directory for images and auto-print those.
 * ... more to come
@@ -48,7 +51,6 @@ TODOs:
 * buy a IO3
 * CHC320 (Sangokushi Taisen)
 * buy a Y3
-* how does the coin blocker work
 
 ----------------
 Implementation Notes:
