@@ -2,19 +2,13 @@
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
-
     /// <summary>
     /// A Futaba GP1232A02A VFD.
     /// </summary>
     public class VFD_GP1232A02A : Device {
-
         private SerialComm serial;
 
         /// <summary>
@@ -51,10 +45,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (serial != null && serial.IsConnected()) {
                 return DeviceStatus.OK;
             }
+
             Log.Write("Connecting on Port " + Port);
             if (!serial.Connect()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
+
             return Reset();
         }
 
@@ -88,6 +84,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (ret != DeviceStatus.OK) {
                 return SetLastError(ret);
             }
+
             return SetLastError(serial.Write(payload));
         }
 
@@ -140,6 +137,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
+
             return SetLastError(Write(new byte[] { 0x22, (byte)(x >> 8), (byte)x }));
         }
 
@@ -158,30 +156,38 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (w >= 512) {
                 throw new ArgumentException("w (" + w + ") must be within [0,512)");
             }
+
             if (checked(x + w) > 512) {
                 throw new ArgumentException("x + w (" + x + " + " + w + ") must be within [0,512]");
             }
+
             if (h >= 32) {
                 throw new ArgumentException("h (" + h + ") must be within [0,32)");
             }
+
             if (checked(y + h) > 32) {
                 throw new ArgumentException("y + h (" + y + " + " + h + ") must be within [0,32]");
             }
+
             if (y % 8 != 0) {
                 throw new ArgumentException("y (" + y + ") must be a multiple of 8");
             }
+
             if (h % 8 != 0) {
                 throw new ArgumentException("h (" + h + ") must be a multiple of 8");
             }
+
             if (image.Length != h * w) {
                 throw new ArgumentException("h * w (" + h + " * " + w + ") is not equal to image byte array length (" + image.Length + ")");
             }
+
             byte yb = (byte)(y / 8);
             byte hb = (byte)(h / 8);
             DeviceStatus ret = SetLastError(Write(new byte[] { 0x2E, (byte)(x >> 8), (byte)x, yb, (byte)(w >> 8), (byte)w, (byte)(yb + hb - 1) }));
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
+
             return SetLastError(Write(image));
         }
 
@@ -195,14 +201,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         public DeviceStatus SetCursorPosition(ushort x, byte y) {
             Log.Write("Set Cursor: " + x + "/" + y);
             if (x >= 512) {
-                throw new ArgumentException("x ("+x+") must be within [0,512)");
+                throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
+
             if (y >= 32) {
                 throw new ArgumentException("y (" + y + ") must be within [0,32)");
             }
+
             if (y % 8 != 0) {
                 throw new ArgumentException("y (" + y + ") must be a multiple of 8");
             }
+
             return SetLastError(Write(new byte[] { 0x30, (byte)(x >> 8), (byte)x, (byte)(y / 8) }));
         }
 
@@ -226,25 +235,31 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x is not in [0,512), x+w is not in [0,512], y not in [0,32) or not a multiple of 8.</exception>
         public DeviceStatus SetScrollWindowPosition(ushort x, byte y, ushort w, ushort h = 0) {
-            Log.Write("Set Text: " + x + "/" + y + "("+w+")");
+            Log.Write("Set Text: " + x + "/" + y + "(" + w + ")");
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
+
             if (checked(x + w) > 512) {
                 throw new ArgumentException("x + w (" + x + " + " + w + ") must be within [0,512]");
             }
+
             if (y >= 32) {
                 throw new ArgumentException("y (" + y + ") must be within [0,32)");
             }
+
             if (y % 8 != 0) {
                 throw new ArgumentException("y (" + y + ") must be a multiple of 8");
             }
+
             if (y >= 32) {
                 throw new ArgumentException("h (" + h + ") must be within [0,32)");
             }
+
             if (y % 8 != 0) {
                 throw new ArgumentException("h (" + h + ") must be a multiple of 8");
             }
+
             return SetLastError(Write(new byte[] { 0x40, (byte)(x >> 8), (byte)x, (byte)(y / 8), (byte)(w >> 8), (byte)w, (byte)(h / 8) }));
         }
 
@@ -270,14 +285,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             Log.Write("Write Text: " + str);
             NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
             str += " ";
-            const int max_str_len = 0x95;
-            if (str.Length >= max_str_len) {
-                if (truncate) {
-                    str = str.Substring(0, max_str_len);
-                } else {
-                    return SetLastError(DeviceStatus.ERR_PAYLOAD_TOO_LARGE);
-                }
-            }
 
             Encoding enc;
             switch (EncodingSetting) {
@@ -298,10 +305,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
 
             byte[] strbytes = enc.GetBytes(str);
-            byte[] packet = new byte[2 + str.Length];
+
+            const int max_str_len = 0x95;
+            if (strbytes.Length >= max_str_len) {
+                if (!truncate) {
+                    return SetLastError(DeviceStatus.ERR_PAYLOAD_TOO_LARGE);
+                }
+            }
+
+            int datalen = Math.Min(strbytes.Length, max_str_len);
+            byte[] packet = new byte[2 + datalen];
             packet[0] = 0x50;
-            packet[1] = (byte)str.Length;
-            Array.Copy(strbytes, 0, packet, 2, str.Length);
+            packet[1] = (byte)datalen;
+            Array.Copy(strbytes, 0, packet, 2, datalen);
             return SetLastError(Write(packet));
         }
 
@@ -322,25 +338,30 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
+
             ret = SetTextDrawing(false);
             if (!scroll1 && !scroll2) {
                 ret = SetScrollWindowPosition(0, 0, 0, 0);
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
+
                 ret = WriteScrollingText("");
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
             }
+
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
+
             if (scroll1) {
                 ret = SetScrollWindowPosition(0, 0, width, 16);
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
+
                 ret = WriteScrollingText(str1, truncate);
                 if (ret != DeviceStatus.OK) {
                     return ret;
@@ -350,16 +371,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
+
                 ret = WriteStaticText(str1, truncate);
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
             }
+
             if (scroll2) {
                 ret = SetScrollWindowPosition(0, 16, width, 32);
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
+
                 ret = WriteScrollingText(str2, truncate);
                 if (ret != DeviceStatus.OK) {
                     return ret;
@@ -369,11 +393,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
+
                 ret = WriteStaticText(str2, truncate);
                 if (ret != DeviceStatus.OK) {
                     return ret;
                 }
             }
+
             return SetTextDrawing(true);
         }
 
@@ -386,18 +412,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
         /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
         public DeviceStatus WriteStaticText(string str, bool truncate = true) {
-
             Log.Write("Write Static Text: " + str);
             NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
             str += " ";
-            const int max_str_len = 0x95;
-            if (str.Length >= max_str_len) {
-                if (truncate) {
-                    str = str.Substring(0, max_str_len);
-                } else {
-                    return SetLastError(DeviceStatus.ERR_PAYLOAD_TOO_LARGE);
-                }
-            }
 
             Encoding enc;
             switch (EncodingSetting) {
@@ -418,9 +435,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
 
             byte[] strbytes = enc.GetBytes(str);
-            byte[] packet = new byte[1 + str.Length];
+
+            const int max_str_len = 0x95;
+            if (strbytes.Length >= max_str_len) {
+                if (!truncate) {
+                    return SetLastError(DeviceStatus.ERR_PAYLOAD_TOO_LARGE);
+                }
+            }
+
+            int datalen = Math.Min(strbytes.Length, max_str_len);
+            byte[] packet = new byte[1 + datalen];
             packet[0] = 0x00;
-            Array.Copy(strbytes, 0, packet, 1, str.Length);
+            Array.Copy(strbytes, 0, packet, 1, datalen);
             return SetLastError(Write(packet));
         }
 
@@ -446,10 +472,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (ret != DeviceStatus.OK) {
                 return ret;
             }
+
             ret = SetLastError(Read(7, out byte[] data));
             if (data != null) {
                 version = Encoding.ASCII.GetString(data);
             }
+
             return ret;
         }
 
@@ -475,14 +503,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// Chinese (simplified).
         /// </summary>
         GB2312,
+
         /// <summary>
         /// Chinese (traditional).
         /// </summary>
         BIG5,
+
         /// <summary>
         /// Japanese.
         /// </summary>
         SHIFT_JIS,
+
         /// <summary>
         /// Korean.
         /// </summary>
@@ -497,18 +528,22 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// Off.
         /// </summary>
         OFF,
+
         /// <summary>
         /// On.
         /// </summary>
         LEVEL1,
+
         /// <summary>
         /// Bright.
         /// </summary>
         LEVEL2,
+
         /// <summary>
         /// Brighter.
         /// </summary>
         LEVEL3,
+
         /// <summary>
         /// Brightest. (whoa)
         /// </summary>
@@ -523,6 +558,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// FAST.
         /// </summary>
         FAST,
+
         /// <summary>
         /// Slow.
         /// </summary>
