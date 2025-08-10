@@ -107,7 +107,9 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 #if RASPBERRY
             string portPrefix = "/dev/ttySC";
 #else
-            string portPrefix = "COM";
+            // Device namespace is necessary for COM10 and above to work
+            // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces
+            string portPrefix = @"\\.\COM";
 #endif
             device = new SerialPort(portPrefix + Port, Baudrate, Parity, DataBits, StopBits) {
                 DtrEnable = DTR,
