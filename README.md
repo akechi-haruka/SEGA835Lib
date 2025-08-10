@@ -5,7 +5,12 @@ Licensed under the Server Side Public License.
 
 API to interface with SEGA 835/837-series arcade hardware and companion command line application.
 
-Nightly builds / downloads: https://nightly.link/akechi-haruka/SEGA835Lib/workflows/dotnet/master?preview
+Get / Download:
+
+* Latest stable Cmd release download: https://github.com/akechi-haruka/SEGA835Lib/releases/latest
+* Latest unstable Cmd download: https://nightly.link/akechi-haruka/SEGA835Lib/workflows/dotnet/master/Sega835Cmd-latest.zip
+* NuGet: Haruka.Arcade.SEGA835Lib / https://www.nuget.org/packages/Haruka.Arcade.SEGA835Lib
+* Nightly builds of Lib and others: https://nightly.link/akechi-haruka/SEGA835Lib/workflows/dotnet/master?preview
 
 ----------------
 What can the application be used for?
