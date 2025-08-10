@@ -24,6 +24,7 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageIcon>logo.png</PackageIcon>
+		<PackageReadmeFile>README.txt</PackageReadmeFile>
 	</PropertyGroup>
 	
 	<PropertyGroup>
@@ -48,7 +49,7 @@
 		<None Remove="publish\**" />
 		<None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
 		<None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
-		<None Include="..\README.txt" Pack="true" PackagePath="README.txt"/>
+		<None Include="..\README.txt" Pack="true" PackagePath="$(PackageReadmeFile)"/>
 	</ItemGroup>
 
 	<ItemGroup>
