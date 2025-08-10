@@ -116,6 +116,7 @@ jobs:
 
   run_test:
     runs-on: windows-latest
+    permissions: write-all
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
