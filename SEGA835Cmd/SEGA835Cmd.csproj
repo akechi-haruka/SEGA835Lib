@@ -47,9 +47,8 @@
 		<EmbeddedResource Remove="publish\**" />
 		<None Remove="publish\**" />
 		<None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
-		<None Update="logo.png">
-			<Pack>True</Pack>
-		</None>
+		<None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
+		<None Include="..\README.txt" Pack="true" PackagePath="README.txt"/>
 	</ItemGroup>
 
 	<ItemGroup>
