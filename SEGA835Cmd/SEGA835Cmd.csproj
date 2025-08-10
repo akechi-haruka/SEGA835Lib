@@ -24,7 +24,7 @@
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageIcon>logo.png</PackageIcon>
-		<PackageReadmeFile>README.txt</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	
 	<PropertyGroup>
