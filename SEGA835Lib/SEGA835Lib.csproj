@@ -46,7 +46,7 @@
     <None Remove="publish\**" />
     <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
     <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
-    <None Include="..\README.txt" Pack="true" PackagePath="$(PackageReadmeFile)"/>
+    <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
   </ItemGroup>
 
   <ItemGroup>

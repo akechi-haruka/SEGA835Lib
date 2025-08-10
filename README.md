@@ -1,5 +1,5 @@
 SEGA835Lib / SEGA835Cmd
-(c) 2024 Haruka and contributors
+(c) 2024-2025 Haruka and contributors
 
 Licensed under the Server Side Public License.
 
@@ -34,12 +34,12 @@ What devices are supported?
 * "IO4" 835-15257-01 JVS USB I/O Board (Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01.IO4USB_835_15257_01)
 * GP1232A02A Futaba VFD (Haruka.Arcade.SEGA835Lib.Devices.Misc.VFD_GP1232A02A)
 * SINFONIA CHC-310 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310Printer)
- - including embedded RFID
- - requires C310Ausb.dll
+  * including embedded RFID
+  * requires C310Ausb.dll
 * SINFONIA CHC-310B card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.CHC310BPrinter)
- - requires C310Busb.dll
+  * requires C310Busb.dll
 * SINFONIA CHC-330 card printer (Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330.CHC330Printer)
- - requires C330Ausb.dll
+  * requires C330Ausb.dll
 * 837-15347 RFID Reader BD For Embedded (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDRWPrinter_837_15347)
 * 837-20004 RFID Deck Reader BD Half TKK (Haruka.Arcade.SEGA835Lib.Devices.RFID.RFIDDeckReader_837_20004)
 * 835-15375 KEY SWITCH 4X3 BD Tenkey (Haruka.Arcade.SEGA835Lib.Devices.Misc.Tenkey_837_15375)
@@ -60,6 +60,7 @@ Implementation Notes:
 
 Support Table:
 
+```
 +----------------+--------------------------+-------------+--------------------------------------------+
 |    Version     | Compatible Unity Version |   Support   |                   Notes                    |
 +----------------+--------------------------+-------------+--------------------------------------------+
@@ -70,7 +71,7 @@ Support Table:
 | netstandard2.1 | Unity 2021.2 and later   | Full        |                                            |
 | net8           | N/A                      | Full        | Default version used by Sega835Cmd         |
 +----------------+--------------------------+-------------+--------------------------------------------+
-
+```
 
 ----------------
 Contributing:
