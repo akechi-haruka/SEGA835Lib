@@ -1,4 +1,5 @@
 SEGA835Lib / SEGA835Cmd
+
 (c) 2024-2025 Haruka and contributors
 
 Licensed under the Server Side Public License.
@@ -50,7 +51,7 @@ What devices are supported?
 * 835-15375 KEY SWITCH 4X3 BD Tenkey (Haruka.Arcade.SEGA835Lib.Devices.Misc.Tenkey_837_15375)
 * 837-15093-06 IC BD I/O 7CH CONT RS232 12V (Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093.LED_837_15093_06)
 * MONKEY06 837-15093-06 EMULATOR (Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06.LED_MONKEY06
- - https://github.com/akechi-haruka/SuperMonkeyLEDs
+  * https://github.com/akechi-haruka/SuperMonkeyLEDs
 
 TODOs:
 * buy a IO3
