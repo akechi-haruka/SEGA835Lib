@@ -15,7 +15,7 @@
     <Authors>Haruka Akechi</Authors>
     <Company />
     <Description>Libary to interface with SEGA(R) arcade hardware</Description>
-    <Copyright>(c) 2024 Haruka Akechi and contributors</Copyright>
+    <Copyright>(c) 2024-2025 Haruka Akechi and contributors</Copyright>
     <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
     <PackageTags>Arcade;I/O;Serial</PackageTags>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
@@ -24,6 +24,7 @@
 	<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib/</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageIcon>logo.png</PackageIcon>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -43,6 +44,9 @@
     <EmbeddedResource Remove="publish\**" />
     <None Remove="publish\**" />
     <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+    <None Update="logo.png">
+      <Pack>True</Pack>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
