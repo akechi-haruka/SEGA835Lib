@@ -99,7 +99,7 @@ jobs:
         uses: actions/setup-dotnet@v4
 
       # Download the NuGet package created in the previous job
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Sega835Lib.nupkg
           path: ${{ env.NuGetDirectory }}
@@ -115,7 +115,7 @@ jobs:
         run: meziantou.validate-nuget-package (Get-ChildItem "${{ env.NuGetDirectory }}/*.nupkg")
 
   run_test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
