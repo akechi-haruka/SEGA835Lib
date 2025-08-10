@@ -1,4 +1,4 @@
-﻿#if !RASPBERRY
+﻿#if !LINUX
 
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;

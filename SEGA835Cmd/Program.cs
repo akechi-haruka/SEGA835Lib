@@ -9,7 +9,7 @@ using Haruka.Arcade.SEGA835Cmd.Modules.VFD;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Options = Haruka.Arcade.SEGA835Cmd.Modules.IO4Con.Options;
-#if !RASPBERRY
+#if !LINUX
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher;
 #endif
@@ -18,7 +18,7 @@ namespace Haruka.Arcade.SEGA835Cmd {
     internal class Program {
         static int Main(string[] args) {
             try {
-#if RASPBERRY
+#if LINUX
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
                 return (int)Parser.Default.ParseArguments

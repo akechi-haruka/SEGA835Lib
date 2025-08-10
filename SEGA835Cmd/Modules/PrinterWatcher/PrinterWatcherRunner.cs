@@ -1,4 +1,4 @@
-﻿#if !RASPBERRY
+﻿#if !LINUX
 
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Lib.Debugging;

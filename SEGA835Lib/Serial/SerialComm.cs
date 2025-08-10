@@ -96,7 +96,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <returns>true if successful, false if not</returns>
         public bool Connect() {
             Log.Write("Connecting to port " + Port + " (" + Baudrate + ") DTR=" + DTR + ",RTS=" + RTS);
-#if RASPBERRY
+#if LINUX
             string portPrefix = "/dev/ttySC";
 #else
             // Device namespace is necessary for COM10 and above to work

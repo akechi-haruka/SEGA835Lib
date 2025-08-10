@@ -1,4 +1,4 @@
-﻿#if !RASPBERRY
+﻿#if !LINUX
 
 using CommandLine;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;

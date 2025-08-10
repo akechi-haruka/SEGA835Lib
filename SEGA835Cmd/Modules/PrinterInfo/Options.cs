@@ -1,4 +1,4 @@
-﻿#if !RASPBERRY
+﻿#if !LINUX
 
 using CommandLine;
 
