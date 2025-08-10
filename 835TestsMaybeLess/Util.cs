@@ -5,9 +5,10 @@ namespace _835TestsMaybeLess {
         internal static bool CheckConnect(Func<DeviceStatus> connect) {
             DeviceStatus ret = connect();
             if (ret != DeviceStatus.OK) {
-                Assert.Warn("Device is not connected!");
+                Assert.Inconclusive("Device is not connected!");
                 return false;
             }
+
             return true;
         }
     }
