@@ -1,20 +1,12 @@
 ﻿#if !RASPBERRY
 
 using CommandLine;
-using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Haruka.Arcade.SEGA835Cmd.Modules.Printer.Options;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
-
     [Verb("printerwatch", HelpText = "Monitor (a) folder(s) for created files and sends them to a CHC-series printer")]
     internal class Options : GlobalOptions {
-
         [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port.", Default = 4)]
         public int Port { get; set; }
 
@@ -56,7 +48,6 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
 
         [Value(3, MetaName = "MtfFileName", Required = true, HelpText = "The MTF file used for printing.")]
         public string MtfFileName { get; set; }
-
     }
 }
 

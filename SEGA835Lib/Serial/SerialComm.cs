@@ -2,16 +2,9 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO.Ports;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
-
     /// <summary>
     /// A RS232 serial communication interface that connects on a specific COM port with certain handshake parameters.
     /// This object can be re-used after a call to <see cref="Disconnect"/>.
@@ -20,7 +13,6 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// Note that if any of the Read/Write commands fail, the device may be in an inconsistent state, therefore a hard reset (<see cref="Disconnect"/> + <see cref="Connect"/> is highly recommended.
     /// </remarks>
     public class SerialComm {
-
         /// <summary>
         /// Whether R/W commands should be logged to <see cref="Log"/>. Includes command type and read/write byte count.
         /// </summary>
@@ -86,7 +78,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="stopBits">The amount of stop bits to use. This depends on the specific device being used.</param>
         /// <param name="flowControl">The type of flow control being used. This depends on the specific device being used.</param>
         public SerialComm(int portNumber, int baudrate = 115_200, int timeout = 1000, bool dtr = false, bool rts = false, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One, Handshake flowControl = Handshake.None) {
-            Log.Write("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts + ", handshake="+flowControl);
+            Log.Write("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts + ", handshake=" + flowControl);
             Port = portNumber;
             Baudrate = baudrate;
             DTR = dtr;
@@ -124,6 +116,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 Log.WriteFault(ex, "Failed to connect to port " + Port);
                 return false;
             }
+
             Log.Write("Connected");
             return true;
         }
@@ -152,14 +145,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (device == null) {
                 return DeviceStatus.ERR_NOT_INITIALIZED;
             }
+
             if (!IsConnected()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
+
             try {
                 int ret = device.ReadByte();
                 if (ret == -1) {
                     throw new TimeoutException();
                 }
+
                 data = (byte)ret;
                 //Log.Write("byte=" + data);
             } catch (OperationCanceledException) {
@@ -172,6 +168,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 Log.WriteFault(ex, "Failed reading from port " + Port);
                 return DeviceStatus.ERR_OTHER;
             }
+
             return DeviceStatus.OK;
         }
 
@@ -193,15 +190,19 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (device == null) {
                 return DeviceStatus.ERR_NOT_INITIALIZED;
             }
+
             if (!IsConnected()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
+
             if (len == 0) {
                 return DeviceStatus.OK;
             }
+
             if (DumpRWCommandsToLog) {
                 Log.Write("Port " + Port + ", Read Len=" + data.Length);
             }
+
             int pos = 0;
             try {
                 while (pos < data.Length) {
@@ -209,18 +210,20 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     if (read <= 0) {
                         throw new TimeoutException();
                     }
+
                     pos += read;
                 }
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + " ("+pos+"/"+len+"): Interrupted");
+                Log.WriteError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Interrupted");
                 return DeviceStatus.ERR_NOT_CONNECTED;
             } catch (TimeoutException) {
-                Log.WriteError("Failed reading from port " + Port + " ("+pos+"/"+len+"): Timed out");
+                Log.WriteError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Timed out");
                 return DeviceStatus.ERR_TIMEOUT;
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading from port " + Port);
                 return DeviceStatus.ERR_OTHER;
             }
+
             return DeviceStatus.OK;
         }
 
@@ -239,16 +242,20 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             if (device == null) {
                 return DeviceStatus.ERR_NOT_INITIALIZED;
             }
+
             if (!IsConnected()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
+
             NetStandardBackCompatExtensions.ThrowIfNull(data, nameof(data));
             if (DumpRWCommandsToLog) {
                 Log.Write("Port " + Port + ", Write Len=" + data.Length);
             }
+
             if (data.Length == 0) {
                 return DeviceStatus.OK;
             }
+
             try {
                 device.Write(data, 0, data.Length);
             } catch (OperationCanceledException) {
@@ -261,6 +268,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 Log.WriteFault(ex, "Failed writing to port " + Port);
                 return DeviceStatus.ERR_OTHER;
             }
+
             return DeviceStatus.OK;
         }
 
@@ -270,6 +278,5 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         public void Disconnect() {
             device?.Close();
         }
-
     }
 }

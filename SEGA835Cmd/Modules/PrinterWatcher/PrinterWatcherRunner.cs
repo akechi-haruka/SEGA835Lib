@@ -3,27 +3,9 @@
 using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
-using Haruka.Arcade.SEGA835Lib.Devices.IO;
-using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
-using Haruka.Arcade.SEGA835Lib.Devices.Misc;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
-using Haruka.Arcade.SEGA835Lib.Devices.RFID;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vJoy.Wrapper;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
     internal class PrinterWatcherRunner {
-
         private static string PendingImageFile;
         private static string PendingHoloFile;
         private static string PendingRFIDFile;
@@ -41,22 +23,27 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                 Log.WriteError("Image directory does not exist: " + opts.ImageDirectory);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.ICC1FileName)) {
                 Log.WriteError("ICC1 file does not exist: " + opts.ICC1FileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.ICC2FileName)) {
                 Log.WriteError("ICC2 file does not exist: " + opts.ICC2FileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.MtfFileName)) {
                 Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (opts.HoloDirectory != null && !Directory.Exists(opts.HoloDirectory)) {
                 Log.WriteError("Holo directory does not exist: " + opts.HoloDirectory);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (opts.RFIDDirectory != null && !Directory.Exists(opts.RFIDDirectory)) {
                 Log.WriteError("RFID directory does not exist: " + opts.RFIDDirectory);
                 return DeviceStatus.ERR_OTHER;
@@ -114,6 +101,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                 while (PendingImageFile == null) {
                     Thread.Sleep(50);
                 }
+
                 Thread.Sleep(1000); // wait if holo or RFID get set
                 lock (pendingImages) {
                     pendingImages.Add(new Tuple<string, string, string>(PendingImageFile, PendingHoloFile, PendingRFIDFile));
@@ -140,6 +128,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                         pendingImages.RemoveAt(0);
                     }
                 }
+
                 if (image != null) {
                     Log.Write("Starting print of: " + image.Item1);
                     DeviceStatus ret = PrinterRunner.Run(new Printer.Options() {
@@ -165,8 +154,10 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
                         }
                     }
                 }
+
                 Thread.Sleep(1000);
             }
+
             Log.Write("Queue thread stopped");
         }
 

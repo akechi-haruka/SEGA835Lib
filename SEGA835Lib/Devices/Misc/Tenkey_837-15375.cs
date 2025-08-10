@@ -1,19 +1,12 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Devices.IO;
 using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
-
     /// <summary>
     /// A 835-15375 KEY SWITCH 4X3 BD that is connected to a IO4.
     /// </summary>
     public class Tenkey_837_15375 : Device {
-
         /// <summary>
         /// Definition of keys on this tenkey.
         /// </summary>
@@ -22,50 +15,62 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// The '1' key.
             /// </summary>
             K1,
+
             /// <summary>
             /// The '2' key.
             /// </summary>
             K2,
+
             /// <summary>
             /// The '3' key.
             /// </summary>
             K3,
+
             /// <summary>
             /// The '4' key.
             /// </summary>
             K4,
+
             /// <summary>
             /// The '5' key.
             /// </summary>
             K5,
+
             /// <summary>
             /// The '6' key.
             /// </summary>
             K6,
+
             /// <summary>
             /// The '7' key.
             /// </summary>
             K7,
+
             /// <summary>
             /// The '8' key.
             /// </summary>
             K8,
+
             /// <summary>
             /// The '9' key.
             /// </summary>
             K9,
+
             /// <summary>
             /// The '0' key.
             /// </summary>
             K0,
+
             /// <summary>
             /// The 'C' key.
             /// </summary>
             Clear,
+
             /// <summary>
             /// The 'ENTER' key.
             /// </summary>
             Enter,
+
             /// <summary>
             /// No key (is pressed).
             /// </summary>
@@ -135,6 +140,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             if (!report.HasValue) {
                 return Key.None;
             }
+
             JVSUSBReportIn val = report.Value;
 
             bool r1 = val.GetButton(this.r1);

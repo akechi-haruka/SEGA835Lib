@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Haruka.Arcade.SEGA835Lib.Misc;
+﻿using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices {
-
     /// <summary>
     /// The base class for any device that uses a serial connection with <see cref="SProtSerial"/>.
     /// </summary>
     public abstract class SProtDevice : Device {
-
         /// <summary>
         /// The COM port being used.
         /// </summary>
@@ -92,6 +85,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
                     recv = null;
                     return ret;
                 }
+
                 return Read(out recv);
             }
         }
@@ -146,17 +140,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
                     recv = default;
                     return ret;
                 }
+
                 ret = Read(out SProtFrame recv_frame);
                 if (ret != DeviceStatus.OK) {
                     recv = default;
                     status = 0;
                     return ret;
                 }
+
                 recv = StructUtils.FromBytes<Out>(recv_frame.Payload);
                 status = recv_frame.Status;
                 return ret;
             }
         }
-
     }
 }

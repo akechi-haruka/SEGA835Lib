@@ -1,13 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct ReqPacketReset : SProtPayload {
         public byte GetCommandID() {
@@ -91,6 +85,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     internal struct ReqPacketUnknown4 : SProtPayload {
         public byte unk;
         public byte unk2;
+
         public byte GetCommandID() {
             return 0x04;
         }
@@ -106,6 +101,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     internal struct ReqPacketUnknown5 : SProtPayload {
         public byte unk;
+
         public byte GetCommandID() {
             return 0x05;
         }
@@ -117,5 +113,4 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             return 0x05;
         }
     }
-
 }

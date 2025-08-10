@@ -1,11 +1,9 @@
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
-using System.Reflection.PortableExecutable;
 
 namespace _835TestsMaybeLess {
     public class VFDTest {
-
         private VFD_GP1232A02A vfd;
 
         [SetUp]
@@ -23,6 +21,7 @@ namespace _835TestsMaybeLess {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
+
             Assert.That(vfd.GetVersion(out string version), Is.EqualTo(DeviceStatus.OK));
             Assert.That(version, Is.Not.Null);
             Log.Write(version);
@@ -33,6 +32,7 @@ namespace _835TestsMaybeLess {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
+
             Assert.That(vfd.SetEncoding(VFDEncoding.SHIFT_JIS), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetOn(true), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetScrollWindowPosition(0, 0, 120), Is.EqualTo(DeviceStatus.OK));
@@ -46,6 +46,7 @@ namespace _835TestsMaybeLess {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
+
             Assert.That(vfd.SetEncoding(VFDEncoding.SHIFT_JIS), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetOn(true), Is.EqualTo(DeviceStatus.OK));
             Assert.That(vfd.SetBrightness(VFDBrightnessLevel.LEVEL2), Is.EqualTo(DeviceStatus.OK));
@@ -58,6 +59,5 @@ namespace _835TestsMaybeLess {
             Assert.That(vfd.SetText("NO MORE", "STOP", false, false), Is.EqualTo(DeviceStatus.OK));
             Thread.Sleep(2000);
         }
-
     }
 }

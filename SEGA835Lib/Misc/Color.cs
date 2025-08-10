@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Haruka.Arcade.SEGA835Lib.Misc {
-
+﻿namespace Haruka.Arcade.SEGA835Lib.Misc {
     /// <summary>
     /// Class holding a color. (System.Drawing replacement)
     /// </summary>
@@ -14,10 +7,12 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// The red value.
         /// </summary>
         public byte R;
+
         /// <summary>
         /// The green value.
         /// </summary>
         public byte G;
+
         /// <summary>
         /// The blue value.
         /// </summary>
@@ -31,14 +26,16 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 return FromArgb(255, 0, 0);
             }
         }
+
         /// <summary>
         /// Green.
         /// </summary>
         public static Color Green {
             get {
-                return FromArgb(0,255, 0);
+                return FromArgb(0, 255, 0);
             }
         }
+
         /// <summary>
         /// Blue.
         /// </summary>
@@ -47,6 +44,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 return FromArgb(0, 0, 255);
             }
         }
+
         /// <summary>
         /// White.
         /// </summary>
@@ -55,6 +53,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 return FromArgb(255, 255, 255);
             }
         }
+
         /// <summary>
         /// Black.
         /// </summary>

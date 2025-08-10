@@ -4,20 +4,17 @@ using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
-
     /// <summary>
     /// A 837-15093-06 LED board.
     /// </summary>
     public class LED_837_15093_06 : SProtDevice {
-
         /// <summary>
         /// The address being used by the client.
         /// </summary>
         public byte HostAddress { get; private set; }
+
         /// <summary>
         /// The address being used by the board.
         /// </summary>
@@ -45,6 +42,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 if (serial != null && serial.IsConnected()) {
                     return DeviceStatus.OK;
                 }
+
                 Log.Write("Connecting on Port " + Port);
                 if (!serial.Connect()) {
                     return DeviceStatus.ERR_NOT_CONNECTED;
@@ -65,6 +63,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             lock (SerialLocker) {
                 serial?.Disconnect();
             }
+
             return DeviceStatus.OK;
         }
 
@@ -85,6 +84,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 if (packet.Length > 0xFF) {
                     return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
                 }
+
                 packet[0] = dest;
                 packet[1] = src;
                 packet[2] = (byte)(payload.Length + 1);
@@ -111,7 +111,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             lock (SerialLocker) {
                 ret = serial.ReadLenByOffset(3, out data, false, false);
             }
-            
+
             if (ret != DeviceStatus.OK) {
                 src = 0;
                 dest = 0;
@@ -121,6 +121,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 payload = null;
                 return ret;
             }
+
             dest = data[1];
             src = data[2];
             cmd = data[5];
@@ -129,12 +130,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             if (report != 0) {
                 Log.WriteWarning("Report received from LED board: " + report);
             }
+
             payload = new byte[data[3] - 3];
             Array.Copy(data, 7, payload, 0, payload.Length);
             if (status != 0) {
                 ret = DeviceStatus.ERR_DEVICE;
                 SetLastError(ret, status);
             }
+
             return ret;
         }
 
@@ -150,6 +153,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 recv = null;
                 return ret;
             }
+
             recv = new SProtFrame(0, cmd, addr, status, payload);
             return ret;
         }
@@ -169,6 +173,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
                 return SetLastError(DeviceStatus.OK, status);
             }
+
             return SetLastError(ret, status);
         }
 
@@ -191,6 +196,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 chip_number = null;
                 firmware_version = 0;
             }
+
             return SetLastError(ret, status);
         }
 
@@ -207,6 +213,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             } else {
                 checksum = 0;
             }
+
             return SetLastError(ret, status);
         }
 
@@ -229,6 +236,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 major = 0;
                 minor = 0;
             }
+
             return SetLastError(ret, status);
         }
 
@@ -238,7 +246,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <param name="timeout">The timeout to set.</param>
         /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetTimeout(ushort timeout) {
-            Log.Write("SetTimeout("+timeout+")");
+            Log.Write("SetTimeout(" + timeout + ")");
             DeviceStatus ret = this.WriteAndRead(new ReqPacketSetTimeout() {
                 timeout = timeout
             }, out RespPacketSetTimeout _, out byte status);
@@ -276,12 +284,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             ReqPacketSetLEDs req = new ReqPacketSetLEDs();
             byte* ledptr = req.pixels;
             int i = 0;
-            foreach (Color c in colors){
+            foreach (Color c in colors) {
                 ledptr[i] = c.R;
                 ledptr[i + 1] = c.G;
                 ledptr[i + 2] = c.B;
                 i += 3;
             }
+
             DeviceStatus ret = SetLastError(Write(BoardAddress, HostAddress, req.GetCommandID(), StructUtils.GetBytes(req)));
             if (ret != DeviceStatus.OK) {
                 return ret;

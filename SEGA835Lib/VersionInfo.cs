@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("835TestsMaybeLess")]
 
 namespace Haruka.Arcade.SEGA835Lib {
-
     /// <summary>
     /// Version information about the library.
     /// </summary>
     public class VersionInfo {
-
         /// <summary>
         /// The library name.
         /// </summary>
@@ -25,6 +22,5 @@ namespace Haruka.Arcade.SEGA835Lib {
         /// The global API version. This will change only if base API is modified and incompatible with previous versions.
         /// </summary>
         public const int LIB_API_VERSION = 5;
-
     }
 }

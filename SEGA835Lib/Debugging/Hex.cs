@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
-
     internal class Hex {
         private readonly byte[] _bytes;
         private readonly int _bytesPerLine;
@@ -31,6 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             if (bytes == null) {
                 return "<null>";
             }
+
             return (new Hex(bytes, bytesPerLine, showHeader, showOffset, showAscii)).Dump();
         }
 
@@ -38,6 +34,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             if (_showHeader) {
                 WriteHeader();
             }
+
             WriteBody();
             return _sb.ToString();
         }
@@ -46,12 +43,14 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             if (_showOffset) {
                 _sb.Append("Offset(h)  ");
             }
+
             for (int i = 0; i < _bytesPerLine; i++) {
                 _sb.Append($"{i & 0xFF:X2}");
                 if (i + 1 < _bytesPerLine) {
                     _sb.Append(" ");
                 }
             }
+
             _sb.AppendLine();
         }
 
@@ -62,6 +61,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                         if (_showAscii) {
                             WriteAscii();
                         }
+
                         _sb.AppendLine();
                     }
 
@@ -107,5 +107,4 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             return b < 32 || b > 255 ? "." : Encoding.ASCII.GetString(new[] { b });
         }
     }
-
 }

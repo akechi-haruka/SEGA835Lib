@@ -5,17 +5,13 @@ using Haruka.Arcade.SEGA835Lib.Serial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
-
     /// <summary>
     /// A bootleg 837-15093-06 board based on an Arduino or similar. See https://github.com/akechi-haruka/SuperMonkeyLEDs.
     /// </summary>
     /// <seealso cref="LED_837_15093_06"/>
     public class LED_MONKEY06 : LED_837_15093_06 {
-
         /// <summary>
         /// Creates a new LED board.
         /// </summary>
@@ -82,9 +78,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
             if (chip_no.Length > 5) {
                 throw new ArgumentException("chip_no is too long", nameof(chip_no));
             }
+
             if (chip_no.Length < 5) {
                 chip_no = chip_no.PadRight(5);
             }
+
             DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetChipNumber() {
                 chip_no = chip_no
             }, out RespPacketMonkeySetChipNumber _, out byte status);
@@ -103,9 +101,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
             if (board_name.Length > 8) {
                 throw new ArgumentException("board_name is too long", nameof(board_name));
             }
+
             if (board_name.Length < 8) {
                 board_name = board_name.PadRight(8);
             }
+
             DeviceStatus ret = this.WriteAndRead(new ReqPacketMonkeySetBoardName() {
                 board_name = board_name
             }, out RespPacketMonkeySetBoardName _, out byte status);
@@ -113,7 +113,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         }
 
         /// <summary>
-        /// Sets the order of channels for the data sent to <see cref="LED_837_15093_06.SetLEDs(IEnumerable{Color})"/>. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
+        /// Sets the order of channels for the data sent to <see cref="LED_837_15093_06.SetLEDs(System.Collections.Generic.IEnumerable{Haruka.Arcade.SEGA835Lib.Misc.Color})"/>. This will be remembered until <see cref="ResetMonkey"/>. <see cref="LED_837_15093_06.Reset"/> does NOT reset the parameters for the monkey device.
         /// </summary>
         /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetChannels(Channel R, Channel G, Channel B) {
@@ -169,6 +169,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
                 ledptr[i + 2] = c.B;
                 i += 3;
             }
+
             DeviceStatus ret = SetLastError(Write(BoardAddress, HostAddress, req.GetCommandID(), StructUtils.GetBytes(req)));
             if (ret != DeviceStatus.OK) {
                 return ret;
@@ -189,10 +190,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
             /// Red.
             /// </summary>
             Red = 0,
+
             /// <summary>
             /// Green.
             /// </summary>
             Green = 1,
+
             /// <summary>
             /// Blue.
             /// </summary>

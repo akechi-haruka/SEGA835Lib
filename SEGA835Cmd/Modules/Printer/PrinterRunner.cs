@@ -2,20 +2,11 @@
 
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
-using Haruka.Arcade.SEGA835Lib.Devices.IO;
-using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
-using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
     internal class PrinterRunner {
@@ -28,26 +19,32 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 Log.WriteError("--no-wait and --print-card-id exclude each other.");
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.ImageFileName)) {
                 Log.WriteError("Image file does not exist!");
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.ICC1FileName)) {
                 Log.WriteError("ICC1 file does not exist: " + opts.ICC1FileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.ICC2FileName)) {
                 Log.WriteError("ICC2 file does not exist: " + opts.ICC2FileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (!File.Exists(opts.MtfFileName)) {
                 Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (opts.HoloFileName != null && !File.Exists(opts.HoloFileName)) {
                 Log.WriteError("Holo file does not exist: " + opts.HoloFileName);
                 return DeviceStatus.ERR_OTHER;
             }
+
             if (opts.RFIDFileName != null && !File.Exists(opts.RFIDFileName)) {
                 Log.WriteError("RFID file does not exist: " + opts.RFIDFileName);
                 return DeviceStatus.ERR_OTHER;
@@ -57,9 +54,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
             if (opts.Model == Options.PrinterModel.CHC310 || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC310Printer());
             }
+
             if (opts.Model == Options.PrinterModel.CHC310B || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC310BPrinter());
             }
+
             if (opts.Model == Options.PrinterModel.CHC330 || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC330Printer(opts.RFIDFileName != null ? new RFIDRWPrinter_837_15347(opts.Port) : null));
             }
@@ -73,12 +72,14 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                     } catch {
                         ret = DeviceStatus.ERR_NOT_INITIALIZED;
                     }
+
                     if (ret != DeviceStatus.OK) {
                         Log.WriteWarning(possiblePrinter + " not connected: " + ret);
                         possiblePrinter.Disconnect();
                         printers.Remove(possiblePrinter);
                     }
                 }
+
                 Log.Write("Connected printers: " + printers.Count);
                 if (printers.Count == 0) {
                     Log.WriteError("No printers connected!");
@@ -115,6 +116,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                         if (opts.HoloRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                             holo.RotateFlip(opts.HoloRotateFlip);
                         }
+
                         if (opts.HoloSimplify) {
                             Log.Write("Holo simplify");
                             for (int w = 0; w < holo.Width; w++) {

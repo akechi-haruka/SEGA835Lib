@@ -1,13 +1,10 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Devices;
-using System.Runtime.InteropServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
-
     /// <summary>
     /// This interface defines a payload for a <see cref="SProtDevice"/>. Implementors must be a struct.
     /// </summary>
     public interface SProtPayload {
-
         /// <summary>
         /// Gets the command ID of this payload.
         /// </summary>
@@ -19,7 +16,6 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// Helper functions for <see cref="SProtPayload"/>.
     /// </summary>
     public static class JVSPayloadExtensions {
-
         /// <summary>
         /// Converts this SProtPayload into a <see cref="SProtFrame"/>.
         /// </summary>
@@ -29,6 +25,5 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         public static SProtFrame ToFrame(this SProtPayload payload, byte addr = 0x0) {
             return new SProtFrame(payload, addr);
         }
-
     }
 }

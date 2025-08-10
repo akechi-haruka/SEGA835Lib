@@ -6,8 +6,6 @@ using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
-using Haruka.Arcade.SEGA835Lib.Devices.RFID;
-using System.Drawing;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterInfo {
     internal class PrinterInfoRunner {
@@ -63,19 +61,22 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterInfo {
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Failed getting printer serial: " + ret);
                     }
+
                     ret = printer.GetPrintCnt2(out PrintCnt2? status);
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Failed getting printer counts: " + ret);
                     }
+
                     ret = printer.GetPageStatus(out PageStatus? pageStatus);
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Failed getting page status: " + ret);
                     }
-                    
+
                     Console.WriteLine("Printer: " + printer.GetType().Name);
                     if (serial != null) {
                         Console.WriteLine(" - Serial: " + serial);
                     }
+
                     if (status != null) {
                         PrintCnt2 s = status.Value;
                         Console.WriteLine(" - Printer Counts:");
@@ -90,6 +91,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterInfo {
                         Console.WriteLine("   - Paper Count: " + s.paperCount);
                         Console.WriteLine("   - Holo Print Counter: " + s.holoPrintCounter);
                     }
+
                     if (pageStatus != null) {
                         PageStatus s = pageStatus.Value;
                         Console.WriteLine(" - Page Status:");

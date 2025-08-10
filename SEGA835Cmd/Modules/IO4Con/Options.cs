@@ -1,15 +1,8 @@
 ﻿using CommandLine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
-
     [Verb("io4con", HelpText = "Use a IO4 board as a VJoy controller")]
     internal class Options : GlobalOptions {
-
         [Option("controller-id", Required = false, HelpText = "The vJoy controller ID to use.", Default = (uint)1)]
         public uint ControllerId { get; set; }
 
@@ -36,6 +29,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
 
         [Option("dump-axes", Required = false, HelpText = "Prints ADC values")]
         public bool DumpAxes { get; set; }
-
     }
 }

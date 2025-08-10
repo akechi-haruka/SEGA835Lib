@@ -2,11 +2,7 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.IO;
 using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
@@ -30,7 +26,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
             VirtualJoystick j = new VirtualJoystick(opts.ControllerId);
             try {
                 j.Aquire();
-            }catch{
+            } catch {
                 if (opts.IgnoreVJoyErrors) {
                     j = null;
                 } else {
@@ -43,7 +39,6 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
             }
 
             while (j?.Aquired ?? true && dev.IsConnected()) {
-
                 if (!opts.NoExitButton) {
                     if (Console.KeyAvailable) {
                         ConsoleKeyInfo key = Console.ReadKey(true);
@@ -69,6 +64,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
                         j?.SetJoystickAxis(report.adcs[i] - short.MaxValue / 2, currentAxis++);
                     }
                 }
+
                 uint button_index = 0;
                 for (int p = 0; p < JVSUSBReportIn.BUTTON_COUNT; p++) {
                     for (int b = 0; b < 16; b++) {
@@ -86,6 +82,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con {
                             sb.Append(',');
                         }
                     }
+
                     Log.Write(sb.ToString());
                 }
 

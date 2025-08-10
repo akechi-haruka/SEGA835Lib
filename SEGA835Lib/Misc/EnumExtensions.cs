@@ -1,10 +1,6 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
     internal static class EnumExtensions {

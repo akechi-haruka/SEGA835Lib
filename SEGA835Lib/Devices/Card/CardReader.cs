@@ -1,19 +1,11 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
-
     /// <summary>
     /// Base class for any Aime card reader board.
     /// A CardReader can read NFC cards of certain types with communication based on an <see cref="SProtDevice"/>.
     /// </summary>
     public abstract class CardReader : SProtDevice {
-        
         /// <summary>
         /// Creates a new CardReader object.
         /// </summary>
@@ -75,6 +67,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
                 if (GetCardType() == CardType.FeliCa && !felica_include_pmm) {
                     len = 8;
                 }
+
                 return BitConverter.ToString(uid, 0, len).Replace("-", "");
             } else {
                 return null;

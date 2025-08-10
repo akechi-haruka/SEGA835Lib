@@ -2,18 +2,15 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
-
     /// <summary>
     /// This class is used for logging to the console, and optionally a file.
     /// </summary>
     public class Log {
-
         private static string _logFileName = "Log\\Main.log";
 
         /// <summary>
@@ -74,11 +71,13 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                         if (File.Exists(LogFileName + "." + logrotateCount)) {
                             File.Delete(LogFileName + "." + logrotateCount);
                         }
+
                         for (int i = logrotateCount - 1; i >= 1; i--) {
                             if (File.Exists(LogFileName + "." + i)) {
                                 File.Move(LogFileName + "." + i, LogFileName + "." + (i + 1));
                             }
                         }
+
                         if (File.Exists(LogFileName)) {
                             File.Move(LogFileName, LogFileName + ".1");
                         }
@@ -108,6 +107,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies()) {
                     Write("      " + a.ToString());
                 }
+
                 Write("System Information:");
                 Write("    CWD: " + Environment.CurrentDirectory.Replace(Environment.UserName, "*****"));
                 Write("    OS Version: " + Environment.OSVersion);
@@ -126,6 +126,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 if (!Mute) {
                     SetConsoleColor(c);
                 }
+
                 string o;
                 if (message != null) {
                     string fullSection;
@@ -136,17 +137,21 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     } else {
                         fullSection = "";
                     }
+
                     o = "[" + (DateTime.Now - initTime).TotalMilliseconds.ToString("N").PadLeft(14) + "]" + fullSection + " " + message;
                 } else {
                     o = "";
                 }
+
                 o = o.Replace("\a", ""); // HACK: fixes random beeping caused by outputting Japanese to non-Japanese terminal
                 if (!Mute) {
                     Console.WriteLine(o);
                 }
+
                 if (Debugger.IsAttached) {
                     Debugger.Log(0, section, message + "\r\n");
                 }
+
                 if (open) {
                     log?.WriteLine(o);
                     if (AutoFlush) {
@@ -154,6 +159,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     }
                 }
             }
+
             LogMessageWritten?.Invoke(new LogEntry(message, c));
         }
 
@@ -174,6 +180,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     sb.Append(", ");
                 }
             }
+
             return sb.ToString();
 #endif
         }
@@ -232,6 +239,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         /// </summary>
         public static void Flush() {
             if (!open) { return; }
+
             try {
                 log?.Flush();
             } catch { }
@@ -246,6 +254,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 try {
                     log?.Flush();
                 } catch { }
+
                 log?.Close();
                 log = null;
             }

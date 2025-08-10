@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
-
     /// <summary>
     /// Misc. methods for dealing with unmanged data.
     /// </summary>
     internal class UnsafeUtils {
-
         /// <summary>
         /// Conerts a zero-terminated ASCII byte array to a managed string.
         /// </summary>
@@ -22,12 +16,12 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             if (len == -1) {
                 len = buffer.Length;
             }
+
             unsafe {
                 fixed (byte* pAscii = buffer) {
                     return new String((sbyte*)pAscii, offset, len);
                 }
             }
         }
-
     }
 }

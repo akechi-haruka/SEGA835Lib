@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
+﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing.Drawing2D;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
     internal static class BitmapExtensions {
-
 #if NET8_0_OR_GREATER
         /// <summary>
         /// Converts this bitmap into a 24bpp row-major sequential byte array without padding bytes. This is the format that <see cref="INativeTrampolineCHC.CHC_write(byte*, ref uint, ref ushort)" /> expects.
@@ -73,6 +65,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 g.DrawImage(bitmap, 0, 0, size.Width, size.Height);
             }
+
             return copy;
         }
 
@@ -90,11 +83,12 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 if (background != null) {
                     g.Clear(background.Value);
                 }
+
                 g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 g.DrawImage(bitmap, new RectangleF(oversize, bitmap.PhysicalDimension));
             }
+
             return copy;
         }
-
     }
 }

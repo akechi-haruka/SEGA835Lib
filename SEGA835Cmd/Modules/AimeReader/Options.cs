@@ -1,17 +1,9 @@
 ﻿using CommandLine;
-using Haruka.Arcade.SEGA835Lib.Devices.Card;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
-
     [Verb("aime", HelpText = "Interacts with an Aime card reader")]
     internal class Options : GlobalOptions {
-
         [Option('r', Required = false, HelpText = "Sets the red part of the LED.")]
         public byte LEDRed { get; set; }
 

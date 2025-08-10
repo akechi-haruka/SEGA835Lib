@@ -26,7 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         public CHC310Printer() : base(native, new RFIDBackendCHCDLL(native), new Size(768, 1052)) {
         }
 
-        protected CHC310Printer(INativeTrampolineCHC dllFunctions, RFIDBackend rfidBackend, Size imageSize) : base(dllFunctions, rfidBackend, imageSize) {
+        internal CHC310Printer(INativeTrampolineCHC dllFunctions, RFIDBackend rfidBackend, Size imageSize) : base(dllFunctions, rfidBackend, imageSize) {
         }
 
         /// <inheritdoc/>

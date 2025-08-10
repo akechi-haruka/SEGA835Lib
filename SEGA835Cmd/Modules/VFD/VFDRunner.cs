@@ -1,14 +1,6 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
-using Haruka.Arcade.SEGA835Lib.Devices.IO;
-using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
     internal class VFDRunner {

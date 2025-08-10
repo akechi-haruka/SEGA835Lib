@@ -1,17 +1,11 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
-
     /// <summary>
     /// A 835-15257-01 SEGA I/O CONTROL BD ("IO4").
     /// </summary>
     public class IO4USB_835_15257_01 : JVSUSBIO {
-
         private byte[] gpio = new byte[4];
         private byte[] leds = new byte[32];
 
@@ -51,7 +45,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
         /// <exception cref="ArgumentException">If index is not between 0 (incl.) and 32 (excl.)</exception>
         /// <returns><see cref="DeviceStatus.OK"/> on success or if update is false, any other status on failure.</returns>
         public DeviceStatus SetGPIO(int index, bool state, bool update = true) {
-
             if (index < 0 || index > gpio.Length * 8) {
                 throw new ArgumentException("index must be within [0,32)");
             }
@@ -72,6 +65,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
             for (int i = 0; i < gpio.Length; i++) {
                 payload.led[i] = gpio[i];
             }
+
             return Write(JVSUSBReports.SetGeneralOutput, payload);
         }
 
@@ -84,7 +78,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
         /// <exception cref="ArgumentException">If index is not between 0 (incl.) and 32 (excl.)</exception>
         /// <returns><see cref="DeviceStatus.OK"/> on success or if update is false, any other status on failure.</returns>
         public DeviceStatus SetLED(int index, byte state, bool update = true) {
-
             if (index < 0 || index > leds.Length) {
                 throw new ArgumentException("index must be within [0,32)");
             }
@@ -105,6 +98,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
             for (int i = 0; i < leds.Length; i++) {
                 payload.led[i] = leds[i];
             }
+
             return Write(JVSUSBReports.SetGeneralOutput, payload);
         }
 
@@ -116,6 +110,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
             for (int i = 0; i < gpio.Length; i++) {
                 gpio[i] = 0;
             }
+
             return WriteGPIO();
         }
 
@@ -127,6 +122,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
             for (int i = 0; i < gpio.Length; i++) {
                 leds[i] = 0;
             }
+
             return WriteLED();
         }
     }

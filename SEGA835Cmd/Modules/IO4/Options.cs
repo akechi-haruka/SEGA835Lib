@@ -1,15 +1,8 @@
 ﻿using CommandLine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4 {
-
     [Verb("io4", HelpText = "Set outputs on IO4 boards")]
     internal class Options : GlobalOptions {
-
         internal enum OutputType {
             GPIO, LED
         }
@@ -25,6 +18,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4 {
 
         [Value(3, Required = true, HelpText = "The output value (GPIO = 0/1, LED = 0~255)")]
         public int Value { get; set; }
-
     }
 }

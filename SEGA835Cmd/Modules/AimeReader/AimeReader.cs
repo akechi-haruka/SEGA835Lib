@@ -1,15 +1,9 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
     internal class AimeReader {
-
         public static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
@@ -28,6 +22,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                         return ret;
                     }
                 }
+
                 if (opts.LEDRed > 0 || opts.LEDGreen > 0 || opts.LEDBlue > 0) {
                     ret = aime.LEDSetColor(opts.LEDRed, opts.LEDGreen, opts.LEDBlue);
                     if (ret != DeviceStatus.OK) {
@@ -41,17 +36,20 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Operation failed");
                     }
+
                     if (version_byte > 0) {
                         Console.WriteLine("0x" + version_byte.ToString("X2"));
                     } else {
                         Console.WriteLine(version);
                     }
+
                     return ret;
                 } else if (opts.GetFirmwareChecksum) {
                     ret = aime.GetFWChecksum(out ushort checksum);
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Operation failed");
                     }
+
                     Console.WriteLine("0x" + checksum.ToString("X2"));
                     return ret;
                 } else if (opts.GetHardware) {
@@ -59,6 +57,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                     if (ret != DeviceStatus.OK) {
                         Log.WriteError("Operation failed");
                     }
+
                     Console.WriteLine(version);
                     return ret;
                 }
@@ -68,6 +67,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                     Log.WriteError("Failed to start scanning");
                     return ret;
                 }
+
                 ret = aime.StartPolling();
                 if (ret != DeviceStatus.OK) {
                     Log.WriteError("Failed to start scanning");
@@ -85,8 +85,10 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                             Console.WriteLine(BitConverter.ToString(aime.GetCardUID()).Replace("-", ""));
                             break;
                         }
+
                         Thread.Sleep(50);
                     } while (DateTime.Now - start < timeout);
+
                     aime.ClearCard();
                 } while (aime.IsPolling() && ++scan <= maxScan);
 
@@ -95,6 +97,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader {
                     Log.WriteError("Failed to stop scanning");
                     return ret;
                 }
+
                 ret = aime.RadioOff();
                 if (ret != DeviceStatus.OK) {
                     Log.WriteError("Failed to stop scanning");

@@ -1,15 +1,8 @@
 ﻿using CommandLine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
-
     [Verb("led", HelpText = "Set outputs on LED or Monkey06 boards")]
     internal class Options : GlobalOptions {
-
         [Option('p', "port", Required = false, HelpText = "Sets the LED board's COM port.", Default = 9)]
         public int Port { get; set; }
 
@@ -45,6 +38,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
 
         [Value(1, HelpText = "Set LEDs (comma seperated list of R,G,B,R,G,B,... - or if channels is set, the order of that parameter)")]
         public String LEDTable { get; set; }
-
     }
 }

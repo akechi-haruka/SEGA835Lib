@@ -1,13 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketReset : SProtPayload {
         public byte GetCommandID() {
@@ -31,7 +25,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketGetFWVersion : SProtPayload {
-
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 23)]
         internal string version;
 
@@ -42,7 +35,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketGetFWVersion1Byte : SProtPayload {
-
         internal byte version;
 
         public byte GetCommandID() {
@@ -59,7 +51,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketGetHWVersion : SProtPayload {
-
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 23)]
         internal string version;
 
@@ -137,7 +128,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketLEDGetInfo : SProtPayload {
-
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
         public string info;
 
@@ -155,7 +145,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketLEDHWVersion : SProtPayload {
-
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 23)]
         public string version;
 
@@ -180,10 +169,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketReadMIFARE : SProtPayload {
-
         public uint uid;
-        [MarshalAs(UnmanagedType.U1)]
-        public byte block;
+        [MarshalAs(UnmanagedType.U1)] public byte block;
 
         public byte GetCommandID() {
             return 0x52;
@@ -192,7 +179,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct RespPacketReadMIFARE : SProtPayload {
-
         public fixed byte data[16];
 
         public byte GetCommandID() {
@@ -203,7 +189,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct ReqPacketMIFARESetKeySega : SProtPayload {
-
         public fixed byte key[6];
 
         public byte GetCommandID() {
@@ -213,7 +198,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketMIFARESetKeySega : SProtPayload {
-
         public byte GetCommandID() {
             return 0x54;
         }
@@ -221,7 +205,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct ReqPacketMIFARESetKeyNamco : SProtPayload {
-
         public fixed byte key[6];
 
         public byte GetCommandID() {
@@ -231,7 +214,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct RespPacketMIFARESetKeyNamco : SProtPayload {
-
         public byte GetCommandID() {
             return 0x50;
         }
@@ -239,7 +221,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketSelectMIFARE : SProtPayload {
-
         public uint uid;
 
         public byte GetCommandID() {
@@ -249,7 +230,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct RespPacketSelectMIFARE : SProtPayload {
-
         public fixed byte data[16];
 
         public byte GetCommandID() {
@@ -260,10 +240,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal struct ReqPacketAuthenticateMIFARE : SProtPayload {
-
         public uint uid;
-        [MarshalAs(UnmanagedType.U1)]
-        public byte unk;
+        [MarshalAs(UnmanagedType.U1)] public byte unk;
 
         public byte GetCommandID() {
             return 0x55;
@@ -272,7 +250,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct RespPacketAuthenticateMIFARE : SProtPayload {
-
         public fixed byte data[16];
 
         public byte GetCommandID() {

@@ -1,20 +1,12 @@
 ﻿#if !RASPBERRY
 
 using CommandLine;
-using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
-
     [Verb("printer", HelpText = "Print things to CHC-series printers")]
     internal class Options : GlobalOptions {
-
         public enum PrinterModel {
             CHC310, CHC310B, CHC330, Any
         }
@@ -63,7 +55,6 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
         [Value(3, MetaName = "MtfFileName", Required = true, HelpText = "The MTF file used for printing.")]
         public string MtfFileName { get; set; }
-
     }
 }
 

@@ -1,17 +1,8 @@
-﻿using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
-
+﻿namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
     /// <summary>
     /// The backend that is used for communicating with the RFID board. (Serial, DLL, ...)
     /// </summary>
     public abstract class RFIDBackend {
-
         /// <summary>
         /// Connects to the RFID board.
         /// </summary>

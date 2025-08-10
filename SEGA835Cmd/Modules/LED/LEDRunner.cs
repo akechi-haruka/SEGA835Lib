@@ -1,15 +1,7 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
-using Haruka.Arcade.SEGA835Lib.Devices.IO;
-using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
 using Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using vJoy.Wrapper;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
     internal class LEDRunner {
@@ -29,6 +21,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 Log.WriteError("Getting board info failed");
                 return ret;
             }
+
             Log.Write("Board Number: " + board_number);
             Log.Write("Chip Number: " + chip_number);
             Log.Write("FW version: " + fw_ver);
@@ -38,6 +31,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 Log.WriteError("Getting board info failed");
                 return ret;
             }
+
             Log.Write("Board Checksum: " + chk);
 
             if (opts.MonkeyReset) {
@@ -85,6 +79,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 foreach (String s in opts.MonkeyTable.Split(',')) {
                     data.Add(Byte.Parse(s));
                 }
+
                 ret = led.SetLEDTranslationTable(data);
                 if (ret != DeviceStatus.OK) {
                     Log.WriteError("Setting translation table failed");
@@ -98,6 +93,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                     Log.WriteError("Invalid argument for channels");
                     return ret;
                 }
+
                 led.SetChannels(Enum.Parse<LED_MONKEY06.Channel>(channels[0]), Enum.Parse<LED_MONKEY06.Channel>(channels[1]), Enum.Parse<LED_MONKEY06.Channel>(channels[2]));
             }
 
@@ -107,9 +103,11 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.LED {
                 for (int i = 0; i < opts.Offset; i++) {
                     data.Add(Color.Black);
                 }
-                for (int i = 0; i < array.Length; i+=3) {
-                    data.Add(Color.FromArgb(byte.Parse(array[i]), byte.Parse(array[i+1]), byte.Parse(array[i+2])));
+
+                for (int i = 0; i < array.Length; i += 3) {
+                    data.Add(Color.FromArgb(byte.Parse(array[i]), byte.Parse(array[i + 1]), byte.Parse(array[i + 2])));
                 }
+
                 ret = led.SetLEDs(data);
                 if (ret != DeviceStatus.OK) {
                     Log.WriteError("Setting LEDs failed");

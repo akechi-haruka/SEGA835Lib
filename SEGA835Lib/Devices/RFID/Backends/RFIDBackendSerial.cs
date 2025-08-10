@@ -1,18 +1,12 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO.Ports;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
-
     /// <summary>
     /// A serial-based RFID backend (direct communication via a COM port)
     /// </summary>
     internal class RFIDBackendSerial : RFIDBackend {
-
         internal readonly SProtSerial serial;
 
         /// <summary>
@@ -26,7 +20,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
         /// <param name="port">The COM port to use.</param>
         public RFIDBackendSerial(int port) {
             this.Port = port;
-            this.serial = new SProtSerial(port, 115200, 3000, true, true, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One, System.IO.Ports.Handshake.None);
+            this.serial = new SProtSerial(port, 115200, 3000, true, true, Parity.None, 8, StopBits.One, Handshake.None);
         }
 
         /// <inheritdoc/>
@@ -34,10 +28,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
             if (serial != null && serial.IsConnected()) {
                 return DeviceStatus.OK;
             }
+
             Log.Write("Connecting on Port " + Port);
             if (!serial.Connect()) {
                 return DeviceStatus.ERR_NOT_CONNECTED;
             }
+
             return DeviceStatus.OK;
         }
 

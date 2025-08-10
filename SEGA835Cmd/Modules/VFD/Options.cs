@@ -1,16 +1,9 @@
 ﻿using CommandLine;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
-
     [Verb("vfd", HelpText = "Display text on a VFD")]
     internal class Options : GlobalOptions {
-
         [Option('p', "port", Required = false, HelpText = "Sets the VFD's port.", Default = 1)]
         public int Port { get; set; }
 
@@ -34,6 +27,5 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD {
 
         [Value(1, MetaName = "Text Line 2", Required = false, HelpText = "The text to display on the VFD (second line).", Default = "")]
         public string Text2 { get; set; }
-
     }
 }

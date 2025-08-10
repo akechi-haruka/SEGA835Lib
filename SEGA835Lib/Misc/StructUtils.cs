@@ -1,19 +1,14 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
-
     /// <summary>
     /// Misc. methods to deal with structs and managed/unmanaged conversion.
     /// </summary>
     public class StructUtils {
-
         /// <summary>
         /// Checks if the given type has no fields. (= is an empty struct)
         /// </summary>
@@ -62,7 +57,6 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// <param name="arr">The object.</param>
         /// <returns>A struct based on the input array.</returns>
         public static T FromBytes<T>(byte[] arr) where T : struct {
-
             T str = default;
 
             GCHandle h = default;
@@ -80,7 +74,6 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
 
                 str = (T)Marshal.PtrToStructure(h.AddrOfPinnedObject(), typeof(T));
 #endif
-
             } finally {
                 if (h.IsAllocated) {
                     h.Free();
