@@ -161,7 +161,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
-        trx_files: "${{ github.workspace }}/**/*.trx"
+        files: "${{ github.workspace }}/**/*.trx"
 
 
 

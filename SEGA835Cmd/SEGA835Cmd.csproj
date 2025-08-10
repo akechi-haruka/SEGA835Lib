@@ -21,7 +21,8 @@
 		<Platforms>AnyCPU;x64;ARM64</Platforms>
 		<Configurations>Debug;Release</Configurations>
 		<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib</PackageProjectUrl>
-		<PackageLicenseUrl>https://github.com/akechi-haruka/SEGA835Lib/blob/master/LICENSE.txt</PackageLicenseUrl>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<EnablePackageValidation>true</EnablePackageValidation>
 	</PropertyGroup>
 	
 	<PropertyGroup>
@@ -44,6 +45,7 @@
 		<Compile Remove="publish\**" />
 		<EmbeddedResource Remove="publish\**" />
 		<None Remove="publish\**" />
+		<None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,8 +57,11 @@
 		<ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj" />
 	</ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0\ /S /E /Y&#xD;&#xA;xcopy D:\MEGA\konmaidev\835Lib\SEGA835Cmd\bin\Debug\net8.0-windows10.0.18362.0 W:\segacmd\ /S /E /Y&#xD;&#xA;SET ERRORLEVEL=0" />
-	</Target>
+	<ItemGroup>
+		<PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
 </Project>
