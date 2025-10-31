@@ -114,6 +114,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 device.Open();
 #if !LINUX
             } catch (ArgumentException ex) {
+                // TODO: this seems implementation specific, even though I do not know when this starting being an issue
                 Log.WriteWarning("Failed to open port with backslash path, trying regular... (Error was: "+ex.Message+")");
                 device.PortName = "COM" + Port;
                 try {
