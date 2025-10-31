@@ -112,6 +112,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             };
             try {
                 device.Open();
+#if !LINUX
+            } catch (ArgumentException ex) {
+                Log.WriteWarning("Failed to open port with backslash path, trying regular... (Error was: "+ex.Message+")");
+                device.PortName = "COM" + Port;
+                try {
+                    device.Open();
+                } catch (Exception ex2) {
+                    Log.WriteFault(ex2, "Failed to connect to port " + Port);
+                    return false;
+                }
+#endif
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed to connect to port " + Port);
                 return false;
