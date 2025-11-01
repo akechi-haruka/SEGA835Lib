@@ -133,16 +133,31 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         /// The translation table works as follow:<br />
         /// By default, game input will be mapped 1:1 to LED output. ([0, 1, 2, 3, 4, ...])<br />
         /// If you set this, LEDs will be remapped in the way input->output, so for example if you set the translation table to [5, 5, 5, 5, 5, 2, 2, 2, 2, 2], the first 5 LEDs would be set to game LED index 5 and the next 5 LEDs to game LED index 2. Any LEDs past this would be turned off.<br />
-        /// * values higher or equal to 66 are not allowed and will be ignored.
+        /// * The maximum possible numbers of values is 255.
         /// * 0xFE can be used as a special value to keep the LED on instead of off.
         /// * missing values will be set to 0xFF (disabled).
         /// </remarks>
         /// <returns><see cref="DeviceStatus.OK"/> on success, or any other DeviceStatus on failure.</returns>
         public unsafe DeviceStatus SetLEDTranslationTable(IEnumerable<byte> mapping) {
-            Log.Write("SetLEDTranslationTable(" + mapping.Count() + ")");
-            ReqPacketMonkeySetTranslation req = new ReqPacketMonkeySetTranslation();
-            StructUtils.Copy(mapping.ToArray(), req.translation, mapping.Count());
-            DeviceStatus ret = this.WriteAndRead(req, out RespPacketMonkeySetTranslation _, out byte status);
+            byte[] data = mapping.ToArray();
+            if (data.Length > byte.MaxValue) {
+                throw new ArgumentException("given translation table contains " + data.Length + " entries, however only " + byte.MaxValue + " are possible");
+            }
+
+            DeviceStatus ret = DeviceStatus.OK;
+            byte status = 0;
+            
+            const int blockSize = 66;
+            for (byte i = 0; i < data.Length; i += blockSize) {
+                Log.Write("SetLEDTranslationTable(" + i + "/" + data.Length + ")");
+                ReqPacketMonkeySetTranslation req = new ReqPacketMonkeySetTranslation();
+                req.offset = i;
+                StructUtils.Copy(data, i, req.translation, 0, blockSize);
+                ret = this.WriteAndRead(req, out RespPacketMonkeySetTranslation _, out status);
+                if (ret != DeviceStatus.OK) {
+                    return SetLastError(ret, status);
+                }
+            }
             return SetLastError(ret, status);
         }
 

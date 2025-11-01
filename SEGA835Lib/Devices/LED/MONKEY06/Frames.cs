@@ -38,6 +38,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     internal unsafe struct ReqPacketMonkeySetTranslation : SProtPayload {
+        public byte offset;
         public fixed byte translation[66];
 
         public byte GetCommandID() {
