@@ -1,6 +1,6 @@
 SEGA835Lib / SEGA835Cmd
 
-(c) 2024-2025 Haruka and contributors
+(c) 2024-2026 Haruka and contributors
 
 Licensed under the Server Side Public License.
 
