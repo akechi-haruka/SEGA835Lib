@@ -26,7 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <param name="port">The COM port to use.</param>
         public VFD_GP1232A02A(int port = 1) {
-#if NET6_0_OR_GREATER
+#if (NET40_OR_GREATER || NET6_0_OR_GREATER)
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
             Port = port;

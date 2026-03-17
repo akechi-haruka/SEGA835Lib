@@ -1,6 +1,7 @@
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
+using System.Text;
 
 namespace _835TestsMaybeLess {
     public class VFDTest {
@@ -17,7 +18,12 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T01_TestVersion() {
+        public void T01_TestEncoding() {
+            Encoding.GetEncoding("shift_jis");
+        }
+
+        [Test]
+        public void T02_TestVersion() {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
@@ -28,7 +34,7 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T02_TestWritingText() {
+        public void T03_TestWritingText() {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
@@ -42,7 +48,7 @@ namespace _835TestsMaybeLess {
         }
 
         [Test]
-        public void T03_TestDoubleText() {
+        public void T04_TestDoubleText() {
             if (!Util.CheckConnect(vfd.Connect)) {
                 return;
             }
