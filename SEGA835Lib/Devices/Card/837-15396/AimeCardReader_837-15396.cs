@@ -25,6 +25,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         public bool FlashLEDsWhilePolling { get; set; }
 
+        /// <summary>
+        /// The result of the last execution of <see cref="Poll"/>. This will be set when <see cref="IsPolling"/> becomes false.
+        /// </summary>
+        public DeviceStatus PollingResult { get; private set; } = DeviceStatus.ERR_NOT_INITIALIZED;
+
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
@@ -298,6 +303,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         private void PollT() {
             DeviceStatus ret = DeviceStatus.OK;
+            PollingResult = DeviceStatus.OK;
             int count = 0;
             do {
                 try {
@@ -329,6 +335,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 Log.WriteWarning("Last Error Code before polling was stopped: " + ret);
             }
 
+            PollingResult = ret;
             pollingThread = null;
         }
 
@@ -345,6 +352,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                     byte size = data[offset++];
 
                     if (type == 0x10 && size == 4) { // MIFARE UID
+                        todo is this broken
                         byte[] id = new byte[size];
                         Array.Copy(data, offset, id, 0, size);
                         offset += size;
@@ -353,7 +361,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                         lastMifareCardLUID = BitConverter.ToUInt32(id, 0);
 
                         ret = ReadMIFARECardID(lastMifareCardLUID, out byte[] cardid);
-                        SetLastError(ret, resp?.Status);
+                        SetLastError(ret, resp.Status);
                         if (ret != DeviceStatus.OK) {
                             return ret;
                         }
