@@ -25,6 +25,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         public bool FlashLEDsWhilePolling { get; set; }
 
+        /// <summary>
+        /// The result of the last execution of <see cref="Poll"/>. This will be set when <see cref="IsPolling"/> becomes false.
+        /// </summary>
+        public DeviceStatus PollingResult { get; private set; } = DeviceStatus.ERR_NOT_INITIALIZED;
+
         private byte[] lastReadCardUID;
         private CardType? lastReadCardType;
         private Thread pollingThread;
@@ -329,6 +334,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 Log.WriteWarning("Last Error Code before polling was stopped: " + ret);
             }
 
+            PollingResult = ret;
             pollingThread = null;
         }
 
