@@ -318,6 +318,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                     Thread.Sleep(250);
                 } catch (ThreadInterruptedException) {
                     break;
+                } catch (Exception ex) {
+                    Log.WriteFault(ex, "Internal error while polling");
+                    ret = DeviceStatus.ERR_OTHER;
                 }
             } while (pollingThread != null);
 
@@ -332,7 +335,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         private DeviceStatus Poll() {
             DeviceStatus ret = this.WriteAndRead(new ReqPacketPoll().ToFrame(), out SProtFrame resp);
             SetLastError(ret, resp?.Status);
-            if (resp != null && resp.Payload != null) {
+            if (resp != null && resp.Payload != null && resp.Payload.Length >= 1) {
                 byte[] data = resp.Payload;
                 int offset = 0;
 
