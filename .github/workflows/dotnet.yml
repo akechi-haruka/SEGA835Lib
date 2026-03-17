@@ -67,14 +67,14 @@ jobs:
     - name: Upload Lib NET Framework 3.5
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: Sega835Lib-netstandard2.1-latest
+        name: Sega835Lib-netframework35
         path: SEGA835Lib/publish/net35
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET Framework 4.8.1
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: Sega835Lib-netstandard2.1-latest
+        name: Sega835Lib-netframework481
         path: SEGA835Lib/publish/net481
         if-no-files-found: error
         overwrite: true
