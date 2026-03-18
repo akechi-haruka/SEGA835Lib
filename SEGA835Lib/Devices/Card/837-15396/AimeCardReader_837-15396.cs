@@ -352,7 +352,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                     byte size = data[offset++];
 
                     if (type == 0x10 && size == 4) { // MIFARE UID
-                        todo is this broken
                         byte[] id = new byte[size];
                         Array.Copy(data, offset, id, 0, size);
                         offset += size;
