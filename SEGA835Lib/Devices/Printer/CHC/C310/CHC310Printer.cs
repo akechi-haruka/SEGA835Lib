@@ -278,7 +278,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
 
         /// <inheritdoc />
-        protected override byte GetPolishParameter(bool isHolo) {
+        protected override byte? GetPolishParameter(bool isHolo) {
             return (byte)(isHolo ? 5 : 2);
         }
     }

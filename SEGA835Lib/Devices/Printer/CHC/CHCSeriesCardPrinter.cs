@@ -349,8 +349,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// Returns the POLISH_* constant that tells the printer if the print is normal/holo/laminate.
         /// </summary>
         /// <param name="isHolo">Whether the print job includes a holo image or not.</param>
-        /// <returns>the constant required for setPrinterInfo(20)</returns>
-        protected abstract byte GetPolishParameter(bool isHolo);
+        /// <returns>the constant required for setPrinterInfo(20), or null if this should not be called</returns>
+        protected abstract byte? GetPolishParameter(bool isHolo);
 
         /// <summary>
         /// Sets the last error code of a printer function that returns a status code and a return code and if <see cref="Device.IsUsingExceptions"/> is true, throw an exception.
@@ -865,11 +865,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <summary>
         /// Starts printing an image with optional holo image and RFID data.
         /// </summary>
-        /// <param name="image">The image to print.</param>
+        /// <param name="frontImage">The image to print.</param>
         /// <param name="rfidPayload">The RFID payload data (without card ID) to write or null for no RFID data.</param>
         /// <param name="holo">The holo image to print or null for no holo.</param>
         /// <param name="waitForCompletion">if this is true, this function will block until the print completes (or errors).</param>
         /// <param name="overrideCardId">if this is true, the card ID of the loaded card will be ignored and instead expected as an added 12 bytes in the rfidPayload.</param>
+        /// <param name="backImage">The image to print on the back side. Only certain printers support this.</param>
         /// <returns>
         /// <see cref="DeviceStatus.OK"/> if the print completed successfully.<br />
         /// <see cref="DeviceStatus.BUSY"/> if the print started successfully and <paramref name="waitForCompletion"/> is false or if a print is already in progress.<br />
@@ -878,15 +879,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <seealso cref="GetPrintJobResult"/>
         /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
         /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
-        public DeviceStatus StartPrinting(Bitmap image, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false) {
-            NetStandardBackCompatExtensions.ThrowIfNull(image, nameof(image));
-            if (image.PhysicalDimension != ImageDimensions) {
+        public DeviceStatus StartPrinting(Bitmap frontImage, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false, Bitmap backImage = null) {
+            NetStandardBackCompatExtensions.ThrowIfNull(frontImage, nameof(frontImage));
+            if (frontImage.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
-                    image = image.CopyStretched(ImageDimensions);
+                    frontImage = frontImage.CopyStretched(ImageDimensions);
                 } else if (ImageStretchMode == StretchMode.Center) {
-                    image = image.CopyCentered(ImageDimensions);
+                    frontImage = frontImage.CopyCentered(ImageDimensions);
                 } else {
-                    throw new ArgumentException("Image to print with size " + image.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
+                    throw new ArgumentException("Image to print with size " + frontImage.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }
             }
             if (holo != null && holo.PhysicalDimension != ImageDimensions) {
@@ -915,7 +916,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
             }
 
-            Job = new PrintJob(this, Native, image, holo, rfidPayload, overrideCardId);
+            Job = new PrintJob(this, Native, frontImage, backImage, holo, rfidPayload, overrideCardId);
 
             Log.Write("Start Printing");
             Log.Write("Current Status: " + RCToString(GetPrinterStatusCode()));

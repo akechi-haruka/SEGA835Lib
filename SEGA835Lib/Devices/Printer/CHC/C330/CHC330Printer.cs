@@ -2,11 +2,8 @@
 
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
-using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
-using Haruka.Arcade.SEGA835Lib.Misc;
 using System;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
@@ -158,7 +155,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         }
 
         /// <inheritdoc />
-        protected override byte GetPolishParameter(bool isHolo) {
+        protected override byte? GetPolishParameter(bool isHolo) {
             return (byte)(isHolo ? 0x11 : 0x02);
         }
     }

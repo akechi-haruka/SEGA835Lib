@@ -97,12 +97,12 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 printer.SetIccTables(opts.ICC1FileName, opts.ICC2FileName);
                 printer.SetMtfFile(opts.MtfFileName);
 
-                Bitmap image, holo;
+                Bitmap imageFront, holo, imageBack;
                 try {
-                    image = new Bitmap(Image.FromFile(opts.ImageFileName));
+                    imageFront = new Bitmap(Image.FromFile(opts.ImageFileName));
                     Log.Write("Image rotate: " + opts.ImageRotateFlip);
                     if (opts.ImageRotateFlip != RotateFlipType.RotateNoneFlipNone) {
-                        image.RotateFlip(opts.ImageRotateFlip);
+                        imageFront.RotateFlip(opts.ImageRotateFlip);
                     }
                 } catch (Exception ex) {
                     Log.WriteFault(ex, "Failed loading image from " + opts.ImageFileName);
@@ -135,6 +135,21 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 } else {
                     holo = null;
                 }
+                
+                if (opts.BackImageFileName != null) {
+                    try {
+                        imageBack = new Bitmap(Image.FromFile(opts.BackImageFileName));
+                        Log.Write("Image rotate: " + opts.ImageRotateFlip);
+                        if (opts.ImageRotateFlip != RotateFlipType.RotateNoneFlipNone) {
+                            imageFront.RotateFlip(opts.ImageRotateFlip);
+                        }
+                    } catch (Exception ex) {
+                        Log.WriteFault(ex, "Failed loading back side image from " + opts.BackImageFileName);
+                        return DeviceStatus.ERR_OTHER;
+                    }
+                } else {
+                    imageBack = null;
+                }
 
                 byte[] rfid = null;
                 if (opts.RFIDFileName != null) {
@@ -143,7 +158,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
                 printer.ImageStretchMode = opts.Stretch;
 
-                ret = printer.StartPrinting(image, rfid, holo, !opts.NoWait, opts.RFIDOverrideCardId);
+                ret = printer.StartPrinting(imageFront, rfid, holo, !opts.NoWait, opts.RFIDOverrideCardId, imageBack);
 
                 if (opts.PrintCardId) {
                     ret = printer.GetWrittenRFIDCardId(out byte[] cardid);

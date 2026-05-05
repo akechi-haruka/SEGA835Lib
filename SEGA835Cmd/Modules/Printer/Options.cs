@@ -44,6 +44,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
         [Option("holo", Required = false, HelpText = "The holo image file to print.")]
         public string HoloFileName { get; set; }
 
+        [Option("back", Required = false, HelpText = "The back image file to print. Only available on CHC-320.")]
+        public string BackImageFileName { get; set; }
+
         [Value(0, MetaName = "ImageFileName", Required = true, HelpText = "The image file to print.")]
         public string ImageFileName { get; set; }
 
