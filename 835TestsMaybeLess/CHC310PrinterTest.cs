@@ -100,7 +100,7 @@ namespace _835TestsMaybeLess {
             Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
             Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo310.png"));
             Assert.That(printer.StartPrinting(image, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x72, 0x50, 0x5C, 0x70, 0x05, 0x52, 0x05, 0xCD, 0x61, 0x16, 0x62, 0xD0, 0xD6, 0x12, 0xC4, 0xAF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, image2), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
+            Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
             Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
             Assert.That(printer.GetWrittenRFIDCardId(out byte[] cardid), Is.EqualTo(DeviceStatus.OK));
             Assert.That(cardid, Is.Not.Null);

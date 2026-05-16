@@ -70,7 +70,7 @@ namespace _835TestsMaybeLess {
             Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo320.png"));
             Bitmap image3 = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320back.bmp"));
             Assert.That(printer.StartPrinting(image, null, image2, false, false, image3), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
+            Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
             Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
         }
     }

@@ -68,7 +68,7 @@ namespace _835TestsMaybeLess {
             Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
             Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo310.png"));
             Assert.That(printer.StartPrinting(image, null, image2), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
+            Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
             Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
         }
     }
