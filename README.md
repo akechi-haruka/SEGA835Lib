@@ -75,7 +75,7 @@ Support Table:
 | net6           | N/A                      | No Printing | Usable on Windows 7 if needed              |
 | netstandard2.0 | Unity 2018 and later     | Full        |                                            |
 | netstandard2.1 | Unity 2021.2 and later   | Full        |                                            |
-| net8           | N/A                      | Full        | Default version used by Sega835Cmd         |
+| net10          | N/A                      | Full        | Default version used by Sega835Cmd         |
 +----------------+--------------------------+-------------+--------------------------------------------+
 ```
 

@@ -1,109 +1,109 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFrameworks>net8.0-windows10.0.18362.0;netstandard2.0;netstandard2.1;net6.0-windows7;net481;net35</TargetFrameworks>
-    <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>disable</Nullable>
-    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <ErrorReport>none</ErrorReport>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
-    <Title>SEGA 835/837 I/O Library</Title>
-    <Version>0.8.0</Version>
-    <Authors>Haruka Akechi</Authors>
-    <Company />
-    <Description>Libary to interface with SEGA(R) arcade hardware</Description>
-    <Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
-    <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
-    <PackageTags>Arcade;I/O;Serial</PackageTags>
-    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-	<Configurations>Debug;Release</Configurations>
-	<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib/</PackageProjectUrl>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net10.0-windows;netstandard2.0;netstandard2.1;net6.0-windows7;net481;net35</TargetFrameworks>
+        <RootNamespace>Haruka.Arcade.SEGA835Lib</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <ErrorReport>none</ErrorReport>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
+        <Title>SEGA 835/837 I/O Library</Title>
+        <Version>0.8.0</Version>
+        <Authors>Haruka Akechi</Authors>
+        <Company/>
+        <Description>Libary to interface with SEGA(R) arcade hardware</Description>
+        <Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
+        <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
+        <PackageTags>Arcade;I/O;Serial</PackageTags>
+        <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <Configurations>Debug;Release</Configurations>
+        <PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib/</PackageProjectUrl>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <EnablePackageValidation>true</EnablePackageValidation>
+        <PackageIcon>logo.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-	</PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    </PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-    <DebugType>embedded</DebugType>
-    <IsPublishable>True</IsPublishable>
-    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <FileAlignment>512</FileAlignment>
-    <RollForward>LatestMajor</RollForward>
-  </PropertyGroup>
+    <PropertyGroup>
+        <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+        <DebugType>embedded</DebugType>
+        <IsPublishable>True</IsPublishable>
+        <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+        <FileAlignment>512</FileAlignment>
+        <RollForward>LatestMajor</RollForward>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="publish\**" />
-    <EmbeddedResource Remove="publish\**" />
-    <None Remove="publish\**" />
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
-    <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
-    <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="publish\**"/>
+        <EmbeddedResource Remove="publish\**"/>
+        <None Remove="publish\**"/>
+        <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+        <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
+        <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="hidlibrary" Version="3.3.40" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="hidlibrary" Version="3.3.40"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Update="C330AFWDLusb.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="C330Ausb.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="C330ColorMatch.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="C330UsbCtrl.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Update="C330AFWDLusb.dll">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
+        <None Update="C330Ausb.dll">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
+        <None Update="C330ColorMatch.dll">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
+        <None Update="C330UsbCtrl.dll">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
-    <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="10.0.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+        <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
+        <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows7'">
-    <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="10.0.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows7'">
+        <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
+        <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows10.0.18362.0'">
-    <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="10.0.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+        <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
+        <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="10.0.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
+        <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="System.Drawing.Common" Version="10.0.8" />
-    <PackageReference Include="System.IO.Ports" Version="10.0.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
+        <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
+    </ItemGroup>
 
 </Project>
