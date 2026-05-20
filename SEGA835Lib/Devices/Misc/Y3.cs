@@ -60,6 +60,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        [SuppressMessage("Performance", "CA1806")]
         public override DeviceStatus Disconnect() {
             if (handle != IntPtr.Zero) {
                 Log.Write("Disconnecting on Port " + Port);
@@ -316,6 +317,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        [SuppressMessage("Performance", "CA1806")]
         private DeviceStatus ReportBoardError() {
             uint ec = Native.API_GetLastError(handle);
             byte[] str = new byte[512];

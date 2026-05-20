@@ -1,6 +1,10 @@
-﻿namespace Haruka.Arcade.SEGA835Lib.Misc {
+﻿#if NET8_0_OR_GREATER
+using System;
+using System.Reflection;
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
+
+namespace Haruka.Arcade.SEGA835Lib.Misc {
     static class EnumExtensions {
-#if NET8_0_OR_GREATER
         /// <summary>
         /// Retrieves an attribute from an Enum, or null if no such attribute exists.
         /// </summary>
@@ -24,6 +28,7 @@
 
             return enumField.GetCustomAttribute<TAttribute>();
         }
-#endif
     }
 }
+
+#endif
