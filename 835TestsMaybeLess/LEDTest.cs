@@ -2,45 +2,45 @@ using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093;
 using Haruka.Arcade.SEGA835Lib.Misc;
 
-namespace _835TestsMaybeLess {
-    public class LEDTest {
-        private LED_837_15093_06 led;
+namespace _835TestsMaybeLess;
 
-        [SetUp]
-        public void Setup() {
-            led = new LED_837_15093_06(9);
-            led.serial.DumpRWCommandsToLog = true;
-            led.serial.DumpBytesToLog = true;
+public class LedTest {
+    private Led15093 led;
+
+    [SetUp]
+    public void Setup() {
+        led = new Led15093(9);
+        led.Serial.DumpReadWriteCommandsToLog = true;
+        led.Serial.DumpBytesToLog = true;
+    }
+
+    [TearDown]
+    public void Cleanup() {
+        led?.Disconnect();
+    }
+
+    [Test]
+    public void T01_TestLEDCommands() {
+        if (!Util.CheckConnect(led.Connect)) {
+            return;
         }
 
-        [TearDown]
-        public void Cleanup() {
-            led?.Disconnect();
+        Assert.That(led.GetBoardInfo(out string boardNumber, out string chipNumber, out byte fv), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(boardNumber, Is.Not.Null);
+        Assert.That(chipNumber, Is.Not.Null);
+        Assert.That(fv, Is.GreaterThan(0));
+        Assert.That(led.GetFirmwareChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(checksum, Is.GreaterThan(0));
+        Assert.That(led.SetTimeout(3000), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(led.SetResponseDisabled(true), Is.EqualTo(DeviceStatus.Ok));
+        for (int i = 0; i < 10; i++) {
+            Assert.That(led.SetLeds(new Color[] { Color.Red, Color.Green, Color.Blue, Color.White }), Is.EqualTo(DeviceStatus.Ok));
         }
 
-        [Test]
-        public void T01_TestLEDCommands() {
-            if (!Util.CheckConnect(led.Connect)) {
-                return;
-            }
-
-            Assert.That(led.GetBoardInfo(out string board_number, out string chip_number, out byte fv), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(board_number, Is.Not.Null);
-            Assert.That(chip_number, Is.Not.Null);
-            Assert.That(fv, Is.GreaterThan(0));
-            Assert.That(led.GetFirmwareChecksum(out ushort checksum), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(checksum, Is.GreaterThan(0));
-            Assert.That(led.SetTimeout(3000), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(led.SetResponseDisabled(true), Is.EqualTo(DeviceStatus.OK));
-            for (int i = 0; i < 10; i++) {
-                Assert.That(led.SetLEDs(new Color[] { Color.Red, Color.Green, Color.Blue, Color.White }), Is.EqualTo(DeviceStatus.OK));
-            }
-
-            Thread.Sleep(5000);
-            Assert.That(led.SetLEDs(new Color[] { }), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(led.SetResponseDisabled(false), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(led.GetFirmwareChecksum(out checksum), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(checksum, Is.GreaterThan(0));
-        }
+        Thread.Sleep(5000);
+        Assert.That(led.SetLeds(Array.Empty<Color>()), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(led.SetResponseDisabled(false), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(led.GetFirmwareChecksum(out checksum), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(checksum, Is.GreaterThan(0));
     }
 }

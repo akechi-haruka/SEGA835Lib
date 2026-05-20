@@ -1,84 +1,74 @@
 ﻿#if NET8_0_OR_GREATER
-
+using System;
+using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Drawing;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
     /// <summary>
     /// A CHC-310 Card Printer for Kantai Collection Arcade.
     /// </summary>
-    public class CHC310Printer : CHCSeriesCardPrinter {
+    public class Chc310Printer : ChcSeriesCardPrinter {
         private const byte COMMAND_WRITE_START_STOP = 0x10;
         private const byte SUBCOMMAND_WRITE_START_STOP = 0x02;
         private const byte COMMAND_WRITE_BLOCK = 0x11;
         private const byte SUBCOMMAND_WRITE_BLOCK = 0x03;
 
-        private static readonly Native native = new Native(); // hack to pass the same Native to both parameters
+        private static readonly Native NATIVE = new Native(); // hack to pass the same Native to both parameters
 
         /// <summary>
         /// Creates a new CHC-310 printer.
         /// </summary>
-        public CHC310Printer() : base(native, new RFIDBackendCHCDLL(native), new Size(768, 1052)) {
+        public Chc310Printer() : base(NATIVE, new RfidBackendChcDll(NATIVE), new Size(768, 1052)) {
         }
 
-        internal CHC310Printer(INativeTrampolineCHC dllFunctions, RFIDBackend rfidBackend, Size imageSize) : base(dllFunctions, rfidBackend, imageSize) {
+        internal Chc310Printer(INativeTrampolineChc dllFunctions, RfidBackend rfidBackend, Size imageSize) : base(dllFunctions, rfidBackend, imageSize) {
         }
 
         /// <inheritdoc/>
-        public override DeviceStatus ConnectRFID() {
-            return SetLastError(ExecuteOnPrintThread((ref ushort rc) => {
-                DeviceStatus ret = RFIDBackend.Connect();
-                if (ret != DeviceStatus.OK) {
+        public override DeviceStatus ConnectRfid() {
+            return SetLastError(ExecuteOnPrintThread((ref ushort _) => {
+                DeviceStatus ret = RfidBackend.Connect();
+                if (ret != DeviceStatus.Ok) {
                     return ret;
                 }
 
-                ret = SendRFIDCommand(new ReqPacketReset(), out RespPacketReset _, out byte _);
-                if (ret != DeviceStatus.OK) {
+                ret = SendRfidCommand(new ReqPacketReset(), out RespPacketReset _, out byte _);
+                if (ret != DeviceStatus.Ok) {
                     return ret;
                 }
 
-                ret = SendRFIDCommand(new ReqPacketUnknown81(), out RespPacketUnknown81 _, out byte _);
-                if (ret != DeviceStatus.OK) {
-                    return ret;
-                }
-
+                ret = SendRfidCommand(new ReqPacketUnknown81(), out RespPacketUnknown81 _, out byte _);
                 return ret;
             }, true, true));
         }
 
         /// <inheritdoc/>
-        public override DeviceStatus DisconnectRFID() {
-            return SetLastError(RFIDBackend.Disconnect());
+        public override DeviceStatus DisconnectRfid() {
+            return SetLastError(RfidBackend.Disconnect());
         }
 
-        private DeviceStatus SendRFIDCommand<In, Out>(In request, out Out response, out byte status) where In : struct, SProtPayload where Out : struct, SProtPayload {
+        private DeviceStatus SendRfidCommand<TIn, TOut>(TIn request, out TOut response, out byte status) where TIn : struct, ISProtPayload where TOut : struct, ISProtPayload {
             CheckCallingThread();
-            ArgumentNullException.ThrowIfNull(request);
-
-            DeviceStatus ret;
 
             SProtFrame reqFrame = new SProtFrame(request);
 
-            ret = SendRFIDCommand(reqFrame.Command, 0, reqFrame.Payload, out byte[] payload, out status);
-            if (ret != DeviceStatus.OK) {
+            DeviceStatus ret = SendRfidCommand(reqFrame.Command, 0, reqFrame.Payload, out byte[] payload, out status);
+            if (ret != DeviceStatus.Ok) {
                 response = default;
                 return ret;
             }
 
-            response = StructUtils.FromBytes<Out>(payload);
+            response = StructUtils.FromBytes<TOut>(payload);
             return ret;
         }
 
-        private DeviceStatus SendRFIDCommand(byte cmd, byte subCmd, byte[] payloadIn, out byte[] payloadOut, out byte status) {
+        private DeviceStatus SendRfidCommand(byte cmd, byte subCmd, byte[] payloadIn, out byte[] payloadOut, out byte status) {
             CheckCallingThread();
             ArgumentNullException.ThrowIfNull(payloadIn);
-
-            DeviceStatus ret;
 
             SProtFrame reqFrame = new SProtFrame(cmd, payloadIn);
             byte[] payload = reqFrame.Payload;
@@ -86,7 +76,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             if (packet.Length > 0xFF) {
                 payloadOut = null;
                 status = 0;
-                return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+                return DeviceStatus.ErrorPayloadTooLarge;
             }
 
             packet[0] = cmd;
@@ -94,16 +84,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             packet[2] = (byte)payload.Length;
             Array.Copy(payload, 0, packet, 3, payload.Length);
 
-            ret = RFIDBackend.Write(packet);
-            if (ret != DeviceStatus.OK) {
+            DeviceStatus ret = RfidBackend.Write(packet);
+            if (ret != DeviceStatus.Ok) {
                 payloadOut = null;
                 status = 0;
                 return ret;
             }
 
-            ret = RFIDBackend.Read(out byte[] data);
-            if (ret != DeviceStatus.OK) {
-                payloadOut = default;
+            ret = RfidBackend.Read(out byte[] data);
+            if (ret != DeviceStatus.Ok) {
+                payloadOut = null;
                 status = 0;
                 return ret;
             }
@@ -123,15 +113,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
 
         /// <inheritdoc/>
-        public unsafe override DeviceStatus GetLoadedCardId(out byte[] cardid) {
+        public override unsafe DeviceStatus GetLoadedCardId(out byte[] cardid) {
             byte[] buf = new byte[CARD_ID_LEN];
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort rc) => {
                 DeviceStatus ret;
                 fixed (byte* ptr = buf) {
-                    ret = SetLastErrorByRC(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
+                    ret = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
                 }
 
-                if (rc != RESULT_STATUS_READY && rc != RESULT_CARDRFID_ReadA) {
+                if (rc != RESULT_STATUS_READY && rc != RESULT_CARDRFID_READ_A) {
                     buf = null;
                 }
 
@@ -151,12 +141,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// </summary>
         /// <param name="payload">Ignored.</param>
         /// <param name="overrideCardId">Ignored.</param>
-        public override void VerifyRFIDData(byte[] payload, bool overrideCardId) {
+        public override void VerifyRfidData(byte[] payload, bool overrideCardId) {
         }
 
         /// <inheritdoc/>
-        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
-            DeviceStatus ret = DeviceStatus.OK;
+        public override DeviceStatus WriteRfid(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
+            DeviceStatus ret = DeviceStatus.Ok;
 
             if (payload != null) {
                 writtenCardId = null;
@@ -167,22 +157,22 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
                 ret = PrintWaitFor(ref rc, (ref ushort rc) => {
                     unsafe {
                         fixed (byte* ptr = cardId) {
-                            ret = SetLastErrorByRC(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
+                            ret = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
                         }
                     }
 
-                    if (rc == RESULT_CARDRFID_ReadA) {
+                    if (rc == RESULT_CARDRFID_READ_A) {
                         rc = RESULT_NOERROR;
                     }
 
                     return rc;
                 }, 20000);
-                if (ret != DeviceStatus.OK) {
+                if (ret != DeviceStatus.Ok) {
                     Log.WriteError("RFID Read failed");
-                    return PrintExitThreadError(ret, RESULT_CARDRFID_CommandError);
+                    return PrintExitThreadError(ret, RESULT_CARDRFID_COMMAND_ERROR);
                 }
 
-                Job.JobStatus = PrintStatus.RFIDWrite;
+                Job.JobStatus = PrintStatus.RfidWrite;
 
                 byte[] cardid = new byte[CARD_ID_LEN];
                 if (overrideCardId) {
@@ -199,82 +189,82 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
                 Log.Dump(cardid, "Write RFID ID:");
                 Log.Dump(payload, "Write RFID Data:");
 
-                ret = SetLastError(SendRFIDCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, cardid, out byte[] _, out byte status), status);
-                if (ret != DeviceStatus.OK) {
+                ret = SetLastError(SendRfidCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, cardid, out byte[] _, out byte status), status);
+                if (ret != DeviceStatus.Ok) {
                     return ret;
                 }
 
                 for (int i = 0; i < payload.Length; i += 2) {
                     Log.Write("Write Block " + (i / 2));
-                    ret = SetLastError(SendRFIDCommand(COMMAND_WRITE_BLOCK, SUBCOMMAND_WRITE_BLOCK, new byte[] { payload[i], payload[i + 1] }, out byte[] _, out byte status2), status2);
-                    if (ret != DeviceStatus.OK) {
+                    ret = SetLastError(SendRfidCommand(COMMAND_WRITE_BLOCK, SUBCOMMAND_WRITE_BLOCK, new byte[] { payload[i], payload[i + 1] }, out byte[] _, out byte status2), status2);
+                    if (ret != DeviceStatus.Ok) {
                         return ret;
                     }
                 }
 
-                return SetLastError(SendRFIDCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, new byte[0], out byte[] _, out byte status3), status3);
-            } else {
-                Log.WriteWarning("No RFID data to write");
-                writtenCardId = null;
+                return SetLastError(SendRfidCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, Array.Empty<byte>(), out byte[] _, out byte status3), status3);
             }
+
+            Log.WriteWarning("No RFID data to write");
+            writtenCardId = null;
 
             return ret;
         }
 
         /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
-            return StartPage_Standby_YMC;
+            return START_PAGE_STANDBY_YMC;
         }
 
         /// <summary>
         /// Returns the RFID board's "app" version.
         /// </summary>
         /// <param name="version">The board version</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public virtual DeviceStatus GetRFIDAppVersion(out byte version) {
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
+        public virtual DeviceStatus GetRfidAppVersion(out byte version) {
             version = 0;
 
-            DeviceStatus ret = SendRFIDCommand(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion packet, out byte status);
-            if (ret != DeviceStatus.OK) {
+            DeviceStatus ret = SendRfidCommand(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion packet, out byte status);
+            if (ret != DeviceStatus.Ok) {
                 return SetLastError(ret, status);
             }
 
             version = packet.version;
-            return SetLastError(DeviceStatus.OK, status);
+            return SetLastError(DeviceStatus.Ok, status);
         }
 
         /// <summary>
         /// Returns the RFID board's "boot" version.
         /// </summary>
         /// <param name="version">The board version</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public virtual DeviceStatus GetRFIDBootVersion(out byte version) {
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
+        public virtual DeviceStatus GetRfidBootVersion(out byte version) {
             version = 0;
 
-            DeviceStatus ret = SendRFIDCommand(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion packet, out byte status);
-            if (ret != DeviceStatus.OK) {
+            DeviceStatus ret = SendRfidCommand(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion packet, out byte status);
+            if (ret != DeviceStatus.Ok) {
                 return SetLastError(ret, status);
             }
 
             version = packet.version;
-            return SetLastError(DeviceStatus.OK, status);
+            return SetLastError(DeviceStatus.Ok, status);
         }
 
         /// <summary>
         /// Returns the RFID board's board information.
         /// </summary>
         /// <param name="board">The board information</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success, any other status on failure.</returns>
-        public virtual DeviceStatus GetRFIDBoardInfo(out string board) {
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
+        public virtual DeviceStatus GetRfidBoardInfo(out string board) {
             board = null;
 
-            DeviceStatus ret = SendRFIDCommand(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo packet, out byte status);
-            if (ret != DeviceStatus.OK) {
+            DeviceStatus ret = SendRfidCommand(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo packet, out byte status);
+            if (ret != DeviceStatus.Ok) {
                 return SetLastError(ret, status);
             }
 
             board = packet.version;
-            return SetLastError(DeviceStatus.OK, status);
+            return SetLastError(DeviceStatus.Ok, status);
         }
 
         /// <inheritdoc />

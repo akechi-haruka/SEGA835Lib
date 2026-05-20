@@ -1,8 +1,9 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Devices;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Ports;
+using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// <summary>
@@ -12,6 +13,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// The name is not official, it's the 0xE0 JVS-like protocol that many SEGA boards use.
     /// Note that if any of the Read/Write commands fail, the device may be in an inconsistent state, therefore a hard reset (<see cref="SerialComm.Disconnect"/> + <see cref="SerialComm.Connect"/> is highly recommended.
     /// </remarks>
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class SProtSerial : SerialComm {
         /// <summary>
         /// The constant synchronization byte. All packets start with this constant.
@@ -37,7 +39,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <inheritdoc/>
         public override DeviceStatus Read(int len, out byte[] data) {
             lock (locker) {
-                if (DumpRWCommandsToLog) {
+                if (DumpReadWriteCommandsToLog) {
                     Log.Write("SProtSerial Port " + Port + ", Read Len=" + len);
                 }
 
@@ -46,16 +48,16 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 data = null;
                 int checksum = 0;
                 bool escapeFlag = false;
-                DeviceStatus ret = DeviceStatus.OK;
+                DeviceStatus ret = DeviceStatus.Ok;
                 while (pos < len) {
                     ret = base.ReadByte(out byte b);
-                    if (ret != DeviceStatus.OK) {
+                    if (ret != DeviceStatus.Ok) {
                         return ret;
                     }
 
                     if (pos == 0 && b != SYNC_BYTE) {
                         Log.WriteError("SProtSerial Read failed, expected sync byte, got " + b);
-                        return DeviceStatus.ERR_CHECKSUM;
+                        return DeviceStatus.ErrorChecksum;
                     }
 
                     if (b == ESCAPE_BYTE) {
@@ -84,10 +86,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 }
 
                 checksum %= 0x100;
-                byte data_checksum = data[data.Length - 1];
-                if (checksum != data_checksum) {
-                    Log.WriteError("SProtSerial Read failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
-                    ret = DeviceStatus.ERR_CHECKSUM;
+                byte dataChecksum = data[data.Length - 1];
+                if (checksum != dataChecksum) {
+                    Log.WriteError("SProtSerial Read failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
+                    ret = DeviceStatus.ErrorChecksum;
                 }
 
                 return ret;
@@ -106,17 +108,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="lenIncludesSelf">Whether or not the length byte inside the data includes itself in the length.</param>
         /// <param name="lenIncludesChecksumByte">Whether or not the length byte inside the data includes the trailing checksum byte in the length.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the requested number of bytes was read.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="SerialComm.Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the requested number of bytes was read.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="SerialComm.Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorChecksum"/> if data verification fails.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         /// <exception cref="ArgumentException">if the byte at lenByteOffset minus the bytes read up to this point is negative</exception>
         public DeviceStatus ReadLenByOffset(int lenByteOffset, out byte[] data, bool lenIncludesSelf = false, bool lenIncludesChecksumByte = false) {
             lock (locker) {
-                if (DumpRWCommandsToLog) {
+                if (DumpReadWriteCommandsToLog) {
                     Log.Write("SProtSerial Port " + Port + ", Read Len By Offset=" + lenByteOffset);
                 }
 
@@ -126,11 +128,11 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 data = null;
                 int checksum = 0;
                 bool escapeFlag = false;
-                DeviceStatus ret = DeviceStatus.OK;
+                DeviceStatus ret = DeviceStatus.Ok;
                 while (len == null) {
                     ret = base.ReadByte(out byte b);
-                    if (ret != DeviceStatus.OK) {
-                        if (DumpRWCommandsToLog) {
+                    if (ret != DeviceStatus.Ok) {
+                        if (DumpReadWriteCommandsToLog) {
                             Log.Write("Error occurred after reading " + pos);
                         }
 
@@ -139,7 +141,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 
                     if (pos == 0 && b != SYNC_BYTE) {
                         Log.WriteError("SProtSerial ReadLenByOffset failed, expected sync byte, got " + b);
-                        return DeviceStatus.ERR_CHECKSUM;
+                        return DeviceStatus.ErrorChecksum;
                     }
 
                     if (b == ESCAPE_BYTE) {
@@ -165,7 +167,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 
                 pos = lenIncludesSelf ? 1 : 0;
                 len += lenIncludesChecksumByte ? 0 : 1;
-                if (DumpRWCommandsToLog) {
+                if (DumpReadWriteCommandsToLog) {
                     Log.Write("SProtSerial Port " + Port + ", Read Len Remaining=" + (len - pos));
                 }
 
@@ -175,7 +177,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 
                 while (pos < len) {
                     ret = base.ReadByte(out byte b);
-                    if (ret != DeviceStatus.OK) {
+                    if (ret != DeviceStatus.Ok) {
                         return ret;
                     }
 
@@ -205,10 +207,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     Log.Dump(data, "SProtSerial Read:");
                 }
 
-                byte data_checksum = data[data.Length - 1];
-                if (checksum != data_checksum) {
-                    Log.WriteError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + data_checksum + ", got " + checksum);
-                    ret = DeviceStatus.ERR_CHECKSUM;
+                byte dataChecksum = data[data.Length - 1];
+                if (checksum != dataChecksum) {
+                    Log.WriteError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
+                    ret = DeviceStatus.ErrorChecksum;
                 }
 
                 return ret;
@@ -253,17 +255,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="recvLen">The amount of bytes to read.</param>
         /// <param name="recv">The bytes that were received or null if any error occurred.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the requested number of bytes was read.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="SerialComm.Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the requested number of bytes was read.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="SerialComm.Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorChecksum"/> if data verification fails.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         public DeviceStatus WriteAndRead(byte[] send, int recvLen, out byte[] recv) {
             lock (locker) {
                 DeviceStatus ret = Write(send);
-                if (ret != DeviceStatus.OK) {
+                if (ret != DeviceStatus.Ok) {
                     recv = null;
                     return ret;
                 }
@@ -285,17 +287,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </param>
         /// <param name="recv">The bytes that were received or null if any error occurred.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the requested number of bytes was read.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="SerialComm.Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_CHECKSUM"/> if data verification fails.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the requested number of bytes was read.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="SerialComm.Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="SerialComm.Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="SerialComm.Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorChecksum"/> if data verification fails.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         public DeviceStatus WriteAndReadByOffset(byte[] send, int lenByteOffset, out byte[] recv) {
             lock (locker) {
                 DeviceStatus ret = Write(send);
-                if (ret != DeviceStatus.OK) {
+                if (ret != DeviceStatus.Ok) {
                     recv = null;
                     return ret;
                 }

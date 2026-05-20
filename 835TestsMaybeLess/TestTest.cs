@@ -1,19 +1,17 @@
-namespace _835TestsMaybeLess {
-    public class TestTest {
+namespace _835TestsMaybeLess;
 
-        [SetUp]
-        public void Setup() {
-        }
+public class TestTest {
+    [SetUp]
+    public void Setup() {
+    }
 
-        [Test]
-        public void T01_TestFramework() {
-            Assert.Pass(Environment.Version.ToString());
-        }
+    [Test]
+    public void T01_TestFramework() {
+        Assert.Pass(Environment.Version.ToString());
+    }
 
-        [Test]
-        public void T02_TestCWD() {
-            Assert.Pass(Environment.CurrentDirectory);
-        }
-
+    [Test]
+    public void T02_TestCWD() {
+        Assert.Pass(Environment.CurrentDirectory);
     }
 }

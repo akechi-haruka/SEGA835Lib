@@ -54,6 +54,7 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
         <PackageReference Include="vJoy.Wrapper" Version="1.0.0.5"/>
     </ItemGroup>
 

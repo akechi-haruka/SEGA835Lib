@@ -1,9 +1,5 @@
-﻿using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using System;
-using System.Reflection;
-
-namespace Haruka.Arcade.SEGA835Lib.Misc {
-    internal static class EnumExtensions {
+﻿namespace Haruka.Arcade.SEGA835Lib.Misc {
+    static class EnumExtensions {
 #if NET8_0_OR_GREATER
         /// <summary>
         /// Retrieves an attribute from an Enum, or null if no such attribute exists.
@@ -15,9 +11,18 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// <returns>The given attribute or null</returns>
         public static TAttribute GetAttribute<TAttribute>(this Enum @enum)
             where TAttribute : Attribute {
-            var type = @enum.GetType();
-            var name = Enum.GetName(type, @enum);
-            return type.GetField(name).GetCustomAttribute<TAttribute>();
+            Type type = @enum.GetType();
+            string name = Enum.GetName(type, @enum);
+            if (name == null) {
+                return null;
+            }
+
+            FieldInfo enumField = type.GetField(name);
+            if (enumField == null) {
+                return null;
+            }
+
+            return enumField.GetCustomAttribute<TAttribute>();
         }
 #endif
     }

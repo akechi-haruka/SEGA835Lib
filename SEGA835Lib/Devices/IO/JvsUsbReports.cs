@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     /// <summary>
     /// Enum of possible outgoing report types for USB-based JVS devices. These have not yet been documented.
     /// </summary>
-    public enum JVSUSBReports : byte {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public enum JvsUsbReports : byte {
         /// <summary>
         /// Unknown.
         /// </summary>
@@ -34,12 +36,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <summary>
         /// Unknown.
         /// </summary>
-        SetPWMOutput = 0x05,
+        SetPwmOutput = 0x05,
 
         /// <summary>
         /// Unknown.
         /// </summary>
-        SetLEDs = 0x41,
+        SetLeds = 0x41,
 
         /// <summary>
         /// Unknown.
@@ -51,11 +53,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     /// The structure that is sent to JVS-based USB I/O boards. This is not yet documented.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public unsafe struct JVSUSBReportOut {
+    public unsafe struct JvsUsbReportOut {
         /// <summary>
         /// The report type being sent.
         /// </summary>
-        public JVSUSBReports cmd;
+        public JvsUsbReports cmd;
 
         /// <summary>
         /// Unknown.
@@ -64,10 +66,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     }
 
     /// <summary>
-    /// The payload for the JVS packet <see cref="JVSUSBReports.SetGeneralOutput"/>.
+    /// The payload for the JVS packet <see cref="JvsUsbReports.SetGeneralOutput"/>.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public unsafe struct JVSUSBPayloadOutGPIO {
+    public unsafe struct JvsUsbPayloadOutGpio {
         /// <summary>
         /// LED data, up to 32 LEDs, where every bit indicates LED on/off
         /// </summary>
@@ -80,10 +82,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     }
 
     /// <summary>
-    /// The payload for the JVS packet <see cref="JVSUSBReports.SetLEDs"/>.
+    /// The payload for the JVS packet <see cref="JvsUsbReports.SetLeds"/>.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public unsafe struct JVSUSBPayloadOutLED {
+    public unsafe struct JvsUsbPayloadOutLed {
         /// <summary>
         /// LED data, up to 32 LEDs, where every byte indicated LED state from 0 to 255.
         /// </summary>
@@ -99,7 +101,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     /// The structure that is received from JVS-based USB I/O boards.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public unsafe struct JVSUSBReportIn {
+    public unsafe struct JvsUsbReportIn {
         /// <summary>
         /// The maximum number of analog devices for this board.
         /// </summary>

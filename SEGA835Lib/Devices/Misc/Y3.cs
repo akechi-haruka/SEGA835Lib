@@ -1,10 +1,10 @@
-using Haruka.Arcade.SEGA835Lib.Debugging;
 using System;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
     [SuppressMessage("ReSharper", "UnassignedField.Global")]
@@ -38,7 +38,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 Log.Write("Y3 DLL version: " + Native.API_DLLVersion());
             } catch (Exception ex) {
                 Log.WriteFault(ex, "DLL initialization failed");
-                return DeviceStatus.ERR_LIBRARY;
+                return DeviceStatus.ErrorLibrary;
             }
 
             Log.Write("Opening Y3 board at port " + Port);
@@ -46,7 +46,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             handle = Native.API_Connect("COM" + Port);
             if (handle == IntPtr.Zero) {
                 Log.WriteError("Could not open Y3 board at port " + Port);
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             Log.Write("Connected");
@@ -57,7 +57,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 Log.WriteWarning("Calibration is required!");
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public override DeviceStatus Disconnect() {
@@ -70,7 +70,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             handle = IntPtr.Zero;
             cards = null;
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public void UpdateBoardInfo() {
@@ -103,17 +103,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
         }
 
-        public bool IsCalibrationNeeded {
-            get {
-                return GetFirmwareType() == FirmwareType.Field && GetTargetCodeType() != TargetCodeType.Field;
-            }
-        }
+        public bool IsCalibrationNeeded => GetFirmwareType() == FirmwareType.Field && GetTargetCodeType() != TargetCodeType.Field;
 
         public DeviceStatus SetParamsForPlayfield() {
             Log.Write("SetParamsForPlayfield");
 
             DeviceStatus ret = SetCardCount(MAX_CARDS);
-            if (ret != DeviceStatus.OK) {
+            if (ret != DeviceStatus.Ok) {
                 return ret;
             }
 
@@ -131,7 +127,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         public DeviceStatus SetCardCount(uint count) {
             Log.Write("SetCardCount(" + count + ")");
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             if (Native.API_SetParameter(handle, Native.ParameterNumber.CodeMax, new uint[] { count }) != 0) {
@@ -140,46 +136,46 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
             cards = new CardInfo[count];
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public DeviceStatus SetClbMode(bool set) {
             Log.Write("SetClbMode(" + set + ")");
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             if (Native.API_SetParameter(handle, Native.ParameterNumber.ClbMode, new uint[] { set ? 1U : 0U }) != 0) {
                 return ReportBoardError();
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public DeviceStatus Start() {
             Log.Write("Start");
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             if (Native.API_Start(handle) != 0) {
                 return ReportBoardError();
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public DeviceStatus Stop() {
             Log.Write("Stop");
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             if (Native.API_Stop(handle) != 0) {
                 return ReportBoardError();
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public DeviceStatus GetCards(out uint validCards, out CardInfo[] cardData, out uint procTime) {
@@ -188,11 +184,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             validCards = 0;
 
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             if (cards == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
 
             int count = Native.API_GetCardInfo(handle, cards.Length, cards);
@@ -204,22 +200,23 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             cardData = cards;
             procTime = Native.API_GetProcTime(handle);
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
         public DeviceStatus Reset() {
             Log.Write("Reset");
             if (Native.API_Reset(handle, false) != 0) {
                 return ReportBoardError();
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         public DeviceStatus Calibrate(CalibrationType mode) {
             Log.Write("Calibrate");
             if (handle == IntPtr.Zero) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             Reset();
@@ -238,7 +235,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
             if (DateTime.Now - start >= timeout) {
                 Log.WriteError("Calibration timed out");
-                return SetLastError(DeviceStatus.ERR_TIMEOUT, (int)lastStatus);
+                return SetLastError(DeviceStatus.ErrorTimeout, (int)lastStatus);
             }
 
             Log.Write("SetParameter");
@@ -247,14 +244,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return ReportBoardError();
             }
 
-            uint[] readback = new uint[] { 0x123456 };
+            uint[] readback = { 0x123456 };
             if (Native.API_GetParameter(handle, Native.ParameterNumber.ClbMode, readback) != 0) {
                 return ReportBoardError();
             }
 
             if (readback[0] != targetValue) {
                 Log.WriteError("Failed to write parameter, expected " + targetValue + ", got " + readback[0]);
-                return SetLastError(DeviceStatus.ERR_DEVICE);
+                return SetLastError(DeviceStatus.ErrorDevice);
             }
 
             if (mode == CalibrationType.AutoParam) {
@@ -282,7 +279,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
                 if (GetTargetCodeType() != TargetCodeType.Field) {
                     Log.WriteError("Unexpected target code: " + GetTargetCodeType() + " / " + TargetCode);
-                    return SetLastError(DeviceStatus.ERR_DEVICE);
+                    return SetLastError(DeviceStatus.ErrorDevice);
                 }
             } else if (mode == CalibrationType.Led) {
                 Log.Write("Start Led calibration");
@@ -312,11 +309,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 Log.Write("Calibration complete");
             } else {
                 Log.WriteError("Invalid calibration mode: " + mode);
-                return SetLastError(DeviceStatus.ERR_INCOMPATIBLE);
+                return SetLastError(DeviceStatus.ErrorIncompatible);
             }
 
             Log.Write("Calibration complete");
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         private DeviceStatus ReportBoardError() {
@@ -324,7 +321,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             byte[] str = new byte[512];
             Native.API_GetErrorMessage(ec, str, str.Length);
             Log.WriteError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.ASCII.GetString(str));
-            return SetLastError(DeviceStatus.ERR_DEVICE, (int)ec);
+            return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
         }
 
         public Native.Status GetStatus() {

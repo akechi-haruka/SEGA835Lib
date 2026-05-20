@@ -1,24 +1,26 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     /// <summary>
     /// A 837-15093-06 LED board.
     /// </summary>
-    public class LED_837_15093_06 : SProtDevice {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public class Led15093 : SProtDevice {
         /// <summary>
         /// The address being used by the client.
         /// </summary>
-        public byte HostAddress { get; private set; }
+        public byte HostAddress { get; }
 
         /// <summary>
         /// The address being used by the board.
         /// </summary>
-        public byte BoardAddress { get; private set; }
+        public byte BoardAddress { get; }
 
         /// <summary>
         /// Whether or not board responses are currently disabled. If this is true, <see cref="Read(out SProtFrame)" /> should not be called until <see cref="SetResponseDisabled(bool)"/> is called with false.
@@ -29,28 +31,28 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// Creates a new LED board.
         /// </summary>
         /// <param name="port">The COM board to use.</param>
-        /// <param name="host_addr">The address for the client. This may not actually matter.</param>
-        /// <param name="board_addr">The address for the LED board.</param>
-        public LED_837_15093_06(int port, byte host_addr = 0x02, byte board_addr = 0x01) : base(new SProtSerial(port, dtr: true, rts: true)) {
-            HostAddress = host_addr;
-            BoardAddress = board_addr;
+        /// <param name="hostAddr">The address for the client. This may not actually matter.</param>
+        /// <param name="boardAddr">The address for the LED board.</param>
+        public Led15093(int port, byte hostAddr = 0x02, byte boardAddr = 0x01) : base(new SProtSerial(port, dtr: true, rts: true)) {
+            HostAddress = hostAddr;
+            BoardAddress = boardAddr;
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Connect() {
             lock (SerialLocker) {
-                if (serial != null && serial.IsConnected()) {
-                    return DeviceStatus.OK;
+                if (Serial.IsConnected()) {
+                    return DeviceStatus.Ok;
                 }
 
                 Log.Write("Connecting on Port " + Port);
-                if (!serial.Connect()) {
-                    return DeviceStatus.ERR_NOT_CONNECTED;
+                if (!Serial.Connect()) {
+                    return DeviceStatus.ErrorNotConnected;
                 }
             }
 
             DeviceStatus ret = SetResponseDisabled(false);
-            if (ret != DeviceStatus.OK) {
+            if (ret != DeviceStatus.Ok) {
                 return ret;
             }
 
@@ -61,10 +63,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         public override DeviceStatus Disconnect() {
             Log.Write("Disconnected on Port " + Port);
             lock (SerialLocker) {
-                serial?.Disconnect();
+                Serial?.Disconnect();
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <inheritdoc/>
@@ -82,7 +84,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             lock (SerialLocker) {
                 byte[] packet = new byte[payload.Length + 4];
                 if (packet.Length > 0xFF) {
-                    return DeviceStatus.ERR_PAYLOAD_TOO_LARGE;
+                    return DeviceStatus.ErrorPayloadTooLarge;
                 }
 
                 packet[0] = dest;
@@ -90,7 +92,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 packet[2] = (byte)(payload.Length + 1);
                 packet[3] = cmd;
                 Array.Copy(payload, 0, packet, 4, payload.Length);
-                return serial.Write(packet);
+                return Serial.Write(packet);
             }
         }
 
@@ -103,16 +105,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 status = 0;
                 report = 0;
                 payload = new byte[0];
-                return DeviceStatus.OK;
+                return DeviceStatus.Ok;
             }
 
             byte[] data;
             DeviceStatus ret;
             lock (SerialLocker) {
-                ret = serial.ReadLenByOffset(3, out data, false, false);
+                ret = Serial.ReadLenByOffset(3, out data);
             }
 
-            if (ret != DeviceStatus.OK) {
+            if (ret != DeviceStatus.Ok) {
                 src = 0;
                 dest = 0;
                 cmd = 0;
@@ -134,7 +136,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             payload = new byte[data[3] - 3];
             Array.Copy(data, 7, payload, 0, payload.Length);
             if (status != 0) {
-                ret = DeviceStatus.ERR_DEVICE;
+                ret = DeviceStatus.ErrorDevice;
                 SetLastError(ret, status);
             }
 
@@ -149,7 +151,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <inheritdoc/>
         public override DeviceStatus Read(out SProtFrame recv) {
             DeviceStatus ret = Read(out byte addr, out byte _, out byte cmd, out byte status, out byte _, out byte[] payload);
-            if (ret != DeviceStatus.OK) {
+            if (ret != DeviceStatus.Ok) {
                 recv = null;
                 return ret;
             }
@@ -161,17 +163,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <summary>
         /// Resets the device state. This is implicitely called on <see cref="Connect"/>.
         /// </summary>
-        /// <returns><see cref="DeviceStatus.OK"/> on success, or if the reader was already reset (which will log a warning), or any other DeviceStatus on failure.</returns>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, or if the reader was already reset (which will log a warning), or any other DeviceStatus on failure.</returns>
         public DeviceStatus Reset() {
             Log.Write("Reset");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketReset() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketReset() {
                 reset_type = 0xD9
             }, out RespPacketReset _, out byte status);
 
             ResponsesDisabled = false;
 
-            if (ret == DeviceStatus.ERR_DEVICE) { // error on double reset, ignore
-                return SetLastError(DeviceStatus.OK, status);
+            if (ret == DeviceStatus.ErrorDevice) { // error on double reset, ignore
+                return SetLastError(DeviceStatus.Ok, status);
             }
 
             return SetLastError(ret, status);
@@ -180,21 +182,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <summary>
         /// Queries the card reader's hardware versions.
         /// </summary>
-        /// <param name="board_number">The LED Board Number (ex. "15093-06") or null on failure</param>
-        /// <param name="chip_number">The LED Chip Number (ex. "6710") or null on failure</param>
-        /// <param name="firmware_version">The LED Board Firmware Version (ex. 0xA0) or 0 on failure</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus GetBoardInfo(out String board_number, out String chip_number, out byte firmware_version) {
+        /// <param name="boardNumber">The LED Board Number (ex. "15093-06") or null on failure</param>
+        /// <param name="chipNumber">The LED Chip Number (ex. "6710") or null on failure</param>
+        /// <param name="firmwareVersion">The LED Board Firmware Version (ex. 0xA0) or 0 on failure</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public DeviceStatus GetBoardInfo(out String boardNumber, out String chipNumber, out byte firmwareVersion) {
             Log.Write("GetBoardInfo");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo resp, out byte status);
-            if (ret == DeviceStatus.OK) {
-                board_number = resp.board_number;
-                chip_number = resp.chip_number;
-                firmware_version = resp.fw_ver;
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo resp, out byte status);
+            if (ret == DeviceStatus.Ok) {
+                boardNumber = resp.board_number;
+                chipNumber = resp.chip_number;
+                firmwareVersion = resp.fw_ver;
             } else {
-                board_number = null;
-                chip_number = null;
-                firmware_version = 0;
+                boardNumber = null;
+                chipNumber = null;
+                firmwareVersion = 0;
             }
 
             return SetLastError(ret, status);
@@ -204,11 +206,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// Queries the card reader's firmware checksum.
         /// </summary>
         /// <param name="checksum">The LED Firmware checksum or 0 on failure.</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus GetFirmwareChecksum(out ushort checksum) {
             Log.Write("GetFirmwareChecksum");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
-            if (ret == DeviceStatus.OK) {
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
+            if (ret == DeviceStatus.Ok) {
                 checksum = (ushort)(resp.fw_checksum_b2 << 8 | resp.fw_checksum_b1);
             } else {
                 checksum = 0;
@@ -220,19 +222,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// <summary>
         /// Queries the card reader's protocol version.
         /// </summary>
-        /// <param name="appli_mode">Unknown or 0 on failure.</param>
+        /// <param name="appliMode">Unknown or 0 on failure.</param>
         /// <param name="major">The major protocol version or 0 on failure.</param>
         /// <param name="minor">The minor protocol version or 0 on failure.</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus GetProtocolVersion(out byte appli_mode, out byte major, out byte minor) {
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public DeviceStatus GetProtocolVersion(out byte appliMode, out byte major, out byte minor) {
             Log.Write("GetProtocolVersion");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketGetProtocolVersion(), out RespPacketGetProtocolVersion resp, out byte status);
-            if (ret == DeviceStatus.OK) {
-                appli_mode = resp.appli_mode;
+            DeviceStatus ret = WriteAndRead(new ReqPacketGetProtocolVersion(), out RespPacketGetProtocolVersion resp, out byte status);
+            if (ret == DeviceStatus.Ok) {
+                appliMode = resp.appli_mode;
                 major = resp.major;
                 minor = resp.minor;
             } else {
-                appli_mode = 0;
+                appliMode = 0;
                 major = 0;
                 minor = 0;
             }
@@ -244,24 +246,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// Sets the LED board timeout (when no new LED data is received after X ms, LEDs will turn off.
         /// </summary>
         /// <param name="timeout">The timeout to set.</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetTimeout(ushort timeout) {
             Log.Write("SetTimeout(" + timeout + ")");
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketSetTimeout() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketSetTimeout() {
                 timeout = timeout
             }, out RespPacketSetTimeout _, out byte status);
             return SetLastError(ret, status);
         }
 
         /// <summary>
-        /// Sets if the LED board should not respond with ACK packets for the <see cref="SetLEDs"/> command.
+        /// Sets if the LED board should not respond with ACK packets for the <see cref="SetLeds"/> command.
         /// </summary>
         /// <param name="enabled">If "enabled" is set, responses will be DISABLED.</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus SetResponseDisabled(bool enabled) {
             Log.Write("SetResponseDisabled(" + enabled + ")");
             ResponsesDisabled = enabled;
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketSetDisableResponse() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketSetDisableResponse() {
                 enable = (byte)(enabled ? 1 : 0)
             }, out RespPacketSetDisableResponse _, out byte status);
             return SetLastError(ret, status);
@@ -272,19 +274,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// </summary>
         /// <param name="colors">A list of colors to set.</param>
         /// <exception cref="ArgumentException">If more than 66 colors are given.</exception>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public unsafe DeviceStatus SetLEDs(IEnumerable<Color> colors) {
-            int cnt = colors.Count();
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public unsafe DeviceStatus SetLeds(IEnumerable<Color> colors) {
+            IEnumerable<Color> colorArray = colors.ToArray();
+            int cnt = colorArray.Count();
             Log.Write("SetLEDs(" + cnt + ")");
 
-            if (colors.Count() > 66) {
+            if (colorArray.Count() > 66) {
                 throw new ArgumentException("too many colors " + cnt);
             }
 
-            ReqPacketSetLEDs req = new ReqPacketSetLEDs();
+            ReqPacketSetLeds req = new ReqPacketSetLeds();
             byte* ledptr = req.pixels;
             int i = 0;
-            foreach (Color c in colors) {
+            foreach (Color c in colorArray) {
                 ledptr[i] = c.R;
                 ledptr[i + 1] = c.G;
                 ledptr[i + 2] = c.B;
@@ -292,7 +295,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
             }
 
             DeviceStatus ret = SetLastError(Write(BoardAddress, HostAddress, req.GetCommandID(), StructUtils.GetBytes(req)));
-            if (ret != DeviceStatus.OK) {
+            if (ret != DeviceStatus.Ok) {
                 return ret;
             }
 
@@ -308,17 +311,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
         /// </summary>
         /// <param name="count">The number of LEDs.</param>
         /// <exception cref="ArgumentOutOfRangeException">if count is outside [0,66].</exception>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public DeviceStatus SetLEDCount(int count) {
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetLedCount(int count) {
             Log.Write("SetLEDCount(" + count + ")");
 
             if (count > 66) {
                 throw new ArgumentOutOfRangeException("count is too high: " + count);
             }
 
-            DeviceStatus ret = this.WriteAndRead(new ReqPacketSetLEDCount() {
+            DeviceStatus ret = WriteAndRead(new ReqPacketSetLedCount() {
                 count = (byte)count
-            }, out RespPacketSetLEDCount _, out byte status);
+            }, out RespPacketSetLedCount _, out byte status);
             return SetLastError(ret, status);
         }
     }

@@ -1,17 +1,17 @@
-﻿using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Haruka.Arcade.SEGA835Lib.Serial;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeyReset : SProtPayload {
+    struct ReqPacketMonkeyReset : ISProtPayload {
         public byte GetCommandID() {
             return 0xA0;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeyReset : SProtPayload {
+    struct RespPacketMonkeyReset : ISProtPayload {
         public byte GetCommandID() {
             return 0xA0;
         }
@@ -19,7 +19,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeySetChecksum : SProtPayload {
+    struct ReqPacketMonkeySetChecksum : ISProtPayload {
         public byte fw_checksum_b1;
         public byte fw_checksum_b2;
 
@@ -29,7 +29,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetChecksum : SProtPayload {
+    struct RespPacketMonkeySetChecksum : ISProtPayload {
         public byte GetCommandID() {
             return 0xA1;
         }
@@ -37,7 +37,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal unsafe struct ReqPacketMonkeySetTranslation : SProtPayload {
+    unsafe struct ReqPacketMonkeySetTranslation : ISProtPayload {
         public byte offset;
         public fixed byte translation[66];
 
@@ -47,7 +47,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetTranslation : SProtPayload {
+    struct RespPacketMonkeySetTranslation : ISProtPayload {
         public byte GetCommandID() {
             return 0xA2;
         }
@@ -55,7 +55,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeySetChannels : SProtPayload {
+    struct ReqPacketMonkeySetChannels : ISProtPayload {
         public byte r;
         public byte g;
         public byte b;
@@ -66,7 +66,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetChannels : SProtPayload {
+    struct RespPacketMonkeySetChannels : ISProtPayload {
         public byte GetCommandID() {
             return 0xA3;
         }
@@ -74,7 +74,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeySetFirmwareVersion : SProtPayload {
+    struct ReqPacketMonkeySetFirmwareVersion : ISProtPayload {
         public byte ver;
 
         public byte GetCommandID() {
@@ -83,14 +83,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetFirmwareVersion : SProtPayload {
+    struct RespPacketMonkeySetFirmwareVersion : ISProtPayload {
         public byte GetCommandID() {
             return 0xA5;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeySetChipNumber : SProtPayload {
+    struct ReqPacketMonkeySetChipNumber : ISProtPayload {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 6)]
         public String chip_no;
 
@@ -100,7 +100,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetChipNumber : SProtPayload {
+    struct RespPacketMonkeySetChipNumber : ISProtPayload {
         public byte GetCommandID() {
             return 0xA4;
         }
@@ -108,7 +108,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketMonkeySetBoardName : SProtPayload {
+    struct ReqPacketMonkeySetBoardName : ISProtPayload {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 9)]
         public String board_name;
 
@@ -118,7 +118,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetBoardName : SProtPayload {
+    struct RespPacketMonkeySetBoardName : ISProtPayload {
         public byte GetCommandID() {
             return 0xA6;
         }
@@ -126,7 +126,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal unsafe struct ReqPacketMonkeySetAuxiliaryLEDs : SProtPayload {
+    unsafe struct ReqPacketMonkeySetAuxiliaryLeds : ISProtPayload {
         public fixed byte pixels[66 * 3];
 
         public byte GetCommandID() {
@@ -135,7 +135,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketMonkeySetAuxiliaryLEDs : SProtPayload {
+    struct RespPacketMonkeySetAuxiliaryLeds : ISProtPayload {
         public byte GetCommandID() {
             return 0xA7;
         }

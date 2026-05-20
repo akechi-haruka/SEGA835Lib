@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -8,7 +9,8 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
     /// <summary>
     /// Misc. methods to deal with structs and managed/unmanaged conversion.
     /// </summary>
-    public class StructUtils {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public static class StructUtils {
         /// <summary>
         /// Checks if the given type has no fields. (= is an empty struct)
         /// </summary>
@@ -57,7 +59,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
         /// <param name="arr">The object.</param>
         /// <returns>A struct based on the input array.</returns>
         public static T FromBytes<T>(byte[] arr) where T : struct {
-            T str = default;
+            T str;
 
             GCHandle h = default;
 
@@ -67,11 +69,6 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
 #if NET6_0_OR_GREATER
                 str = Marshal.PtrToStructure<T>(h.AddrOfPinnedObject());
 #else
-                /*if (IsZeroSizeStruct(typeof(T))) {
-                    Log.Write("empty struct, ignored");
-                    return str;
-                }*/
-
                 str = (T)Marshal.PtrToStructure(h.AddrOfPinnedObject(), typeof(T));
 #endif
             } finally {
@@ -87,10 +84,10 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             Copy(from, 0, to, 0, length);
         }
 
-        internal static unsafe void Copy(byte[] from, int from_offset, byte* to, int to_offset, int length) {
+        internal static unsafe void Copy(byte[] from, int fromOffset, byte* to, int toOffset, int length) {
             NetStandardBackCompatExtensions.ThrowIfNull(from, nameof(from));
             fixed (byte* ptr = from) {
-                Copy(ptr, from_offset, to, to_offset, length);
+                Copy(ptr, fromOffset, to, toOffset, length);
             }
         }
 
@@ -101,10 +98,10 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             }
         }
 
-        internal static unsafe void Copy(byte* from, int from_offset, byte[] to, int to_offset, int length) {
+        internal static unsafe void Copy(byte* from, int fromOffset, byte[] to, int toOffset, int length) {
             NetStandardBackCompatExtensions.ThrowIfNull(to, nameof(to));
             fixed (byte* ptr = to) {
-                Copy(from, from_offset, ptr, to_offset, length);
+                Copy(from, fromOffset, ptr, toOffset, length);
             }
         }
 
@@ -112,8 +109,8 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
             return new string((sbyte*)from, 0, length, Encoding.ASCII);
         }
 
-        internal static unsafe void Copy(byte* from, int from_offset, byte* to, int to_offset, int length) {
-            for (int i = from_offset, j = to_offset; i < from_offset + length; i++, j++) {
+        internal static unsafe void Copy(byte* from, int fromOffset, byte* to, int toOffset, int length) {
+            for (int i = fromOffset, j = toOffset; i < fromOffset + length; i++, j++) {
                 to[j] = from[i];
             }
         }

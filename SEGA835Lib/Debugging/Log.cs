@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -10,18 +11,19 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
     /// <summary>
     /// This class is used for logging to the console, and optionally a file.
     /// </summary>
-    public class Log {
-        private static string _logFileName = "Log\\Main.log";
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public static class Log {
+        private static string logFileName = "Log\\Main.log";
 
         /// <summary>
         /// Sets the log file name.
         /// </summary>
         /// <exception cref="ArgumentException">If <see cref="Init(bool, int)"/> was already called</exception>
         public static string LogFileName {
-            get { return _logFileName; }
+            get => logFileName;
             set {
                 if (!open) {
-                    _logFileName = value;
+                    logFileName = value;
                 } else {
                     throw new ArgumentException("Can't change log file after Log.Init().");
                 }
@@ -46,7 +48,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         private static DateTime initTime = DateTime.Now;
         private static bool open;
         private static StreamWriter log;
-        private static readonly object logLock = new object();
+        private static readonly object LOG_LOCK = new object();
 
         /// <summary>
         /// Opens the log file.
@@ -60,9 +62,9 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             initTime = DateTime.Now;
             open = true;
 
-            if (_logFileName != null) {
-                DirectoryInfo logfolder = Directory.GetParent(_logFileName);
-                if (!logfolder.Exists) {
+            if (logFileName != null) {
+                DirectoryInfo logfolder = Directory.GetParent(logFileName);
+                if (logfolder != null && !logfolder.Exists) {
                     logfolder.Create();
                 }
 
@@ -105,7 +107,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                 Write("    Arguments: " + String.Join(" ", Environment.GetCommandLineArgs()));
                 Write("    Loaded Libraries: ");
                 foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies()) {
-                    Write("      " + a.ToString());
+                    Write("      " + a);
                 }
 
                 Write("System Information:");
@@ -122,7 +124,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         }
 
         private static void WriteOut(string message, ConsoleColor c, string section) {
-            lock (logLock) {
+            lock (LOG_LOCK) {
                 if (!Mute) {
                     SetConsoleColor(c);
                 }
@@ -132,10 +134,8 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
                     string fullSection;
                     if (section.StartsWith("<")) {
                         fullSection = section;
-                    } else if (section != null) {
-                        fullSection = "[" + section + "]";
                     } else {
-                        fullSection = "";
+                        fullSection = "[" + section + "]";
                     }
 
                     o = "[" + (DateTime.Now - initTime).TotalMilliseconds.ToString("N").PadLeft(14) + "]" + fullSection + " " + message;
@@ -238,22 +238,28 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
         /// Calls Flush on the log file. Does nothing if <see cref="Init(bool, int)"/> was not called.
         /// </summary>
         public static void Flush() {
-            if (!open) { return; }
+            if (!open) {
+                return;
+            }
 
             try {
                 log?.Flush();
-            } catch { }
+            } catch {
+                // ignored
+            }
         }
 
         /// <summary>
         /// Closes the log file. Does nothing if <see cref="Init(bool, int)"/> was not called. To start logging to a new file, call <see cref="Init(bool, int)"/> again.
         /// </summary>
         public static void Close() {
-            lock (logLock) {
+            lock (LOG_LOCK) {
                 open = false;
                 try {
                     log?.Flush();
-                } catch { }
+                } catch {
+                    // ignored
+                }
 
                 log?.Close();
                 log = null;

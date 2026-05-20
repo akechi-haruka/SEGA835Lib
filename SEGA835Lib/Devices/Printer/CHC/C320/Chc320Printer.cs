@@ -1,36 +1,35 @@
 ﻿#if NET8_0_OR_GREATER
-
-using Haruka.Arcade.SEGA835Lib.Debugging;
 using System;
 using System.Drawing;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
 
     /// <summary>
     /// A CHC-320 Card Printer for Sangokushi Taisen.
     /// </summary>
-    public class CHC320Printer : CHCSeriesCardPrinter {
+    public class Chc320Printer : ChcSeriesCardPrinter {
 
         /// <summary>
         /// Creates a new CHC-320 printer.
         /// </summary>
-        public CHC320Printer() : base(new Native(), null, new Size(664, 1036)) {
+        public Chc320Printer() : base(new Native(), null, new Size(664, 1036)) {
         }
 
         /// <summary>
         /// This does nothing.
         /// </summary>
-        /// <returns>Always returns <see cref="DeviceStatus.OK"/>.</returns>
-        public override DeviceStatus ConnectRFID() {
-            return DeviceStatus.OK;
+        /// <returns>Always returns <see cref="DeviceStatus.Ok"/>.</returns>
+        public override DeviceStatus ConnectRfid() {
+            return DeviceStatus.Ok;
         }
 
         /// <summary>
         /// This does nothing.
         /// </summary>
-        /// <returns>Always returns <see cref="DeviceStatus.OK"/>.</returns>
-        public override DeviceStatus DisconnectRFID() {
-            return DeviceStatus.OK;
+        /// <returns>Always returns <see cref="DeviceStatus.Ok"/>.</returns>
+        public override DeviceStatus DisconnectRfid() {
+            return DeviceStatus.Ok;
         }
 
         /// <summary>
@@ -38,19 +37,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// </summary>
         /// <param name="payload">Ignored.</param>
         /// <param name="overrideCardId">Ignored.</param>
-        public override void VerifyRFIDData(byte[] payload, bool overrideCardId) {
+        public override void VerifyRfidData(byte[] payload, bool overrideCardId) {
         }
 
         /// <summary>
         /// Unsupported for this printer model.
         /// </summary>
         /// <param name="cardid">Always null.</param>
-        /// <returns>Always returns <see cref="DeviceStatus.ERR_INCOMPATIBLE"/>.</returns>
+        /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
-        public override unsafe DeviceStatus GetLoadedCardId(out byte[] cardid) {
+        public override DeviceStatus GetLoadedCardId(out byte[] cardid) {
             Log.WriteError("RFID data cannot be read from a CHC-320!");
             cardid = null;
-            return DeviceStatus.ERR_INCOMPATIBLE;
+            return DeviceStatus.ErrorIncompatible;
         }
 
         /// <summary>
@@ -60,17 +59,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// <param name="payload">Ignored.</param>
         /// <param name="overrideCardId">Ignored.</param>
         /// <param name="writtenCardId">Always null.</param>
-        /// <returns>Always returns <see cref="DeviceStatus.ERR_INCOMPATIBLE"/>.</returns>
+        /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
-        public override DeviceStatus WriteRFID(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
+        public override DeviceStatus WriteRfid(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
             Log.WriteError("RFID data cannot be written to a CHC-320!");
             writtenCardId = null;
-            return DeviceStatus.ERR_INCOMPATIBLE;
+            return DeviceStatus.ErrorIncompatible;
         }
 
         /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
-            return StartPage_Exit;
+            return START_PAGE_EXIT;
         }
 
         /// <inheritdoc />

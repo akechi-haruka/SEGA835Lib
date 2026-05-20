@@ -1,75 +1,70 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿using System.Drawing;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System.Drawing;
 
-namespace _835TestsMaybeLess {
-    public class CHC310BPrinterTest {
-        private CHC310BPrinter printer;
+namespace _835TestsMaybeLess;
 
-        [SetUp]
-        public void Setup() {
-            printer = new CHC310BPrinter();
+public class Chc310BPrinterTest {
+    private Chc310BPrinter printer;
+
+    [SetUp]
+    public void Setup() {
+        printer = new Chc310BPrinter();
+    }
+
+    [TearDown]
+    public void Cleanup() {
+        printer?.Disconnect();
+    }
+
+    [Test]
+    public void T01_TestPrinterDllLoad() {
+        Log.Write("CWD is " + Environment.CurrentDirectory);
+        if (!File.Exists(Native.DLL)) {
+            Assert.Inconclusive("DLL not found in CWD!");
         }
 
-        [TearDown]
-        public void Cleanup() {
-            printer?.Disconnect();
+        printer.Disconnect();
+    }
+
+    [Test]
+    public void T02_TestGetPrinterSerial() {
+        if (!Util.CheckConnect(printer.Connect)) {
+            return;
         }
 
-        [Test]
-        public void T01_TestPrinterDllLoad() {
-            Log.Write("CWD is " + Environment.CurrentDirectory);
-            if (!File.Exists(Native.DLL)) {
-                Assert.Inconclusive("DLL not found in CWD!");
-            }
+        Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That(serial, Is.Not.Null);
+        Log.Write(serial);
+    }
 
-            printer.Disconnect();
+    [Test]
+    public void T03_TestImageConversion() {
+        Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
+        byte[] data = image.GetRawPixelsRgbNoPadding();
+        Log.Write("pixels total = " + data.Length);
+
+        Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
+    }
+
+    [Test]
+    public void T04_Print() {
+        if (!Util.CheckConnect(printer.Connect)) {
+            return;
         }
 
-        [Test]
-        public void T02_TestGetPrinterSerial() {
-            if (!Util.CheckConnect(printer.Connect)) {
-                return;
-            }
-
-            Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.OK));
-            Assert.That(serial, Is.Not.Null);
-            Log.Write(serial);
-        }
-
-        [Test]
-        public void T03_TestImageConversion() {
-            Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
-            byte[] data = image.GetRawPixelsRGBNoPadding();
-            Log.Write("pixels total = " + data.Length);
-            int count_black = 0;
-            foreach (byte b in data) {
-                count_black++;
-            }
-
-            Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
-            Assert.That(count_black, Is.GreaterThan(200_000), constraintExpression: "not enough black pixels found, conversion may be wrong");
-        }
-
-        [Test]
-        public void T04_Print() {
-            if (!Util.CheckConnect(printer.Connect)) {
-                return;
-            }
-
-            ushort rc = printer.GetPrinterStatusCode();
-            Log.Write(CHCSeriesCardPrinter.RCToString(rc));
-            Assert.That(rc, Is.EqualTo(0));
-            printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C310-01.icc");
-            printer.SetMtfFile("TestFiles/Printer/MTF220.txt");
-            Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
-            Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo310.png"));
-            Assert.That(printer.StartPrinting(image, null, image2), Is.EqualTo(DeviceStatus.OK));
-            Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.BUSY).After(300_000, 1000));
-            Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.OK));
-        }
+        ushort rc = printer.GetPrinterStatusCode();
+        Log.Write(ChcSeriesCardPrinter.RcToString(rc));
+        Assert.That(rc, Is.Zero);
+        printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C310-01.icc");
+        printer.SetMtfFile("TestFiles/Printer/MTF220.txt");
+        Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage310.jpg"));
+        Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo310.png"));
+        Assert.That(printer.StartPrinting(image, null, image2), Is.EqualTo(DeviceStatus.Ok));
+        Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.Busy).After(300_000, 1000));
+        Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.Ok));
     }
 }

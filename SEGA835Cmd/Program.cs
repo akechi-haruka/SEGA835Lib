@@ -15,10 +15,11 @@ using Options = Haruka.Arcade.SEGA835Cmd.Modules.IO4Con.Options;
 #if !LINUX
 #endif
 
-namespace Haruka.Arcade.SEGA835Cmd {
-    internal class Program {
-        static int Main(string[] args) {
-            try {
+namespace Haruka.Arcade.SEGA835Cmd;
+
+static class Program {
+    private static int Main(string[] args) {
+        try {
 #if LINUX
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -31,37 +32,36 @@ namespace Haruka.Arcade.SEGA835Cmd {
                   RFIDRunner.Run,
                   IO4Runner.Run,
                   LEDRunner.Run,
-                  errs => DeviceStatus.ERR_OTHER);
+                  errs => DeviceStatus.ERROR_OTHER);
 #else
-                return (int)Parser.Default.ParseArguments
-                        <Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, Modules.Y3Board.Options>(args)
-                    .MapResult<Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, Modules.Y3Board.Options, DeviceStatus>(
-                        IO4Controller.Run,
-                        AimeReader.Run,
-                        VFDRunner.Run,
-                        PrinterRunner.Run,
-                        PrinterInfoRunner.Run,
-                        PrinterWatcherRunner.Run,
-                        RFIDRunner.Run,
-                        IO4Runner.Run,
-                        LEDRunner.Run,
-                        Y3Runner.Run,
-                        errs => DeviceStatus.ERR_OTHER);
+            return (int)Parser.Default.ParseArguments
+                    <Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, Modules.Y3Board.Options>(args)
+                .MapResult<Options, Modules.AimeReader.Options, Modules.VFD.Options, Modules.Printer.Options, Modules.PrinterInfo.Options, Modules.PrinterWatcher.Options, Modules.RFID.Options, Modules.IO4.Options, Modules.LED.Options, Modules.Y3Board.Options, DeviceStatus>(
+                    Io4Controller.Run,
+                    AimeReader.Run,
+                    VfdRunner.Run,
+                    PrinterRunner.Run,
+                    PrinterInfoRunner.Run,
+                    PrinterWatcherRunner.Run,
+                    RfidRunner.Run,
+                    Io4Runner.Run,
+                    LedRunner.Run,
+                    Y3Runner.Run,
+                    _ => DeviceStatus.ErrorOther);
 #endif
-            } catch (Exception ex) {
-                Log.WriteFault(ex, "An error has occurred");
-                return Int32.MinValue;
-            } finally {
-                Log.Write("Exiting");
-            }
+        } catch (Exception ex) {
+            Log.WriteFault(ex, "An error has occurred");
+            return Int32.MinValue;
+        } finally {
+            Log.Write("Exiting");
         }
+    }
 
-        internal static void SetGlobalOptions(GlobalOptions options) {
-            Log.Mute = options.Silent;
-            if (options.LogFile != null) {
-                Log.LogFileName = options.LogFile;
-                Log.Init(true, 0);
-            }
+    internal static void SetGlobalOptions(GlobalOptions options) {
+        Log.Mute = options.Silent;
+        if (options.LogFile != null) {
+            Log.LogFileName = options.LogFile;
+            Log.Init(true, 0);
         }
     }
 }

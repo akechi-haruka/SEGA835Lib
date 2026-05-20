@@ -1,24 +1,22 @@
 ﻿#if NET8_0_OR_GREATER
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
     /// <summary>
     /// This class proxies calls to specific CHC printer DLLS (C3XX[AB]Usb.dll) so that implementors don't need to handle differences between the DLLs themselves (fastcall vs stdcall, different signatures, etc.)
     /// </summary>
-    public unsafe interface INativeTrampolineCHC {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
+    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
+    public unsafe interface INativeTrampolineChc {
 
         /// <summary>
         /// Returns the DLL file name that is being used.
         /// </summary>
         /// <returns>the DLL file name.</returns>
-        String GetDLLFileName();
+        String GetDllFileName();
 
         // Disable documentation requirements for these, 90% of them would just say "Unknown".
 #if RELEASE
@@ -31,7 +29,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         int CHC_listupPrinter(byte* rIdArray);
         int CHC_listupPrinterSN(ulong* rSerialArray);
         int CHC_selectPrinter(byte printerId, ref ushort rResult);
-        int CHC_selectPrinterSN(ulong printerSN, ref ushort rResult);
+        int CHC_selectPrinterSN(ulong printerSerial, ref ushort rResult);
         int CHC_getPrinterInfo(ushort tagNumber, byte* rBuffer, ref uint rLen);
         int CHC_imageformat(ushort format, ushort ncomp, ushort depth, ushort width, ushort height, byte* image, ref ushort rResult);
         int CHC_setmtf(int* mtf);
@@ -58,7 +56,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         int CHC_setPrintStandby(ushort position, ref ushort rResult);
         int CHC_testCardFeed(ushort mode, ushort times, ref ushort rResult);
         int CHC_exitCard(ref ushort rResult);
-        int CHC_getCardRfidTID(byte* rCardTID, ref ushort rResult);
+        int CHC_getCardRfidTID(byte* rCardTid, ref ushort rResult);
         int CHC_commCardRfidReader(byte* sendData, byte* rRecvData, uint sendSize, ref uint rRecvSize, ref ushort rResult);
         int CHC_updateCardRfidReader(byte* data, uint size, ref ushort rResult);
         int CHC_getErrorLog(ushort index, byte* rData, ref ushort rResult);

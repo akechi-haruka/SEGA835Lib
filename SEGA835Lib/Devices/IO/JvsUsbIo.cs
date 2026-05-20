@@ -1,37 +1,38 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Misc;
-using HidLibrary;
-using System;
+﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Misc;
+using HidLibrary;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
-
     /// <summary>
     /// Base class for a USB-based JVS input device.
     /// </summary>
-    public abstract class JVSUSBIO : JVSIO {
-
+    public abstract class JvsUsbIo : JvsIo {
         private const int OUTGOING_REPORT_ID = 0x10;
         private const int INCOMING_REPORT_ID = 0x01;
 
         /// <summary>
         /// USB vendor ID of this board.
         /// </summary>
-        public int USBVendorID { get; private set; }
+        public int UsbVendorID { get; }
+
         /// <summary>
         /// USB product ID of this board.
         /// </summary>
-        public int USBProductID { get; private set; }
+        public int UsbProductID { get; }
+
         /// <summary>
         /// Communication timeout in ms to the board.
         /// </summary>
-        public int Timeout { get; private set; } = 1000;
+        public int Timeout => 1000;
+
         /// <summary>
-        /// Last received JVS poll report (from <see cref="Poll(out JVSUSBReportIn)"/>
+        /// Last received JVS poll report (from <see cref="Poll(out JvsUsbReportIn)"/>
         /// </summary>
-        public JVSUSBReportIn? LastReport { get; private set; }
+        public JvsUsbReportIn? LastReport { get; private set; }
 
         private HidDevice device;
 
@@ -40,49 +41,50 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         /// <param name="vid">The vendor id of the board.</param>
         /// <param name="pid">The product id of the board.</param>
-        protected JVSUSBIO(int vid, int pid) {
-            USBVendorID = vid;
-            USBProductID = pid;
+        protected JvsUsbIo(int vid, int pid) {
+            UsbVendorID = vid;
+            UsbProductID = pid;
         }
 
         /// <summary>
         /// Connects to the USB device.
         /// </summary>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if connection was successful.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the board is not attached or if opening the device fails.<br />
+        /// <see cref="DeviceStatus.Ok"/> if connection was successful.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the board is not attached or if opening the device fails.<br />
         /// </returns>
-        public override sealed DeviceStatus Connect() {
-            Log.Write("Open JVS USB: VID:" + USBVendorID + ", PID: " + USBProductID);
-            device = HidDevices.Enumerate(USBVendorID, USBProductID).FirstOrDefault();
+        public sealed override DeviceStatus Connect() {
+            Log.Write("Open JVS USB: VID:" + UsbVendorID + ", PID: " + UsbProductID);
+            device = HidDevices.Enumerate(UsbVendorID, UsbProductID).FirstOrDefault();
 
             if (device == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             Log.Write("Found JVS USB at " + device.DevicePath);
 
             try {
                 device.OpenDevice();
-            }catch(Exception ex) {
+            } catch (Exception ex) {
                 Log.WriteFault(ex, "Opening USB device failed (" + GetName() + ")");
                 device = null;
-                return SetLastError(DeviceStatus.ERR_NOT_CONNECTED);
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            return SetLastError(DeviceStatus.OK);
+            return SetLastError(DeviceStatus.Ok);
         }
 
         /// <summary>
         /// Disconnects from the USB device.
         /// </summary>
-        /// <returns>Always returns <see cref="DeviceStatus.OK"/>.</returns>
+        /// <returns>Always returns <see cref="DeviceStatus.Ok"/>.</returns>
         public override DeviceStatus Disconnect() {
             if (device != null) {
                 device.CloseDevice();
                 device = null;
             }
-            return SetLastError(DeviceStatus.OK);
+
+            return SetLastError(DeviceStatus.Ok);
         }
 
         /// <summary>
@@ -98,27 +100,29 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         /// <param name="manufacturer">The manufacturer string that was read from the board.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
         public DeviceStatus GetManufacturer(out string manufacturer) {
             Log.Write("GetManufacturer");
             manufacturer = null;
             if (device == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
+
             try {
                 bool success = device.ReadManufacturer(out byte[] data);
                 if (!success) {
-                    return SetLastError(DeviceStatus.ERR_DEVICE);
+                    return SetLastError(DeviceStatus.ErrorDevice);
                 }
+
                 manufacturer = Encoding.ASCII.GetString(data);
-                return SetLastError(DeviceStatus.OK);
+                return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading USB Device Manufacturer of " + GetName());
-                return SetLastError(DeviceStatus.ERR_OTHER);
+                return SetLastError(DeviceStatus.ErrorOther);
             }
         }
 
@@ -127,27 +131,29 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         /// <param name="product">The product string that was read from the board.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
         public DeviceStatus GetProduct(out string product) {
             Log.Write("GetProduct");
             product = null;
             if (device == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
+
             try {
                 bool success = device.ReadProduct(out byte[] data);
                 if (!success) {
-                    return SetLastError(DeviceStatus.ERR_DEVICE);
+                    return SetLastError(DeviceStatus.ErrorDevice);
                 }
+
                 product = Encoding.ASCII.GetString(data);
-                return SetLastError(DeviceStatus.OK);
+                return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading USB Device Product of " + GetName());
-                return SetLastError(DeviceStatus.ERR_OTHER);
+                return SetLastError(DeviceStatus.ErrorOther);
             }
         }
 
@@ -156,35 +162,38 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         /// <param name="report">The report that was read from the device.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was successfully read.<br />
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
-        /// <see cref="DeviceStatus.ERR_INCOMPATIBLE"/> if an unexpected report type was read.<br />
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorIncompatible"/> if an unexpected report type was read.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
-        public DeviceStatus Poll(out JVSUSBReportIn report) {
+        public DeviceStatus Poll(out JvsUsbReportIn report) {
             if (device == null) {
                 report = default;
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
+
             try {
                 HidReport data = device.ReadReport(Timeout);
                 if (data == null) {
                     report = default;
-                    return SetLastError(DeviceStatus.ERR_DEVICE);
+                    return SetLastError(DeviceStatus.ErrorDevice);
                 }
+
                 if (data.ReportId != INCOMING_REPORT_ID) {
                     report = default;
                     Log.WriteError("Read unknown report id " + data.ReportId);
-                    return SetLastError(DeviceStatus.ERR_INCOMPATIBLE);
+                    return SetLastError(DeviceStatus.ErrorIncompatible);
                 }
-                report = StructUtils.FromBytes<JVSUSBReportIn>(data.Data);
+
+                report = StructUtils.FromBytes<JvsUsbReportIn>(data.Data);
                 LastReport = report;
-                return SetLastError(DeviceStatus.OK);
+                return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed reading data from " + GetName());
                 report = default;
-                return SetLastError(DeviceStatus.ERR_OTHER);
+                return SetLastError(DeviceStatus.ErrorOther);
             }
         }
 
@@ -193,27 +202,29 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </summary>
         /// <param name="report">The report that should be written to the device.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was successfully written.<br />
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully written.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
-        protected DeviceStatus Write(JVSUSBReportOut report) {
+        protected DeviceStatus Write(JvsUsbReportOut report) {
             if (device == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
-            if (report.cmd == JVSUSBReports.Unset) {
+
+            if (report.cmd == JvsUsbReports.Unset) {
                 throw new ArgumentException("JVS Report command must be set");
             }
+
             try {
                 bool success = device.WriteReport(new HidReport(0x3F) {
                     ReportId = OUTGOING_REPORT_ID,
                     Data = StructUtils.GetBytes(report)
                 }, Timeout);
-                return SetLastError(success ? DeviceStatus.OK : DeviceStatus.ERR_DEVICE, Marshal.GetLastWin32Error());
-            }catch (Exception ex) {
+                return SetLastError(success ? DeviceStatus.Ok : DeviceStatus.ErrorDevice, Marshal.GetLastWin32Error());
+            } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed writing data to " + GetName());
-                return SetLastError(DeviceStatus.ERR_OTHER);
+                return SetLastError(DeviceStatus.ErrorOther);
             }
         }
 
@@ -223,18 +234,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <param name="command">The command being sent.</param>
         /// <param name="struc">The payload data.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the data was successfully written.<br />
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.<br />
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if there was a communication error with the device.<br />
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if the USB library threw an exception.
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully written.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
-        protected DeviceStatus Write<StructType>(JVSUSBReports command, StructType struc) where StructType : struct {
+        protected DeviceStatus Write<TStruct>(JvsUsbReports command, TStruct struc) where TStruct : struct {
             if (device == null) {
-                return SetLastError(DeviceStatus.ERR_NOT_INITIALIZED);
+                return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
-            if (command == JVSUSBReports.Unset) {
+
+            if (command == JvsUsbReports.Unset) {
                 throw new ArgumentException("JVS Report command must be set");
             }
+
             try {
                 byte[] data = StructUtils.GetBytes(struc);
                 byte[] payload = new byte[data.Length + 1];
@@ -243,6 +256,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 if (payload.Length != 63) {
                     throw new ArgumentException("invalid payload size: " + payload.Length);
                 }
+
                 bool success = device.WriteReport(new HidReport(payload.Length) {
                     ReportId = OUTGOING_REPORT_ID,
                     Data = payload
@@ -250,13 +264,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 if (!success) {
                     Log.WriteError("HID Write failed");
                 }
-                return SetLastError(success ? DeviceStatus.OK : DeviceStatus.ERR_DEVICE, Marshal.GetLastWin32Error());
+
+                return SetLastError(success ? DeviceStatus.Ok : DeviceStatus.ErrorDevice, Marshal.GetLastWin32Error());
             } catch (Exception ex) {
                 Log.WriteFault(ex, "Failed writing data to " + GetName());
-                return SetLastError(DeviceStatus.ERR_OTHER);
+                return SetLastError(DeviceStatus.ErrorOther);
             }
         }
-
     }
-
 }

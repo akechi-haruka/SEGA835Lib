@@ -4,182 +4,200 @@ using Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher {
-    internal class PrinterWatcherRunner {
-        private static string PendingImageFile;
-        private static string PendingHoloFile;
-        private static string PendingRFIDFile;
-        private static bool running;
-        private static Options options;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.PrinterWatcher;
 
-        private static List<Tuple<string, string, string>> pendingImages = new List<Tuple<string, string, string>>();
+static class PrinterWatcherRunner {
+    private static string pendingImageFile;
+    private static string pendingHoloFile;
+    private static string pendingRfidFile;
+    private static bool running;
+    private static Options options;
 
-        internal static DeviceStatus Run(Options opts) {
-            Program.SetGlobalOptions(opts);
+    private static readonly List<Tuple<string, string, string>> PENDING_IMAGES = new List<Tuple<string, string, string>>();
 
-            options = opts;
+    internal static DeviceStatus Run(Options opts) {
+        Program.SetGlobalOptions(opts);
 
-            if (!Directory.Exists(opts.ImageDirectory)) {
-                Log.WriteError("Image directory does not exist: " + opts.ImageDirectory);
-                return DeviceStatus.ERR_OTHER;
-            }
+        options = opts;
 
-            if (!File.Exists(opts.ICC1FileName)) {
-                Log.WriteError("ICC1 file does not exist: " + opts.ICC1FileName);
-                return DeviceStatus.ERR_OTHER;
-            }
+        if (!Directory.Exists(opts.ImageDirectory)) {
+            Log.WriteError("Image directory does not exist: " + opts.ImageDirectory);
+            return DeviceStatus.ErrorOther;
+        }
 
-            if (!File.Exists(opts.ICC2FileName)) {
-                Log.WriteError("ICC2 file does not exist: " + opts.ICC2FileName);
-                return DeviceStatus.ERR_OTHER;
-            }
+        if (!File.Exists(opts.Icc1FileName)) {
+            Log.WriteError("ICC1 file does not exist: " + opts.Icc1FileName);
+            return DeviceStatus.ErrorOther;
+        }
 
-            if (!File.Exists(opts.MtfFileName)) {
-                Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
-                return DeviceStatus.ERR_OTHER;
-            }
+        if (!File.Exists(opts.Icc2FileName)) {
+            Log.WriteError("ICC2 file does not exist: " + opts.Icc2FileName);
+            return DeviceStatus.ErrorOther;
+        }
 
-            if (opts.HoloDirectory != null && !Directory.Exists(opts.HoloDirectory)) {
-                Log.WriteError("Holo directory does not exist: " + opts.HoloDirectory);
-                return DeviceStatus.ERR_OTHER;
-            }
+        if (!File.Exists(opts.MtfFileName)) {
+            Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
+            return DeviceStatus.ErrorOther;
+        }
 
-            if (opts.RFIDDirectory != null && !Directory.Exists(opts.RFIDDirectory)) {
-                Log.WriteError("RFID directory does not exist: " + opts.RFIDDirectory);
-                return DeviceStatus.ERR_OTHER;
-            }
+        if (opts.HoloDirectory != null && !Directory.Exists(opts.HoloDirectory)) {
+            Log.WriteError("Holo directory does not exist: " + opts.HoloDirectory);
+            return DeviceStatus.ErrorOther;
+        }
 
-            FileSystemWatcher watcher = new FileSystemWatcher {
-                Path = opts.ImageDirectory,
+        if (opts.RfidDirectory != null && !Directory.Exists(opts.RfidDirectory)) {
+            Log.WriteError("RFID directory does not exist: " + opts.RfidDirectory);
+            return DeviceStatus.ErrorOther;
+        }
+
+        FileSystemWatcher watcher = new FileSystemWatcher {
+            Path = opts.ImageDirectory,
+            NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
+            Filter = opts.ImageFilePattern
+        };
+        watcher.Changed += AddImageFile;
+        watcher.Created += AddImageFile;
+        watcher.EnableRaisingEvents = true;
+        Log.Write("Monitoring: " + opts.ImageDirectory);
+
+        if (opts.HoloDirectory != null) {
+            FileSystemWatcher watcher2 = new FileSystemWatcher {
+                Path = opts.HoloDirectory,
                 NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
-                Filter = opts.ImageFilePattern
+                Filter = opts.HoloFilePattern
             };
-            watcher.Changed += new FileSystemEventHandler(AddImageFile);
-            watcher.Created += new FileSystemEventHandler(AddImageFile);
-            watcher.EnableRaisingEvents = true;
-            Log.Write("Monitoring: " + opts.ImageDirectory);
+            watcher2.Changed += AddHoloFile;
+            watcher2.Created += AddHoloFile;
+            watcher2.EnableRaisingEvents = true;
 
-            if (opts.HoloDirectory != null) {
-                FileSystemWatcher watcher2 = new FileSystemWatcher {
-                    Path = opts.HoloDirectory,
-                    NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
-                    Filter = opts.HoloFilePattern
-                };
-                watcher2.Changed += new FileSystemEventHandler(AddHoloFile);
-                watcher2.Created += new FileSystemEventHandler(AddHoloFile);
-                watcher2.EnableRaisingEvents = true;
+            Log.Write("Monitoring: " + opts.HoloDirectory);
+        }
 
-                Log.Write("Monitoring: " + opts.HoloDirectory);
+        if (opts.RfidDirectory != null) {
+            FileSystemWatcher watcher3 = new FileSystemWatcher {
+                Path = opts.RfidDirectory,
+                NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
+                Filter = opts.RfidFilePattern
+            };
+            watcher3.Changed += AddRfidFile;
+            watcher3.Created += AddRfidFile;
+            watcher3.EnableRaisingEvents = true;
+            Log.Write("Monitoring: " + opts.RfidDirectory);
+        }
+
+        running = true;
+        Thread queueExecutor = new Thread(QueueExecutorT);
+        queueExecutor.Start();
+
+        Console.WriteLine("Press ESC to quit.");
+
+        while (running) {
+            if (Console.KeyAvailable) {
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Escape) {
+                    running = false;
+                }
             }
 
-            if (opts.RFIDDirectory != null) {
-                FileSystemWatcher watcher3 = new FileSystemWatcher {
-                    Path = opts.RFIDDirectory,
-                    NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite,
-                    Filter = opts.RFIDFilePattern
-                };
-                watcher3.Changed += new FileSystemEventHandler(AddRFIDFile);
-                watcher3.Created += new FileSystemEventHandler(AddRFIDFile);
-                watcher3.EnableRaisingEvents = true;
-                Log.Write("Monitoring: " + opts.RFIDDirectory);
+            while (pendingImageFile == null) {
+                Thread.Sleep(50);
             }
 
-            running = true;
-            Thread queueExecutor = new Thread(QueueExecutorT);
-            queueExecutor.Start();
+            Thread.Sleep(1000); // wait if holo or RFID get set
+            lock (PENDING_IMAGES) {
+                PENDING_IMAGES.Add(new Tuple<string, string, string>(pendingImageFile, pendingHoloFile, pendingRfidFile));
+                pendingRfidFile = null;
+                pendingImageFile = null;
+                pendingHoloFile = null;
+            }
+        }
 
-            Console.WriteLine("Press ESC to quit.");
+        running = false;
+        Log.Write("Waiting for queue thread to terminate...");
+        queueExecutor.Join();
 
-            while (running) {
-                if (Console.KeyAvailable) {
-                    ConsoleKeyInfo key = Console.ReadKey(true);
-                    if (key.Key == ConsoleKey.Escape) {
+        return DeviceStatus.Ok;
+    }
+
+    private static void QueueExecutorT() {
+        Log.Write("Queue thread started");
+        while (running) {
+            Tuple<string, string, string> image = null;
+            lock (PENDING_IMAGES) {
+                if (PENDING_IMAGES.Count > 0) {
+                    image = PENDING_IMAGES[0];
+                    PENDING_IMAGES.RemoveAt(0);
+                }
+            }
+
+            if (image != null) {
+                Log.Write("Starting print of: " + image.Item1);
+                DeviceStatus ret = PrinterRunner.Run(new Printer.Options() {
+                    HoloFileName = image.Item2,
+                    Icc1FileName = options.Icc1FileName,
+                    Icc2FileName = options.Icc2FileName,
+                    ImageFileName = image.Item1,
+                    LogFile = null,
+                    Model = options.Model,
+                    MtfFileName = options.MtfFileName,
+                    NoWait = false,
+                    Port = options.Port,
+                    PrintCardId = false,
+                    RfidFileName = image.Item3,
+                    RfidOverrideCardId = true,
+                    Silent = options.Silent,
+                    Stretch = options.Stretch
+                });
+                if (ret != DeviceStatus.Ok) {
+                    Log.WriteError("Printing of " + image.Item1 + " returned " + ret);
+                    if (!options.ContinueOnFail) {
                         running = false;
                     }
                 }
 
-                while (PendingImageFile == null) {
-                    Thread.Sleep(50);
-                }
-
-                Thread.Sleep(1000); // wait if holo or RFID get set
-                lock (pendingImages) {
-                    pendingImages.Add(new Tuple<string, string, string>(PendingImageFile, PendingHoloFile, PendingRFIDFile));
-                    PendingRFIDFile = null;
-                    PendingImageFile = null;
-                    PendingHoloFile = null;
-                }
-            }
-
-            running = false;
-            Log.Write("Waiting for queue thread to terminate...");
-            queueExecutor.Join();
-
-            return DeviceStatus.OK;
-        }
-
-        private static void QueueExecutorT() {
-            Log.Write("Queue thread started");
-            while (running) {
-                Tuple<string, string, string> image = null;
-                lock (pendingImages) {
-                    if (pendingImages.Count > 0) {
-                        image = pendingImages[0];
-                        pendingImages.RemoveAt(0);
-                    }
-                }
-
-                if (image != null) {
-                    Log.Write("Starting print of: " + image.Item1);
-                    DeviceStatus ret = PrinterRunner.Run(new Printer.Options() {
-                        HoloFileName = image.Item2,
-                        ICC1FileName = options.ICC1FileName,
-                        ICC2FileName = options.ICC2FileName,
-                        ImageFileName = image.Item1,
-                        LogFile = null,
-                        Model = options.Model,
-                        MtfFileName = options.MtfFileName,
-                        NoWait = false,
-                        Port = options.Port,
-                        PrintCardId = false,
-                        RFIDFileName = image.Item3,
-                        RFIDOverrideCardId = true,
-                        Silent = options.Silent,
-                        Stretch = options.Stretch
-                    });
-                    if (ret != DeviceStatus.OK) {
-                        Log.WriteError("Printing of " + image.Item1 + " returned " + ret);
-                        if (!options.ContinueOnFail) {
-                            running = false;
+                if (options.DeleteAfterPrint) {
+                    try {
+                        if (image.Item1 != null) {
+                            File.Delete(image.Item1);
                         }
+
+                        if (image.Item2 != null) {
+                            File.Delete(image.Item2);
+                        }
+
+                        if (image.Item3 != null) {
+                            File.Delete(image.Item3);
+                        }
+                    } catch (Exception ex) {
+                        Log.WriteFault(ex, "Failed to delete file(s) after printing");
                     }
                 }
-
-                Thread.Sleep(1000);
             }
 
-            Log.Write("Queue thread stopped");
+            Thread.Sleep(1000);
         }
 
-        private static void AddRFIDFile(object sender, FileSystemEventArgs e) {
-            Log.Write("RFID File modification detected: " + e.FullPath);
-            lock (pendingImages) {
-                PendingRFIDFile = e.FullPath;
-            }
-        }
+        Log.Write("Queue thread stopped");
+    }
 
-        private static void AddHoloFile(object sender, FileSystemEventArgs e) {
-            Log.Write("Holo File modification detected: " + e.FullPath);
-            lock (pendingImages) {
-                PendingHoloFile = e.FullPath;
-            }
+    private static void AddRfidFile(object sender, FileSystemEventArgs e) {
+        Log.Write("RFID File modification detected: " + e.FullPath);
+        lock (PENDING_IMAGES) {
+            pendingRfidFile = e.FullPath;
         }
+    }
 
-        private static void AddImageFile(object sender, FileSystemEventArgs e) {
-            Log.Write("Image File modification detected: " + e.FullPath);
-            lock (pendingImages) {
-                PendingImageFile = e.FullPath;
-            }
+    private static void AddHoloFile(object sender, FileSystemEventArgs e) {
+        Log.Write("Holo File modification detected: " + e.FullPath);
+        lock (PENDING_IMAGES) {
+            pendingHoloFile = e.FullPath;
+        }
+    }
+
+    private static void AddImageFile(object sender, FileSystemEventArgs e) {
+        Log.Write("Image File modification detected: " + e.FullPath);
+        lock (PENDING_IMAGES) {
+            pendingImageFile = e.FullPath;
         }
     }
 }

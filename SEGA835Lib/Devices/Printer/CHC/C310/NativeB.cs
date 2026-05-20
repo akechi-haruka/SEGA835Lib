@@ -1,20 +1,10 @@
 ﻿#if NET8_0_OR_GREATER
-
-using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
-
-    internal unsafe partial class NativeB : INativeTrampolineCHC {
+    unsafe partial class NativeB : INativeTrampolineChc {
 
         public const String DLL = "C310Busb.dll";
 
@@ -64,7 +54,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///printerSN: unsigned int
         ///rResult: unsigned short*
         [LibraryImport(DLL, EntryPoint = "chcusb_selectPrinterSN")]
-        private static partial int chcusb_selectPrinterSN(ulong printerSN, ref ushort rResult);
+        private static partial int chcusb_selectPrinterSN(ulong printerSerial, ref ushort rResult);
 
 
         /// Return Type: int
@@ -279,7 +269,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///rCardTID: unsigned byte*
         ///rResult: unsigned short*
         [LibraryImport(DLL, EntryPoint = "chcusb_getCardRfidTID")]
-        private static partial int chcusb_getCardRfidTID(byte* rCardTID, ref ushort rResult);
+        private static partial int chcusb_getCardRfidTID(byte* rCardTid, ref ushort rResult);
 
 
         /// Return Type: int
@@ -396,7 +386,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         [LibraryImport(DLL, EntryPoint = "chcusb_writeIred")]
         private static partial int chcusb_writeIred(byte* a1, byte* a2, ref ushort rResult);
 
-        public string GetDLLFileName() {
+        public string GetDllFileName() {
             return DLL;
         }
 
@@ -435,9 +425,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return chcusb_selectPrinter(printerId, ref rResult);
         }
 
-        public int CHC_selectPrinterSN(ulong printerSN, ref ushort rResult) {
-            Log.Write(Log.Args(printerSN));
-            return chcusb_selectPrinterSN(printerSN, ref rResult);
+        public int CHC_selectPrinterSN(ulong printerSerial, ref ushort rResult) {
+            Log.Write(Log.Args(printerSerial));
+            return chcusb_selectPrinterSN(printerSerial, ref rResult);
         }
 
         public int CHC_getPrinterInfo(ushort tagNumber, byte* rBuffer, ref uint rLen) {
@@ -571,9 +561,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return chcusb_exitCard(ref rResult);
         }
 
-        public int CHC_getCardRfidTID(byte* rCardTID, ref ushort rResult) {
+        public int CHC_getCardRfidTID(byte* rCardTid, ref ushort rResult) {
             Log.Write(Log.Args());
-            return chcusb_getCardRfidTID(rCardTID, ref rResult);
+            return chcusb_getCardRfidTID(rCardTid, ref rResult);
         }
 
         public int CHC_commCardRfidReader(byte* sendData, byte* rRecvData, uint sendSize, ref uint rRecvSize, ref ushort rResult) {
@@ -588,7 +578,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
         public int CHC_getErrorLog(ushort index, byte* rData, ref ushort rResult) {
             Log.Write(Log.Args(index));
-            return CHC_getErrorLog(index, rData, ref rResult);
+            return chcusb_getErrorLog(index, rData, ref rResult);
         }
 
         public int CHC_getErrorStatus(ushort* rBuffer) {

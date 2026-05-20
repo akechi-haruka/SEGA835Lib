@@ -6,7 +6,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
     /// <summary>
     /// A 835-15375 KEY SWITCH 4X3 BD that is connected to a IO4.
     /// </summary>
-    public class Tenkey_837_15375 : Device {
+    public class Tenkey15375 : Device {
         /// <summary>
         /// Definition of keys on this tenkey.
         /// </summary>
@@ -75,9 +75,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// No key (is pressed).
             /// </summary>
             None
-        };
+        }
 
-        private readonly IO4USB_835_15257_01 io4;
+        private readonly Io4Usb15257 io4;
         private readonly int r1, r2, r3, r4;
         private readonly int c1, c2, c3;
 
@@ -92,7 +92,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="c1">The button pin that column 1 is wired to.</param>
         /// <param name="c2">The button pin that column 2 is wired to.</param>
         /// <param name="c3">The button pin that column 3 is wired to.</param>
-        public Tenkey_837_15375(IO4USB_835_15257_01 io4, int r1 = 1, int r2 = 0, int r3 = 15, int r4 = 14, int c1 = 13, int c2 = 12, int c3 = 11) {
+        public Tenkey15375(Io4Usb15257 io4, int r1 = 1, int r2 = 0, int r3 = 15, int r4 = 14, int c1 = 13, int c2 = 12, int c3 = 11) {
             NetStandardBackCompatExtensions.ThrowIfNull(io4, nameof(io4));
             this.io4 = io4;
             this.r1 = r1;
@@ -107,17 +107,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <summary>
         /// This does nothing.
         /// </summary>
-        /// <returns>always <see cref="DeviceStatus.OK"/></returns>
+        /// <returns>always <see cref="DeviceStatus.Ok"/></returns>
         public override DeviceStatus Connect() {
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <summary>
         /// This does nothing.
         /// </summary>
-        /// <returns>always <see cref="DeviceStatus.OK"/></returns>
+        /// <returns>always <see cref="DeviceStatus.Ok"/></returns>
         public override DeviceStatus Disconnect() {
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <inheritdoc />
@@ -131,53 +131,75 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// Returns the key that is currently being pressed on the tenkey (based on the last time <see cref="JVSUSBIO.Poll(out JVSUSBReportIn)" /> was called on the connected <see cref="IO4USB_835_15257_01"/>.
+        /// Returns the key that is currently being pressed on the tenkey (based on the last time <see cref="JvsUsbIo.Poll(out JvsUsbReportIn)" /> was called on the connected <see cref="Io4Usb15257"/>.
         /// </summary>
         /// <remarks>Multiple keys being pressed is undefined.</remarks>
         /// <returns>A <see cref="Key"/> of what key is currently pressed or <see cref="Key.None"/> if nothing is pressed.</returns>
         public Key GetPressedKey() {
-            JVSUSBReportIn? report = io4.LastReport;
+            JvsUsbReportIn? report = io4.LastReport;
             if (!report.HasValue) {
                 return Key.None;
             }
 
-            JVSUSBReportIn val = report.Value;
+            JvsUsbReportIn val = report.Value;
 
-            bool r1 = val.GetButton(this.r1);
-            bool r2 = val.GetButton(this.r2);
-            bool r3 = val.GetButton(this.r3);
-            bool r4 = val.GetButton(this.r4);
-            bool c1 = val.GetButton(this.c1);
-            bool c2 = val.GetButton(this.c2);
-            bool c3 = val.GetButton(this.c3);
+            bool r1On = val.GetButton(r1);
+            bool r2On = val.GetButton(r2);
+            bool r3On = val.GetButton(r3);
+            bool r4On = val.GetButton(r4);
+            bool c1On = val.GetButton(c1);
+            bool c2On = val.GetButton(c2);
+            bool c3On = val.GetButton(c3);
 
-            if (r1 && c1) {
+            if (r1On && c1On) {
                 return Key.K1;
-            } else if (r1 && c2) {
-                return Key.K2;
-            } else if (r1 && c3) {
-                return Key.K3;
-            } else if (r2 && c1) {
-                return Key.K4;
-            } else if (r2 && c2) {
-                return Key.K5;
-            } else if (r2 && c3) {
-                return Key.K6;
-            } else if (r3 && c1) {
-                return Key.K7;
-            } else if (r3 && c2) {
-                return Key.K8;
-            } else if (r3 && c3) {
-                return Key.K9;
-            } else if (r4 && c1) {
-                return Key.Clear;
-            } else if (r4 && c2) {
-                return Key.K0;
-            } else if (r4 && c3) {
-                return Key.Enter;
-            } else {
-                return Key.None;
             }
+
+            if (r1On && c2On) {
+                return Key.K2;
+            }
+
+            if (r1On && c3On) {
+                return Key.K3;
+            }
+
+            if (r2On && c1On) {
+                return Key.K4;
+            }
+
+            if (r2On && c2On) {
+                return Key.K5;
+            }
+
+            if (r2On && c3On) {
+                return Key.K6;
+            }
+
+            if (r3On && c1On) {
+                return Key.K7;
+            }
+
+            if (r3On && c2On) {
+                return Key.K8;
+            }
+
+            if (r3On && c3On) {
+                return Key.K9;
+            }
+
+            if (r4On && c1On) {
+                return Key.Clear;
+            }
+
+            if (r4On && c2On) {
+                return Key.K0;
+            }
+
+            if (r4On && c3On) {
+                return Key.Enter;
+            }
+
+            return Key.None;
         }
 
         /// <summary>

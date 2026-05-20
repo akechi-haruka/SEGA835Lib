@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
-    internal static class NetStandardBackCompatExtensions {
+    static class NetStandardBackCompatExtensions {
         public static void ThrowIfNull(Object arg, String name) {
             if (arg == null) {
                 throw new ArgumentNullException(name);

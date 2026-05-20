@@ -4,7 +4,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
     /// <summary>
     /// Misc. methods for dealing with unmanged data.
     /// </summary>
-    internal class UnsafeUtils {
+    class UnsafeUtils {
         /// <summary>
         /// Conerts a zero-terminated ASCII byte array to a managed string.
         /// </summary>
