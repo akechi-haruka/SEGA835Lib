@@ -1,15 +1,16 @@
 ﻿#if !LINUX
 
+using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
-using System.Drawing;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
-    internal class PrinterRunner {
+    class PrinterRunner {
         internal static DeviceStatus Run(Options opts) {
             Program.SetGlobalOptions(opts);
 
@@ -57,6 +58,10 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
 
             if (opts.Model == Options.PrinterModel.CHC310B || opts.Model == Options.PrinterModel.Any) {
                 printers.Add(new CHC310BPrinter());
+            }
+
+            if (opts.Model == Options.PrinterModel.CHC320 || opts.Model == Options.PrinterModel.Any) {
+                printers.Add(new CHC320Printer());
             }
 
             if (opts.Model == Options.PrinterModel.CHC330 || opts.Model == Options.PrinterModel.Any) {
@@ -135,7 +140,7 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
                 } else {
                     holo = null;
                 }
-                
+
                 if (opts.BackImageFileName != null) {
                     try {
                         imageBack = new Bitmap(Image.FromFile(opts.BackImageFileName));

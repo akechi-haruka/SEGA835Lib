@@ -1,14 +1,18 @@
 ﻿#if !LINUX
 
+using System.Drawing;
 using CommandLine;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using System.Drawing;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
     [Verb("printer", HelpText = "Print things to CHC-series printers")]
-    internal class Options : GlobalOptions {
+    class Options : GlobalOptions {
         public enum PrinterModel {
-            CHC310, CHC310B, CHC330, Any
+            CHC310,
+            CHC310B,
+            CHC320,
+            CHC330,
+            Any
         }
 
         [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port.", Default = 4)]
