@@ -238,7 +238,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="w">Unknown. The text width??</param>
         /// <param name="h">Unknown. The text height??</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
-        /// <exception cref="ArgumentException">If x is not in [0,512), x+w is not in [0,512], y not in [0,32) or not a multiple of 8.</exception>
+        /// <exception cref="ArgumentException">If x is not in [0,512), x+w is not in [0,512], y not in [0,32] or not a multiple of 8.</exception>
         public DeviceStatus SetScrollWindowPosition(ushort x, byte y, ushort w, ushort h = 0) {
             LOG.LogInformation("Set Text: " + x + "/" + y + "(" + w + ")");
             if (x >= 512) {
@@ -257,8 +257,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 throw new ArgumentException("y (" + y + ") must be a multiple of 8");
             }
 
-            if (h >= 32) {
-                throw new ArgumentException("h (" + h + ") must be within [0,32)");
+            if (h > 32) {
+                throw new ArgumentException("h (" + h + ") must be within [0,32]");
             }
 
             if (y % 8 != 0) {
