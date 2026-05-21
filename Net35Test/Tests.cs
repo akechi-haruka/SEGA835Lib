@@ -1,6 +1,6 @@
 using System;
 using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Logging.MEXNet35;
+using Haruka.Logging.Net35Shim;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 

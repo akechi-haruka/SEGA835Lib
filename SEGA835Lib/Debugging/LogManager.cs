@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Microsoft.Extensions.Logging;
 #if NET35
-using Haruka.Logging.MEXNet35;
+using Haruka.Logging.Net35Shim;
 #endif
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {

@@ -26,12 +26,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="Haruka.Logging.MEXNet35">
-            <HintPath>..\..\Haruka.Logging.MEXNet35\bin\Debug\net35\Haruka.Logging.MEXNet35.dll</HintPath>
-        </Reference>
+        <PackageReference Include="Haruka.Logging.Net35Shim" Version="1.0.0"/>
     </ItemGroup>
 
 </Project>
