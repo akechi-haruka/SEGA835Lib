@@ -3,24 +3,27 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.IO;
 using Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01;
+using Microsoft.Extensions.Logging;
 using vJoy.Wrapper;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Io4Con;
 
 static class Io4Controller {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Io4Controller));
+
     internal static unsafe DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
         Io4Usb15257 dev = new Io4Usb15257();
         DeviceStatus ret = dev.Connect();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Failed to connect to IO4 board.");
+            LOG.LogError("Failed to connect to IO4 board.");
             return ret;
         }
 
         ret = dev.ResetBoardStatus();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Failed to reset status.");
+            LOG.LogError("Failed to reset status.");
             return ret;
         }
 
@@ -51,7 +54,7 @@ static class Io4Controller {
 
             ret = dev.Poll(out JvsUsbReportIn report);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Poll failed: " + ret);
+                LOG.LogError("Poll failed: " + ret);
                 break;
             }
 
@@ -84,7 +87,7 @@ static class Io4Controller {
                     }
                 }
 
-                Log.Write(sb.ToString());
+                LOG.LogInformation(sb.ToString());
             }
 
             Thread.Sleep(opts.PollDelay);

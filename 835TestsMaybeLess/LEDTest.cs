@@ -9,9 +9,12 @@ public class LedTest {
 
     [SetUp]
     public void Setup() {
-        led = new Led15093(9);
-        led.Serial.DumpReadWriteCommandsToLog = true;
-        led.Serial.DumpBytesToLog = true;
+        led = new Led15093(9) {
+            Serial = {
+                DumpReadWriteCommandsToLog = true,
+                DumpBytesToLog = true
+            }
+        };
     }
 
     [TearDown]

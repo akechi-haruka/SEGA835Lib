@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using JetBrains.Annotations;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Io4;
 
 [Verb("io4", HelpText = "Set outputs on IO4 boards")]
 [UsedImplicitly]

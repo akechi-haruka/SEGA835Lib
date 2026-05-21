@@ -2,13 +2,16 @@
 using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
+
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
-
     /// <summary>
     /// A CHC-320 Card Printer for Sangokushi Taisen.
     /// </summary>
     public class Chc320Printer : ChcSeriesCardPrinter {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc320Printer));
 
         /// <summary>
         /// Creates a new CHC-320 printer.
@@ -47,7 +50,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
         public override DeviceStatus GetLoadedCardId(out byte[] cardid) {
-            Log.WriteError("RFID data cannot be read from a CHC-320!");
+            LOG.LogError("RFID data cannot be read from a CHC-320!");
             cardid = null;
             return DeviceStatus.ErrorIncompatible;
         }
@@ -62,7 +65,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
         public override DeviceStatus WriteRfid(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
-            Log.WriteError("RFID data cannot be written to a CHC-320!");
+            LOG.LogError("RFID data cannot be written to a CHC-320!");
             writtenCardId = null;
             return DeviceStatus.ErrorIncompatible;
         }
@@ -76,7 +79,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         protected override byte? GetPolishParameter(bool isHolo) {
             return null;
         }
-        
+
         /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "CHC320";

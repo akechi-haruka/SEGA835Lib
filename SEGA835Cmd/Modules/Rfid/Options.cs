@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using JetBrains.Annotations;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.RFID;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Rfid;
 
 [Verb("rfid", HelpText = "Read RFID cards from certain games")]
 [UsedImplicitly]

@@ -2,7 +2,7 @@
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using JetBrains.Annotations;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Vfd;
 
 [Verb("vfd", HelpText = "Display text on a VFD")]
 [UsedImplicitly]

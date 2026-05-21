@@ -1,10 +1,13 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Y3Board;
 
 static class Y3Runner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Y3Runner));
+
     internal static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
@@ -14,18 +17,18 @@ static class Y3Runner {
         try {
             ret = y3.Connect();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Connecting to Y3 board failed");
+                LOG.LogError("Connecting to Y3 board failed");
                 return ret;
             }
 
-            Log.Write("Device Model:" + y3.GetDeviceModel());
-            Log.Write("Device Firmware Type:" + y3.GetFirmwareType());
-            Log.Write("Device Target Code:" + y3.GetTargetCodeType());
-            Log.Write("Status: " + y3.GetStatus());
+            LOG.LogInformation("Device Model:" + y3.GetDeviceModel());
+            LOG.LogInformation("Device Firmware Type:" + y3.GetFirmwareType());
+            LOG.LogInformation("Device Target Code:" + y3.GetTargetCodeType());
+            LOG.LogInformation("Status: " + y3.GetStatus());
 
             ret = y3.SetParamsForPlayfield();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting parameters failed");
+                LOG.LogError("Setting parameters failed");
                 return ret;
             }
 
@@ -46,7 +49,7 @@ static class Y3Runner {
 
                 ret = y3.GetCards(out uint count, out Y3.CardInfo[] data, out uint _);
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Error reading from board: " + ret);
+                    LOG.LogError("Error reading from board: " + ret);
                     return ret;
                 }
 

@@ -4,12 +4,15 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// <summary>
     /// The base class for a device that can read (and possibly write) to SEGA RFID cards. The actual frequency or parameters these use are unknown.
     /// </summary>
     public abstract class RfidReadWriteDevice : Device {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidReadWriteDevice));
+
         /// <summary>
         /// The backend that is used.
         /// </summary>
@@ -36,7 +39,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
                 return ret;
             }
 
-            Log.Write("Connected to RFID board successfully");
+            LOG.LogInformation("Connected to RFID board successfully");
             return ret;
         }
 
@@ -153,11 +156,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus Reset() {
-            Log.Write("Reset");
+            LOG.LogInformation("Reset");
             DeviceStatus ret = WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out byte status);
             ret = SetLastError(ret, status);
             if (status == 3) {
-                Log.WriteWarning("Board was already reset");
+                LOG.LogWarning("Board was already reset");
             }
 
             return ret;
@@ -169,7 +172,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <param name="version">The version that was read from the device.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetBootVersion(out byte version) {
-            Log.Write("GetBootVersion");
+            LOG.LogInformation("GetBootVersion");
             DeviceStatus ret = WriteAndRead(new ReqPacketGetBootVersion(), out RespPacketGetBootVersion resp, out byte status);
             if (ret != DeviceStatus.Ok) {
                 version = 0;
@@ -186,7 +189,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <param name="version">The version that was read from the device.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetAppVersion(out byte version) {
-            Log.Write("GetAppVersion");
+            LOG.LogInformation("GetAppVersion");
             DeviceStatus ret = WriteAndRead(new ReqPacketGetAppVersion(), out RespPacketGetAppVersion resp, out byte status);
             if (ret != DeviceStatus.Ok) {
                 version = 0;
@@ -203,7 +206,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <param name="version">The version that was read from the device.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetBoardInfo(out string version) {
-            Log.Write("GetBoardInfo");
+            LOG.LogInformation("GetBoardInfo");
             DeviceStatus ret = WriteAndRead(new ReqPacketGetBoardInfo(), out RespPacketGetBoardInfo resp, out byte status);
             if (ret != DeviceStatus.Ok) {
                 version = null;
@@ -220,7 +223,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <param name="b">Unknown.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus GetUnknown81(out byte b) {
-            Log.Write("GetUnknown81");
+            LOG.LogInformation("GetUnknown81");
             DeviceStatus ret = WriteAndRead(new ReqPacketUnknown81(), out RespPacketUnknown81 resp, out byte status);
             if (ret != DeviceStatus.Ok) {
                 b = 0;
@@ -236,7 +239,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus SetUnknown4() {
-            Log.Write("SetUnknown4");
+            LOG.LogInformation("SetUnknown4");
             DeviceStatus ret = WriteAndRead(new ReqPacketUnknown4() {
                 unk2 = 0x01
             }, out RespPacketUnknown4 _, out byte status);
@@ -248,7 +251,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus SetUnknown5() {
-            Log.Write("SetUnknown5");
+            LOG.LogInformation("SetUnknown5");
             DeviceStatus ret = WriteAndRead(new ReqPacketUnknown5() {
                 unk = 0x10
             }, out RespPacketUnknown5 _, out byte status);

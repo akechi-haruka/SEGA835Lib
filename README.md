@@ -55,16 +55,16 @@ What devices are supported?
 * MONKEY06 837-15093-06 EMULATOR (Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06.LedMonkey06
   * https://github.com/akechi-haruka/SuperMonkeyLEDs
 
-TODOs:
-* buy a IO3
-* CHC320 (Sangokushi Taisen)
-* buy a Y3
-
 ----------------
 Implementation Notes:
 
 * As this is a highly experimental API right now, consumer applications should check Haruka.Arcade.SEGA835Lib.VersionInfo.LIB_API_VERSION. This number will be incremented on any breaking changes for consumers.
 * All device implementations operate by default on C-style error codes (enum DeviceStatus) as the devices themselves or dependent libaries do so. If you prefer exceptions, call SetUseExceptions on the device. (Invalid arguments, etc. will always throw exceptions regardless of this preference.)
+* Logging uses the standard Microsoft.Extensions.Logging package. Simply use `LogManager.Initialize(ILoggingFactory)` as
+  the very first thing before interacting with this library. If you are inside a Unity/BepInEx context,
+  use https://github.com/akechi-haruka/Haruka.Logging.BepInEx
+    * If you are stuck on net35, Microsoft.Extensions.Logging cannot be used and a legacy logging system will be
+      available. You can subscribe to log messages via `LogManager35.LogMessageWritten`;
 
 Support Table:
 

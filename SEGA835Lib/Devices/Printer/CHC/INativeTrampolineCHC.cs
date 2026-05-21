@@ -3,15 +3,13 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
-
     /// <summary>
-    /// This class proxies calls to specific CHC printer DLLS (C3XX[AB]Usb.dll) so that implementors don't need to handle differences between the DLLs themselves (fastcall vs stdcall, different signatures, etc.)
+    /// This class proxies calls to specific CHC printer DLLs (C3XX[AB]Usb.dll) so that implementors don't need to handle differences between the DLLs themselves (fastcall vs stdcall, different signatures, etc.)
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
     [SuppressMessage("ReSharper", "UnusedParameter.Global")]
     public unsafe interface INativeTrampolineChc {
-
         /// <summary>
         /// Returns the DLL file name that is being used.
         /// </summary>
@@ -74,7 +72,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 #if RELEASE
 #pragma warning restore CS1591
 #endif
-
     }
 }
 

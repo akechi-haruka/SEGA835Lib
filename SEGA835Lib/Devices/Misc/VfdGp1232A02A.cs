@@ -4,6 +4,7 @@ using System.Text;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
     /// <summary>
@@ -11,6 +12,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class VfdGp1232A02A : Device {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(VfdGp1232A02A));
+
         private readonly SerialComm serial;
 
         /// <summary>
@@ -48,7 +51,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return DeviceStatus.Ok;
             }
 
-            Log.Write("Connecting on Port " + Port);
+            LOG.LogInformation("Connecting on Port " + Port);
             if (!serial.Connect()) {
                 return DeviceStatus.ErrorNotConnected;
             }
@@ -61,9 +64,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <returns>Always returns <see cref="DeviceStatus.Ok"/>.</returns>
         public override DeviceStatus Disconnect() {
-            Log.Write("Disconnecting on Port " + Port);
+            LOG.LogInformation("Disconnecting on Port " + Port);
             serial?.Disconnect();
-            Log.Write("Disconnected on Port " + Port);
+            LOG.LogInformation("Disconnected on Port " + Port);
             return DeviceStatus.Ok;
         }
 
@@ -95,7 +98,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus Reset() {
-            Log.Write("Reset");
+            LOG.LogInformation("Reset");
             return SetLastError(Write(new byte[] { 0x0B }));
         }
 
@@ -104,7 +107,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus ClearScreen() {
-            Log.Write("Clear Screen");
+            LOG.LogInformation("Clear Screen");
             return SetLastError(Write(new byte[] { 0x0C }));
         }
 
@@ -114,7 +117,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="level">The screen brightness to set.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetBrightness(VfdBrightnessLevel level) {
-            Log.Write("Set Brightness: " + level);
+            LOG.LogInformation("Set Brightness: " + level);
             return SetLastError(Write(new byte[] { 0x0C, (byte)level }));
         }
 
@@ -124,7 +127,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="on">Whether the display should be on (true) or off (false).</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetOn(bool on) {
-            Log.Write("Set On: " + on);
+            LOG.LogInformation("Set On: " + on);
             return SetLastError(Write(new byte[] { 0x21, (byte)(on ? 0x01 : 0x00) }));
         }
 
@@ -135,7 +138,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x is not between 0 (incl.) and 512 (excl.)</exception>
         public DeviceStatus SetWindowHScroll(ushort x) {
-            Log.Write("Set Window H-Scroll: " + x);
+            LOG.LogInformation("Set Window H-Scroll: " + x);
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
@@ -154,7 +157,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x, x+w or w are outside the boundaries of [0,512), if y, h or y+h are outside [0,32], if y or h are not multiples of 8, if image.Length is not w*h.</exception>
         public DeviceStatus DrawBitmap(ushort x, byte y, ushort w, ushort h, byte[] image) {
-            Log.Write("Draw Bitmap " + w + "x" + h + "@" + x + "/" + y);
+            LOG.LogInformation("Draw Bitmap " + w + "x" + h + "@" + x + "/" + y);
             if (w >= 512) {
                 throw new ArgumentException("w (" + w + ") must be within [0,512)");
             }
@@ -201,7 +204,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x is not in [0,512), y not in [0,32) or not a multiple of 8.</exception>
         public DeviceStatus SetCursorPosition(ushort x, byte y) {
-            Log.Write("Set Cursor: " + x + "/" + y);
+            LOG.LogInformation("Set Cursor: " + x + "/" + y);
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
@@ -223,7 +226,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="encoding">The encoding to use.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetEncoding(VfdEncoding encoding) {
-            Log.Write("Set Encoding: " + encoding);
+            LOG.LogInformation("Set Encoding: " + encoding);
             return SetLastError(Write(new byte[] { 0x32, (byte)encoding }));
         }
 
@@ -237,7 +240,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         /// <exception cref="ArgumentException">If x is not in [0,512), x+w is not in [0,512], y not in [0,32) or not a multiple of 8.</exception>
         public DeviceStatus SetScrollWindowPosition(ushort x, byte y, ushort w, ushort h = 0) {
-            Log.Write("Set Text: " + x + "/" + y + "(" + w + ")");
+            LOG.LogInformation("Set Text: " + x + "/" + y + "(" + w + ")");
             if (x >= 512) {
                 throw new ArgumentException("x (" + x + ") must be within [0,512)");
             }
@@ -271,7 +274,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="speed">The speed to set.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetTextScrollSpeed(VfdTextScrollSpeed speed) {
-            Log.Write("Set Text Scroll Speed: " + speed);
+            LOG.LogInformation("Set Text Scroll Speed: " + speed);
             return SetLastError(Write(new byte[] { 0x41, (byte)speed }));
         }
 
@@ -284,7 +287,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
         /// <exception cref="ArgumentException">If the configured encoding is not supported on this computer.</exception>
         public DeviceStatus WriteScrollingText(string str, bool truncate = false) {
-            Log.Write("Write Text: " + str);
+            LOG.LogInformation("Write Text: " + str);
             NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
             str += " ";
 
@@ -414,7 +417,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         /// <exception cref="InvalidOperationException">If the currently set encoding is invalid.</exception>
         public DeviceStatus WriteStaticText(string str, bool truncate = true) {
-            Log.Write("Write Static Text: " + str);
+            LOG.LogInformation("Write Static Text: " + str);
             NetStandardBackCompatExtensions.ThrowIfNull(str, nameof(str));
             str += " ";
 
@@ -458,7 +461,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="scroll">true if text drawing should be enabled, false if the text should not be drawn.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetTextDrawing(bool scroll) {
-            Log.Write("Set Text Drawing: " + scroll);
+            LOG.LogInformation("Set Text Drawing: " + scroll);
             return SetLastError(Write(new byte[] { (byte)(scroll ? 0x51 : 0x52) }));
         }
 
@@ -468,7 +471,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="version">The version information read from the device.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus GetVersion(out string version) {
-            Log.Write("Get Version");
+            LOG.LogInformation("Get Version");
             version = null;
             DeviceStatus ret = SetLastError(Write(new byte[] { 0x5B, 0x63 }));
             if (ret != DeviceStatus.Ok) {
@@ -489,7 +492,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <param name="rotate">true if display should be rotated, false if not</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus SetRotateBy180(bool rotate) {
-            Log.Write("Set Rotation: " + rotate);
+            LOG.LogInformation("Set Rotation: " + rotate);
             return SetLastError(Write(new byte[] { 0x5D, (byte)(rotate ? 0x72 : 0x6E) }));
         }
 

@@ -1,10 +1,13 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
+using Microsoft.Extensions.Logging;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.VFD;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Vfd;
 
 static class VfdRunner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(VfdRunner));
+
     internal static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
@@ -12,7 +15,7 @@ static class VfdRunner {
 
         DeviceStatus ret = vfd.Connect();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Connect failed");
+            LOG.LogError("Connect failed");
             return ret;
         }
 
@@ -45,7 +48,7 @@ static class VfdRunner {
                 ret = vfd.SetBrightness(opts.Brightness);
             }
         } catch (Exception ex) {
-            Log.WriteFault(ex, "VFD setup failed");
+            LOG.LogCritical(ex, "VFD setup failed");
             return (DeviceStatus)vfd.GetLastError();
         } finally {
             vfd.Disconnect();

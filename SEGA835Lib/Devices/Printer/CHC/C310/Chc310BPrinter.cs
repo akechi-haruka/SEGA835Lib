@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
@@ -11,6 +12,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
     /// Fully inherits functions from the CHC-310.
     /// </summary>
     public class Chc310BPrinter : Chc310Printer {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc310BPrinter));
         private static readonly NativeB NATIVE = new NativeB(); // hack to pass the same Native to both parameters
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
         public override DeviceStatus GetLoadedCardId(out byte[] cardid) {
-            Log.WriteError("RFID data cannot be read from a CHC-310B!");
+            LOG.LogError("RFID data cannot be read from a CHC-310B!");
             cardid = null;
             return DeviceStatus.ErrorIncompatible;
         }
@@ -65,7 +67,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// <returns>Always returns <see cref="DeviceStatus.ErrorIncompatible"/>.</returns>
         [Obsolete("Unsupported for this printer model.")]
         public override DeviceStatus WriteRfid(ref ushort rc, byte[] payload, bool overrideCardId, out byte[] writtenCardId) {
-            Log.WriteError("RFID data cannot be written to a CHC-310B!");
+            LOG.LogError("RFID data cannot be written to a CHC-310B!");
             writtenCardId = null;
             return DeviceStatus.ErrorIncompatible;
         }

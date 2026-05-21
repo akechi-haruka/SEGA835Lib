@@ -2,10 +2,12 @@ using System.Text;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace _835TestsMaybeLess;
 
 public class VfdTest {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(VfdTest));
     private VfdGp1232A02A vfd;
 
     [SetUp]
@@ -31,7 +33,7 @@ public class VfdTest {
 
         Assert.That(vfd.GetVersion(out string version), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(version, Is.Not.Null);
-        Log.Write(version);
+        LOG.LogInformation(version);
     }
 
     [Test]

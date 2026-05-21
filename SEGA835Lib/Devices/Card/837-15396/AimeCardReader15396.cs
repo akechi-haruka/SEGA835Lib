@@ -8,6 +8,7 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
     /// <summary>
@@ -15,6 +16,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class AimeCardReader15396 : CardReader {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(AimeCardReader15396));
+
         /// <summary>
         /// Whether or not to include the PMM part when a FeliCa is read. If true, <see cref="GetCardUid"/> will return 16 bytes (8 bytes IDm + 8 bytes PMm), if false, only the 8 bytes IDm are returned.
         /// </summary>
@@ -54,7 +57,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 lastReadCardUid = null;
                 radioType = null;
                 lastMifareCardLuid = 0;
-                Log.Write("Connecting on Port " + Port);
+                LOG.LogInformation("Connecting on Port " + Port);
                 if (!Serial.Connect()) {
                     return DeviceStatus.ErrorNotConnected;
                 }
@@ -136,13 +139,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, or if the reader was already reset (which will log a warning), or any other DeviceStatus on failure.</returns>
         public DeviceStatus Reset() {
-            Log.Write("Reset");
+            LOG.LogInformation("Reset");
             DeviceStatus ret;
             byte status;
             try {
                 ret = WriteAndRead(new ReqPacketReset(), out RespPacketReset _, out status);
             } catch (ArgumentException) {
-                Log.WriteError("There was an error reading from the reset response. You may have connected the TXD1/RXD2 lines incorrectly. (or there may be a different problem)");
+                LOG.LogError("There was an error reading from the reset response. You may have connected the TXD1/RXD2 lines incorrectly. (or there may be a different problem)");
                 throw;
             }
 
@@ -159,7 +162,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="version">The reader's hardware version (ex. "TN32MSEC003S H/W Ver3.0") or null on failure</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus GetHardwareVersion(out string version) {
-            Log.Write("GetHWVersion");
+            LOG.LogInformation("GetHWVersion");
             DeviceStatus ret = WriteAndRead(new ReqPacketGetHardwareVersion(), out RespPacketGetHardwareVersion resp, out byte status);
             SetLastError(ret, status);
             version = ret == DeviceStatus.Ok ? resp.version : null;
@@ -174,7 +177,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="versionByte">The reader's firmware version (ex. 0x93), 0 if the reader is a gen 1 reader, or on failure</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus GetFirmwareVersion(out string version, out byte versionByte) {
-            Log.Write("GetFWVersion");
+            LOG.LogInformation("GetFWVersion");
             DeviceStatus ret = Write(new SProtFrame(new ReqPacketGetFirmwareVersion())); // special handling here since data could be returned in two variants
             Read(out _, out _, out _, out byte status, out byte[] payload);
             SetLastError(ret, status);
@@ -202,7 +205,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="checksum">The reader's firmware checksum</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus GetFirmwareChecksum(out ushort checksum) {
-            Log.Write("GetFWChecksum");
+            LOG.LogInformation("GetFWChecksum");
             DeviceStatus ret = WriteAndRead(new ReqPacketGetFirmwareChecksum(), out RespPacketGetFirmwareChecksum resp, out byte status);
             SetLastError(ret, status);
             if (ret == DeviceStatus.Ok) {
@@ -220,7 +223,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="type">The type of card that should be scanned for.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus RadioOn(RadioOnType type) {
-            Log.Write("RadioOn(" + type + ")");
+            LOG.LogInformation("RadioOn(" + type + ")");
             radioType = type;
             DeviceStatus ret = WriteAndRead(new ReqPacketRadioOn() { type = (byte)type }, out RespPacketRadioOn _, out byte status);
             return SetLastError(ret, status);
@@ -231,7 +234,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus RadioOff() {
-            Log.Write("RadioOff");
+            LOG.LogInformation("RadioOff");
             radioType = null;
             DeviceStatus ret = WriteAndRead(new ReqPacketRadioOff(), out RespPacketRadioOff _, out byte status);
             return SetLastError(ret, status);
@@ -239,12 +242,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
-            Log.Write("Disconnecting on Port " + Port);
+            LOG.LogInformation("Disconnecting on Port " + Port);
             lock (SerialLocker) {
                 Serial?.Disconnect();
             }
 
-            Log.Write("Disconnected on Port " + Port);
+            LOG.LogInformation("Disconnected on Port " + Port);
             return DeviceStatus.Ok;
         }
 
@@ -275,7 +278,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         /// <inheritdoc/>
         public override DeviceStatus StartPolling() {
-            Log.Write("Starting polling of Aime reader on port " + Port);
+            LOG.LogInformation("Starting polling of Aime reader on port " + Port);
             if (IsPolling()) {
                 return DeviceStatus.Ok;
             }
@@ -321,14 +324,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 } catch (ThreadInterruptedException) {
                     break;
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Internal error while polling");
+                    LOG.LogCritical(ex, "Internal error while polling");
                     ret = DeviceStatus.ErrorOther;
                 }
             } while (pollingThread != null);
 
-            Log.Write("Polling thread exited of Aime reader on port " + Port);
+            LOG.LogInformation("Polling thread exited of Aime reader on port " + Port);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteWarning("Last Error Code before polling was stopped: " + ret);
+                LOG.LogWarning("Last Error Code before polling was stopped: " + ret);
             }
 
             PollingResult = ret;
@@ -351,7 +354,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                         byte[] id = new byte[size];
                         Array.Copy(data, offset, id, 0, size);
                         offset += size;
-                        Log.Write("Found a MIFARE UID: \n" + Hex.Dump(id));
+                        LOG.LogInformation("Found a MIFARE UID: \n" + Hex.Dump(id));
 
                         lastMifareCardLuid = BitConverter.ToUInt32(id, 0);
 
@@ -363,7 +366,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
                         lastReadCardType = CardType.Mifare;
                         lastReadCardUid = cardid;
-                        Log.Write("Found a MIFARE card: \n" + Hex.Dump(cardid));
+                        LOG.LogInformation("Found a MIFARE card: \n" + Hex.Dump(cardid));
                     } else if (type == 0x20) { // FeliCa
                         if (size == 0x10) {
                             if (!FeliCaIncludePmm) {
@@ -375,7 +378,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                             offset += 0x10;
                             lastReadCardUid = id;
                             lastReadCardType = CardType.FeliCa;
-                            Log.Write("Found a FeliCa card (PMm reading is " + FeliCaIncludePmm + "): \n" + Hex.Dump(id));
+                            LOG.LogInformation("Found a FeliCa card (PMm reading is " + FeliCaIncludePmm + "): \n" + Hex.Dump(id));
                         } else {
                             ret = DeviceStatus.ErrorIncompatible;
                         }
@@ -392,13 +395,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         public override DeviceStatus StopPolling() {
             DeviceStatus ret = DeviceStatus.Ok;
             if (IsPolling()) {
-                Log.Write("Stopping polling of Aime reader on port " + Port);
+                LOG.LogInformation("Stopping polling of Aime reader on port " + Port);
                 try {
                     pollingThread.Interrupt();
                     pollingThread.Join();
                     pollingThread = null;
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Failed to stop polling thread of card reader");
+                    LOG.LogCritical(ex, "Failed to stop polling thread of card reader");
                     return DeviceStatus.ErrorOther;
                 } finally {
                     ret = RadioOff();
@@ -410,7 +413,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         /// <inheritdoc/>
         public override DeviceStatus LedReset() {
-            Log.Write("LEDReset");
+            LOG.LogInformation("LEDReset");
             DeviceStatus ret = WriteAndRead(new ReqPacketLedReset(), out RespPacketLedReset _, out byte status);
             return SetLastError(ret, status);
         }
@@ -421,7 +424,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="version">The reader's LED board hardware version (ex. TODO) or null on failure.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus LedGetHwVersion(out string version) {
-            Log.Write("LEDGetHWVersion");
+            LOG.LogInformation("LEDGetHWVersion");
             DeviceStatus ret = WriteAndRead(new ReqPacketLedHardwareVersion(), out RespPacketLedHardwareVersion resp, out byte status);
             SetLastError(ret, status);
             version = ret == DeviceStatus.Ok ? resp.version : null;
@@ -435,7 +438,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="info">The reader's LED board information or null on failure.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus LedGetInfo(out string info) {
-            Log.Write("LEDGetInfo");
+            LOG.LogInformation("LEDGetInfo");
             DeviceStatus ret = WriteAndRead(new ReqPacketLedGetInfo(), out RespPacketLedGetInfo resp, out byte status);
             SetLastError(ret, status);
             info = ret == DeviceStatus.Ok ? resp.info : null;
@@ -452,7 +455,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         /// <param name="blue">true if the strength should be applied to the blue channel.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
         public DeviceStatus LedSetChannels(byte strength, bool red, bool green, bool blue) {
-            Log.Write("LEDSetChannels");
+            LOG.LogInformation("LEDSetChannels");
             DeviceStatus ret = Write(new ReqPacketLedSetChannel() {
                 rgb = (byte)((red ? 1 << 0 : 0) | (green ? 1 << 1 : 0) | (blue ? 1 << 2 : 0)),
                 value = strength
@@ -471,7 +474,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
 
         /// <inheritdoc />
         public override DeviceStatus LedSetColor(byte red, byte green, byte blue) {
-            Log.Write("LEDSetColor");
+            LOG.LogInformation("LEDSetColor");
             DeviceStatus ret = Write(new ReqPacketLedSetColor() {
                 red = red,
                 green = green,
@@ -490,7 +493,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             byte[] k1 = { 0x57, 0x43, 0x43, 0x46, 0x76, 0x32 };
             byte[] k2 = { 0x60, 0x90, 0xd0, 0x06, 0x32, 0xf5 };
 
-            Log.Write("Set Sega Key");
+            LOG.LogInformation("Set Sega Key");
             ReqPacketMifareSetKeySega req = new ReqPacketMifareSetKeySega();
             StructUtils.Copy(k1, req.key, k1.Length);
             DeviceStatus ret = SetLastError(WriteAndRead(req, out RespPacketMifareSetKeySega _, out byte status), status);
@@ -498,7 +501,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 return ret;
             }
 
-            Log.Write("Set Namco Key");
+            LOG.LogInformation("Set Namco Key");
             ReqPacketMifareSetKeyNamco req2 = new ReqPacketMifareSetKeyNamco();
             StructUtils.Copy(k2, req2.key, k2.Length);
             ret = SetLastError(WriteAndRead(req2, out RespPacketMifareSetKeyNamco _, out status), status);
@@ -507,7 +510,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         }
 
         private DeviceStatus PrepareMifareCommunication(uint uid) {
-            Log.Write("Select Mifare (" + uid + ")");
+            LOG.LogInformation("Select Mifare (" + uid + ")");
             DeviceStatus ret = SetLastError(WriteAndRead(new ReqPacketSelectMifare() {
                 uid = uid
             }, out RespPacketSelectMifare _, out byte status), status);
@@ -515,7 +518,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 return ret;
             }
 
-            Log.Write("Authenticate Mifare (" + uid + ")");
+            LOG.LogInformation("Authenticate Mifare (" + uid + ")");
             ret = SetLastError(WriteAndRead(new ReqPacketAuthenticateMifare() {
                 uid = uid,
                 unk = 0x03
@@ -524,7 +527,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
         }
 
         private unsafe DeviceStatus ReadMifareBlock(uint uid, byte blockNo, out byte* blockContent) {
-            Log.Write("Read Mifare Block (" + uid + ", " + blockNo + ")");
+            LOG.LogInformation("Read Mifare Block (" + uid + ", " + blockNo + ")");
             DeviceStatus ret = SetLastError(WriteAndRead(new ReqPacketReadMifare() {
                 uid = uid,
                 block = blockNo,
@@ -599,7 +602,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             }
 
             if (header[0] != 'T' || header[1] != 'C') {
-                Log.WriteError("Scanned card is not a e-money authentication card!");
+                LOG.LogError("Scanned card is not a e-money authentication card!");
                 return DeviceStatus.ErrorIncompatible;
             }
 
@@ -663,7 +666,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
                 storeBranchID = Unsafe.ReadUnaligned<UInt128>(ref decrypted[0x24]);
                 passphrase = Encoding.ASCII.GetString(decrypted, 0x30, 0x10);
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Cryptographic error while decrypting data from card");
+                LOG.LogCritical(ex, "Cryptographic error while decrypting data from card");
                 return DeviceStatus.ErrorCrypt;
             }
 

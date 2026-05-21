@@ -4,29 +4,32 @@ using System.Drawing;
 using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
-
     /// <summary>
     /// The base class for a CHC-series card printer.
     /// </summary>
     public abstract partial class ChcSeriesCardPrinter {
-
         /// <summary>
         /// A print job.
         /// </summary>
         public class PrintJob { // subclass so we can grab the constants from CHCSeriesCardPrinter
 
+            private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(PrintJob));
+
             private PrintStatus jobStatus;
+
             internal PrintStatus JobStatus {
                 get => jobStatus;
                 set {
                     if (jobStatus != value) {
-                        Log.Write(jobStatus + " => " + value);
+                        LOG.LogInformation(jobStatus + " => " + value);
                         jobStatus = value;
                     }
                 }
             }
+
             internal DeviceStatus JobResult { get; private set; }
             internal byte[] WrittenRfidCardId { get; private set; }
             internal Exception JobException { get; private set; }
@@ -36,7 +39,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly Bitmap imageFront;
             private readonly Bitmap imageBack;
             private readonly Bitmap holo;
+
             private readonly byte[] rfidPayload;
+
             // these two are probably structs...
             private readonly byte[] paperInfo = new byte[10];
             private readonly int[] mtf = new int[9];
@@ -68,17 +73,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 paperInfo[4] = (byte)((this.printer.ImageDimensions.Height >> 8) % 0x100);
                 this.overrideCardId = overrideCardId;
             }
+
             internal DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
                 if (JobStatus == PrintStatus.Errored) {
                     return ret;
                 }
-                Log.Write("Terminating print job with error");
-                Log.Write("Last printer return code: " + RcToString(rc));
+
+                LOG.LogInformation("Terminating print job with error");
+                LOG.LogInformation("Last printer return code: " + RcToString(rc));
                 if (pageId != null) {
-                    Log.Write("Cancelling print job");
+                    LOG.LogInformation("Cancelling print job");
                     ushort _ = 0;
                     native.CHC_cancelCopies(pageId.Value, ref _);
                 }
+
                 JobResult = ret;
                 JobStatus = PrintStatus.Errored;
                 return ret;
@@ -95,16 +103,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 DeviceStatus ret = DeviceStatus.ErrorOther;
                 ushort? pageId = 0;
 
-                Log.Write("Started");
+                LOG.LogInformation("Started");
 
                 try {
-                    Log.Write("Checking status");
+                    LOG.LogInformation("Checking status");
                     ret = printer.PrintWaitFor(ref rc, native.CHC_status, 10000);
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Set printer to standby");
+                    LOG.LogInformation("Set printer to standby");
                     ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(STANDBY_RFID, ref rc), 30000);
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
@@ -112,7 +120,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                     JobStatus = PrintStatus.RfidRead;
 
-                    Log.Write("Get loaded card ID");
+                    LOG.LogInformation("Get loaded card ID");
                     // 310 only
                     /*byte[] cardIdBuf = new byte[CARD_ID_LEN];
                     Printer.PrintWaitFor(ref rc, (ref ushort rc) => {
@@ -126,7 +134,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc);
                     }
                     if (rc != RESULT_CARDRFID_ReadA) {
-                        Log.WriteError("Unexpected result: " + rc);
+                        LOG.LogError("Unexpected result: " + rc);
                         return PrintExitThreadError(Printer.SetLastErrorByRC(Native.CHC_RC_OK, rc), rc);
                     }*/
 
@@ -138,24 +146,25 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                         WrittenRfidCardId = writtenCardId;
                     } else {
-                        Log.WriteWarning("No RFID data to write");
+                        LOG.LogWarning("No RFID data to write");
                     }
 
                     JobStatus = PrintStatus.SetPrinterProperties;
 
-                    Log.Write("Setting paper info");
+                    LOG.LogInformation("Setting paper info");
                     uint len;
                     fixed (byte* ptr = paperInfo) {
                         len = (uint)paperInfo.Length;
                         ret = printer.SetLastErrorByReturnCode(native.CHC_setPrinterInfo(PrinterInfoTag.Paper, ptr, ref len, ref rc), rc);
                     }
+
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
                     byte? polishParameter = printer.GetPolishParameter(holo != null);
                     if (polishParameter != null) {
-                        Log.Write("Setting polish info");
+                        LOG.LogInformation("Setting polish info");
                         byte[] polish = new byte[2];
                         polish[0] = polishParameter.Value;
                         fixed (byte* ptr = polish) {
@@ -167,27 +176,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                             return PrintExitThreadError(ret, rc);
                         }
                     } else {
-                        Log.Write("Polish info not needed for this printer model");
+                        LOG.LogInformation("Polish info not needed for this printer model");
                     }
 
-                    Log.Write("Checking status");
+                    LOG.LogInformation("Checking status");
                     ret = printer.PrintWaitFor(ref rc, native.CHC_status, 10000);
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Setting page parameters");
+                    LOG.LogInformation("Setting page parameters");
                     ret = printer.SetLastErrorByReturnCode(native.CHC_imageformat(FORMAT_PIXEL_RGB, COMPONENT_RGB, COLOR_DEPTH, (ushort)printer.ImageDimensions.Width, (ushort)printer.ImageDimensions.Height, (byte*)0, ref rc), rc); // TODO
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
                     fixed (byte* ptrR = inToneR, ptrG = inToneG, ptrB = inToneB, ptrOutR = outToneR, ptrOutG = outToneG, ptrOutB = outToneB) {
-                        Log.Write("Building tone tables");
+                        LOG.LogInformation("Building tone tables");
                         _ = native.CHC_makeGamma(100, ptrR, ptrG, ptrB);
                         _ = native.CHC_makeGamma(100, ptrOutR, ptrOutG, ptrOutB);
 
-                        Log.Write("Setting ICC tables");
+                        LOG.LogInformation("Setting ICC tables");
                         ret = printer.SetLastErrorByReturnCode(native.CHC_setIcctable(printer.IccTable1FileName, printer.IccTable2FileName, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOutR, ptrOutG, ptrOutB, ref rc), rc);
                         if (ret != DeviceStatus.Ok) {
                             return PrintExitThreadError(ret, rc);
@@ -195,25 +204,25 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     }
 
                     fixed (int* ptr = mtf) {
-                        Log.Write("Reading MTF");
+                        LOG.LogInformation("Reading MTF");
                         ret = printer.SetLastErrorByReturnCode(native.CHC_getMtf(printer.MtfFileName, ptr, ref rc), rc);
                         if (ret != DeviceStatus.Ok) {
                             return PrintExitThreadError(ret, rc);
                         }
 
-                        Log.Write("Setting MTF");
+                        LOG.LogInformation("Setting MTF");
                         _ = native.CHC_setmtf(ptr);
                     }
 
                     JobStatus = PrintStatus.SetImage;
 
-                    Log.Write("Setting page count");
+                    LOG.LogInformation("Setting page count");
                     ret = printer.SetLastErrorByReturnCode(native.CHC_copies(1, ref rc), rc);
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Starting page");
+                    LOG.LogInformation("Starting page");
                     ushort pageIdQ = 0;
                     ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_startpage(printer.GetStartPageParameter(), ref pageIdQ, ref rc), 3000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
                     pageId = pageIdQ;
@@ -221,7 +230,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    Log.Write("Uploading image data (" + printer.ImageDimensions.Width + "x" + printer.ImageDimensions.Height + ")");
+                    LOG.LogInformation("Uploading image data (" + printer.ImageDimensions.Width + "x" + printer.ImageDimensions.Height + ")");
                     int imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height * COMPONENT_RGB;
                     byte[] imageBytes = imageFront.GetRawPixelsRgbNoPadding();
                     if (imageBytes.Length != imageSize) {
@@ -238,15 +247,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                             }
                         }
                     }
-                    Log.Write(writtenBytes + " bytes written");
+
+                    LOG.LogInformation(writtenBytes + " bytes written");
                     if (writtenBytes != imageBytes.Length) {
                         ret = DeviceStatus.ErrorDevice;
-                        Log.WriteError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                        LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
                     if (holo != null) {
-                        Log.Write("Uploading holo image");
+                        LOG.LogInformation("Uploading holo image");
                         imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height;
                         imageBytes = holo.GetRawPixelsMonochrome();
                         if (imageBytes.Length != imageSize) {
@@ -263,18 +273,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                                 }
                             }
                         }
-                        Log.Write(writtenBytes + " bytes written");
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
                         if (writtenBytes != imageBytes.Length) {
                             ret = DeviceStatus.ErrorDevice;
-                            Log.WriteError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
                             return PrintExitThreadError(ret, rc, pageId);
                         }
                     } else {
-                        Log.Write("No holo image set");
+                        LOG.LogInformation("No holo image set");
                     }
-                    
+
                     if (imageBack != null) {
-                        Log.Write("Uploading back side image");
+                        LOG.LogInformation("Uploading back side image");
                         imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height * COMPONENT_RGB;
                         imageBytes = imageBack.GetRawPixelsRgbNoPadding();
                         if (imageBytes.Length != imageSize) {
@@ -291,17 +302,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                                 }
                             }
                         }
-                        Log.Write(writtenBytes + " bytes written");
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
                         if (writtenBytes != imageBytes.Length) {
                             ret = DeviceStatus.ErrorDevice;
-                            Log.WriteError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
                             return PrintExitThreadError(ret, rc, pageId);
                         }
                     } else {
-                        Log.Write("No back image set");
+                        LOG.LogInformation("No back image set");
                     }
 
-                    Log.Write("Ending page");
+                    LOG.LogInformation("Ending page");
 
                     JobStatus = PrintStatus.Printing;
 
@@ -310,11 +322,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    Log.Write("Now printing...");
+                    LOG.LogInformation("Now printing...");
                     ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => {
                         if (native.CHC_status(ref rc) == CHCUSB_RC_BUSY) {
                             if (rc != RESULT_STATUS_BUSY && rc != RESULT_STATUS_OPERATION && rc != 1007) {
-                                Log.WriteError("Status check failed: " + rc);
+                                LOG.LogError("Status check failed: " + rc);
                                 return rc;
                             }
                         }
@@ -325,7 +337,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         }
 
                         if (ret != DeviceStatus.Ok) {
-                            Log.WriteError("GetPrintIDStatus check failed: " + rc);
+                            LOG.LogError("GetPrintIDStatus check failed: " + rc);
                             return rc;
                         }
 
@@ -340,37 +352,36 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         if (ret == DeviceStatus.ErrorTimeout) {
                             rc = RESULT_PRINT_TIMEOUT;
                         }
+
                         return PrintExitThreadError(ret, rc, pageId);
                     }
-                    Log.Write("Print complete");
+
+                    LOG.LogInformation("Print complete");
 
                     JobStatus = PrintStatus.Ejecting;
 
-                    Log.Write("Ejecting card");
+                    LOG.LogInformation("Ejecting card");
                     ret = printer.PrintWaitFor(ref rc, native.CHC_exitCard, 180_000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
                     if (ret != DeviceStatus.Ok) {
-                        Log.WriteError("ExitCard failed");
+                        LOG.LogError("ExitCard failed");
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    Log.Write("Print finished");
+                    LOG.LogInformation("Print finished");
                     JobStatus = PrintStatus.Finished;
                     JobResult = DeviceStatus.Ok;
-
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Exception in print job");
+                    LOG.LogCritical(ex, "Exception in print job");
                     JobException = ex;
                     PrintExitThreadError(DeviceStatus.ErrorOther, 0, pageId);
                 } finally {
-                    Log.Write("Print job finished");
+                    LOG.LogInformation("Print job finished");
                 }
 
                 return ret;
             }
         }
-
     }
-
 }
 
 #endif

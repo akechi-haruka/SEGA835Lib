@@ -11,14 +11,15 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
-
     /// <summary>
     /// The base class for a CHC-series card printer.
     /// Note that all calls to the given <see cref="INativeTrampolineChc"/> must be done via <see cref="ExecuteOnPrintThread(PrinterThreadDelegate, bool, bool)"/> as the library checks from what thread any printer function is accessed.
     /// </summary>
     public abstract partial class ChcSeriesCardPrinter : Device {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(ChcSeriesCardPrinter));
 
         /// <summary>
         /// A function of the printer that waits until a non-busy status is returned.
@@ -26,6 +27,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="rc">The variable that the printer status will be passed to upon completion.</param>
         /// <returns>The printer function return code (CHCUSB_RC_*)</returns>
         public delegate int StatusWaitDelegate(ref ushort rc);
+
         /// <summary>
         /// A function that should be run on the printer thread.
         /// </summary>
@@ -137,9 +139,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int STANDBY_HOLO = 1;
         protected const int STANDBY_RFID = 2;
 #pragma warning restore CS1591
+
         #endregion
 
         #region CHC error table
+
         private static readonly PrinterError[] ERROR_TABLE = new PrinterError[] {
             new PrinterError(RESULT_NOERROR, 0, "OK"),
             new PrinterError(RESULT_STATUS_CARD_LOAD_ERR, 0, "Card tray failed loading card"),
@@ -217,16 +221,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             new PrinterError(RESULT_NOTCONNECT, 0, 0, "Printer is not connected"),
             new PrinterError(9999, 9999, "No return code")
         };
+
         #endregion
 
         /// <summary>
         /// The image dimensions that this printer expects.
         /// </summary>
         public Size ImageDimensions { get; }
+
         /// <summary>
         /// The DLL trampoline that this printer uses.
         /// </summary>
         protected INativeTrampolineChc Native { get; }
+
         /// <summary>
         /// The RFID backend that this printer uses.
         /// </summary>
@@ -238,14 +245,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// The file name for the first .icc file.
         /// </summary>
         public string IccTable1FileName { get; private set; }
+
         /// <summary>
         /// The file name for the second .icc file.
         /// </summary>
         public string IccTable2FileName { get; private set; }
+
         /// <summary>
         /// The file name for the mtf.txt file.
         /// </summary>
         public string MtfFileName { get; private set; }
+
         /// <summary>
         /// How the image being printed should be stretched.
         /// </summary>
@@ -370,12 +380,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (operationReturnCode != CHCUSB_RC_OK && rc != RESULT_STATUS_READY) {
                 rc = GetPrinterStatusCode();
             }
+
             if (rc != RESULT_STATUS_BUSY && rc != RESULT_STATUS_READY) {
-                Log.WriteError("Printer Error (" + rc + "): " + RcToString(rc));
+                LOG.LogError("Printer Error (" + rc + "): " + RcToString(rc));
                 if (Debugger.IsAttached) {
                     Debugger.Break();
                 }
             }
+
             if (rc == CHCUSB_RC_OK || rc == RESULT_STATUS_READY) {
                 return SetLastError(DeviceStatus.Ok);
             }
@@ -383,6 +395,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (rc == CHCUSB_RC_BUSY || rc == RESULT_STATUS_BUSY) {
                 return DeviceStatus.Busy;
             }
+
             return SetLastError((DeviceStatus)rc);
         }
 
@@ -402,12 +415,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             DateTime start = DateTime.Now;
             while (printerFunction(ref rc) == CHCUSB_RC_BUSY || waitCodes.Contains(rc)) {
                 if ((DateTime.Now - start).TotalMilliseconds > timeout) {
-                    Log.WriteError("Timeout was hit: " + timeout);
-                    Log.WriteError("Status was: " + RcToString(rc));
+                    LOG.LogError("Timeout was hit: " + timeout);
+                    LOG.LogError("Status was: " + RcToString(rc));
                     return SetLastError((DeviceStatus)rc);
                 }
+
                 Thread.Sleep(1000);
             }
+
             return SetLastError(DeviceStatus.Ok, rc);
         }
 
@@ -423,12 +438,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (!File.Exists(icc1Filename)) {
                 throw new FileNotFoundException(null, icc1Filename);
             }
+
             if (!File.Exists(icc2Filename)) {
                 throw new FileNotFoundException(null, icc2Filename);
             }
+
             IccTable1FileName = icc1Filename;
             IccTable2FileName = icc2Filename;
-            Log.Write("ICC tables set to: " + IccTable1FileName + ", " + IccTable2FileName);
+            LOG.LogInformation("ICC tables set to: " + IccTable1FileName + ", " + IccTable2FileName);
         }
 
         /// <summary>
@@ -441,20 +458,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (!File.Exists(mtfFilename)) {
                 throw new FileNotFoundException(null, mtfFilename);
             }
+
             MtfFileName = mtfFilename;
-            Log.Write("MTF set to: " + MtfFileName);
+            LOG.LogInformation("MTF set to: " + MtfFileName);
         }
 
         /// <inheritdoc/>
         public sealed override DeviceStatus Connect() {
-            Log.Write("Connect");
+            LOG.LogInformation("Connect");
 
             ResetState();
 
             try {
                 Native.CHC_close(); // test for DLL presence
-            }catch(Exception ex) {
-                Log.WriteFault(ex, "DLL initialization failed");
+            } catch (Exception ex) {
+                LOG.LogCritical(ex, "DLL initialization failed");
                 return DeviceStatus.ErrorLibrary;
             }
 
@@ -467,17 +485,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort rc) => {
                 DeviceStatus ret2 = SetLastErrorByReturnCode(Native.CHC_open(ref rc), rc);
                 if (ret2 != DeviceStatus.Ok) {
-                    Log.WriteError("Open failed");
+                    LOG.LogError("Open failed");
                     return ret2;
                 }
 
                 ret2 = SelectById();
                 if (ret2 != DeviceStatus.Ok) {
-                    Log.WriteError("Select failed");
+                    LOG.LogError("Select failed");
                     return ret2;
                 }
 
-                Log.Write("Waiting until printer has finished initalizing");
+                LOG.LogInformation("Waiting until printer has finished initalizing");
                 return PrintWaitFor(ref rc, Native.CHC_status, InitTimeout, RESULT_STATUS_MAIN_CPU_INITIALIZE, RESULT_STATUS_RIBBON_INITIALIZE, RESULT_STATUS_CARD_LOADING, RESULT_STATUS_OPERATION, RESULT_STATUS_SELFDIAGNOSIS, RESULT_STATUS_DOWN_LOADING, RESULT_STATUS_BOOT_MODE);
             });
 
@@ -489,26 +507,26 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         }
 
         private void PrintCommandExecutor() {
-            Log.Write("Thread started");
+            LOG.LogInformation("Thread started");
 
             DateTime lastStatusQuery = DateTime.MinValue;
 
             while (isConnected) {
-
                 ushort rc = 0;
 
                 Monitor.Enter(this);
                 try {
                     if (threadFunc != null) {
-                        Log.Write("Printer Query: " + threadFunc);
+                        LOG.LogInformation("Printer Query: " + threadFunc);
                         try {
                             threadCallStatus = threadFunc(ref rc);
                             threadStatusCode = rc;
                         } catch (Exception ex) {
-                            Log.WriteFault(ex, "Printer query failed with exception");
+                            LOG.LogCritical(ex, "Printer query failed with exception");
                             threadCallStatus = DeviceStatus.ErrorOther;
                             threadStatusCode = 0;
                         }
+
                         threadFunc = null;
                     }
                 } finally {
@@ -529,7 +547,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
             Native.CHC_close();
 
-            Log.Write("Thread exited");
+            LOG.LogInformation("Thread exited");
         }
 
         /// <summary>
@@ -549,15 +567,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (printThread == null) {
                 throw new ThreadStateException("printer thread has shut down");
             }
+
             if (printThread.ManagedThreadId == Environment.CurrentManagedThreadId) {
 #if DEBUG
-                Log.WriteWarning("Calling ExecuteOnPrintThread on the printer thread!");
+                LOG.LogWarning("Calling ExecuteOnPrintThread on the printer thread!");
                 ushort _ = 0;
                 return func(ref _);
 #else
                 throw new ThreadStateException("calling ExecuteOnPrintThread on the printer thread is not allowed");
 #endif
             }
+
             if (threadFunc != null && threadCallStatus == null) {
                 if (waitForStart) {
                     Monitor.Enter(this);
@@ -571,21 +591,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 threadCallStatus = null;
                 threadFunc = func;
             }
+
             lock (printThread) {
                 Monitor.Pulse(printThread);
             }
+
             if (!waitForCompletion) {
                 return DeviceStatus.Ok;
             }
+
             while (threadCallStatus == null && isConnected) {
                 Thread.Sleep(10);
             }
+
             if (!isConnected || threadCallStatus == null) {
                 return DeviceStatus.ErrorNotInitialized;
             }
+
             if (threadStatusCode != RESULT_NOERROR) {
-                Log.WriteWarning("Printer Query returned: " + RcToString(threadStatusCode));
+                LOG.LogWarning("Printer Query returned: " + RcToString(threadStatusCode));
             }
+
             return threadCallStatus.Value;
         }
 
@@ -598,6 +624,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (printThread == null) {
                 throw new ThreadStateException(callerFunc + " must be called on printer thread, which is not active!");
             }
+
             if (printThread.ManagedThreadId != Environment.CurrentManagedThreadId) {
                 throw new ThreadStateException(callerFunc + " must be called on printer thread (" + printThread.ManagedThreadId + ")! Called from " + Environment.CurrentManagedThreadId);
             }
@@ -616,8 +643,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     ret = SetLastErrorByReturnCode(Native.CHC_listupPrinter(idArrayPtr));
                 }
             }
+
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Listup failed");
+                LOG.LogError("Listup failed");
                 return ret;
             }
 
@@ -627,10 +655,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     printerId = id;
                 }
             }
+
             if (printerId == 0xFF) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
-            Log.Write("Select Printer: " + printerId);
+
+            LOG.LogInformation("Select Printer: " + printerId);
             Native.CHC_selectPrinter(printerId, ref rc); // this seems to return 0 for some obscure reason
             return SetLastErrorByReturnCode(CHCUSB_RC_OK, rc);
         }
@@ -651,6 +681,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     ret = SetLastErrorByReturnCode(Native.CHC_listupPrinterSN(idArrayPtr));
                 }
             }
+
             if (ret != DeviceStatus.Ok) {
                 return ret;
             }
@@ -661,10 +692,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     printerId = id;
                 }
             }
+
             if (printerId == invalidEntry) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
-            Log.Write("Select Printer (SN): " + printerId);
+
+            LOG.LogInformation("Select Printer (SN): " + printerId);
             return SetLastErrorByReturnCode(Native.CHC_selectPrinterSN(printerId, ref rc), rc);
         }
 
@@ -675,7 +708,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 lock (printThread) {
                     Monitor.Pulse(printThread);
                 }
-                Log.Write("Waiting for thread completion");
+
+                LOG.LogInformation("Waiting for thread completion");
                 printThread.Join();
                 printThread = null;
             }
@@ -684,6 +718,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (ret == DeviceStatus.Ok) {
                 ResetState();
             }
+
             return ret;
         }
 
@@ -697,7 +732,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         }
 
         private DeviceStatus GetPrinterInfo(PrinterInfoTag tag, out byte[] data) {
-            Log.Write("GetPrinterInfo: " + tag);
+            LOG.LogInformation("GetPrinterInfo: " + tag);
             uint len = tag.GetBufferSize();
             byte[] buf = new byte[len];
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort _) => {
@@ -707,9 +742,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         ret2 = SetLastErrorByReturnCode(Native.CHC_getPrinterInfo((ushort)tag, ptr, ref len));
                     }
                 }
+
                 if (ret2 != DeviceStatus.Ok) {
                     buf = null;
                 }
+
                 return ret2;
             });
             data = buf;
@@ -722,28 +759,30 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="serialno">The printer serial number or null on error.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.Busy"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrinterSerial(out string serialno) {
-            Log.Write("GetPrinterSerial");
+            LOG.LogInformation("GetPrinterSerial");
             serialno = null;
             DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.SerialInfo, out byte[] buf);
             if (ret == DeviceStatus.Ok) {
                 serialno = UnsafeUtils.BytesToString(buf);
             }
+
             return ret;
         }
-        
-        
+
+
         /// <summary>
         /// Queries various printer statistics.
         /// </summary>
         /// <param name="printcnt">The printer statistics or null on error.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.Busy"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrintCnt(out PrintCnt? printcnt) {
-            Log.Write("GetPrintCnt");
+            LOG.LogInformation("GetPrintCnt");
             printcnt = null;
             DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PrintCount, out byte[] buf);
             if (ret == DeviceStatus.Ok) {
                 printcnt = StructUtils.FromBytes<PrintCnt>(buf);
             }
+
             return ret;
         }
 
@@ -753,12 +792,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="printcnt">The printer statistics or null on error.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.Busy"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrintCnt2(out PrintCnt2? printcnt) {
-            Log.Write("GetPrintCnt2");
+            LOG.LogInformation("GetPrintCnt2");
             printcnt = null;
             DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PrintCount2, out byte[] buf);
             if (ret == DeviceStatus.Ok) {
                 printcnt = StructUtils.FromBytes<PrintCnt2>(buf);
             }
+
             return ret;
         }
 
@@ -768,12 +808,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="pageStatus">The page statistics or null on error.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.Busy"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPageStatus(out PageStatus? pageStatus) {
-            Log.Write("GetPageStatus");
+            LOG.LogInformation("GetPageStatus");
             pageStatus = null;
             DeviceStatus ret = GetPrinterInfo(PrinterInfoTag.PageStatus, out byte[] buf);
             if (ret == DeviceStatus.Ok) {
                 pageStatus = StructUtils.FromBytes<PageStatus>(buf);
             }
+
             return ret;
         }
 
@@ -783,7 +824,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="status">The print ID status.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.Busy"/> if the printer is busy with another operation (ex. printing), any other status on error.</returns>
         public DeviceStatus GetPrintIDStatus(out int status) {
-            Log.Write("GetPrintIDStatus");
+            LOG.LogInformation("GetPrintIDStatus");
 
             int statusQ = 0;
 
@@ -823,7 +864,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (Job == null) {
                 return DeviceStatus.ErrorNotInitialized;
             }
-            
+
             PrintStatus status = Job.JobStatus;
             if (status == PrintStatus.None) {
                 return DeviceStatus.ErrorNotInitialized;
@@ -903,6 +944,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     throw new ArgumentException("Image to print with size " + frontImage.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }
             }
+
             if (holo != null && holo.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
                     holo = holo.CopyStretched(ImageDimensions);
@@ -912,27 +954,31 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     throw new ArgumentException("Holo image to print with size " + holo.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
                 }
             }
+
             VerifyRfidData(rfidPayload, overrideCardId);
             if (MtfFileName == null) {
                 throw new InvalidOperationException("MTF file must be set before attempting to print, call SetMtfFile");
             }
+
             if (IccTable1FileName == null) {
                 throw new InvalidOperationException("ICC table files must be set before attempting to print, call SetIccTables");
             }
+
             if (Job != null) {
                 if (Job.JobStatus == PrintStatus.Errored) {
                     throw new InvalidOperationException("Printer is in error state. Call Disconnect() then Connect() before attempting to print again");
                 }
+
                 if (Job.JobStatus != PrintStatus.None) {
-                    Log.WriteWarning("Rejecting StartPrinting, previous print is not complete");
+                    LOG.LogWarning("Rejecting StartPrinting, previous print is not complete");
                     return SetLastError(DeviceStatus.Busy);
                 }
             }
 
             Job = new PrintJob(this, Native, frontImage, backImage, holo, rfidPayload, overrideCardId);
 
-            Log.Write("Start Printing");
-            Log.Write("Current Status: " + RcToString(GetPrinterStatusCode()));
+            LOG.LogInformation("Start Printing");
+            LOG.LogInformation("Current Status: " + RcToString(GetPrinterStatusCode()));
 
             return SetLastError(ExecuteOnPrintThread(Job.Run, waitForCompletion));
         }
@@ -950,6 +996,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             if (Job == null) {
                 throw new ThreadStateException("Can't exit print job thread while no thread is running");
             }
+
             return Job.PrintExitThreadError(ret, rc, pageId);
         }
 

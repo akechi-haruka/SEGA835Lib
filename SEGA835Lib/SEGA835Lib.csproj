@@ -76,37 +76,61 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+        <Reference Include="Haruka.Logging.MEXNet35" Condition="'$(TargetFramework)' == 'net35'">
+            <HintPath>..\..\Haruka.Logging.MEXNet35\bin\Debug\net35\Haruka.Logging.MEXNet35.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
     <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows7'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8"/>
         <PackageReference Include="System.Drawing.Common" Version="10.0.8"/>
         <PackageReference Include="System.IO.Ports" Version="10.0.8"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8"/>

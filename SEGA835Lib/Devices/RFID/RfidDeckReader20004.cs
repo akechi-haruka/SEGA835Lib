@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// <summary>
     /// A 837-20004 RFID card reader that is found in Kantai Collection Arcade and Fate/Grand Order Arcade.
     /// </summary>
     public class RfidDeckReader20004 : RfidReadWriteDevice {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidDeckReader20004));
+
         private const byte COMMAND_SCAN = 0x06;
         private const byte SUBCOMMAND_CARD_DATA_START = 0x81;
         private const byte SUBCOMMAND_CARD_DATA = 0x82;
@@ -35,7 +38,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// <param name="cards">A 2-dimensional array where the first dimension is the list of cards, and the second dimension is the card's content in bytes, length equal to <see cref="GetCardPayloadSize()"/>.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus Scan(out byte[][] cards) {
-            Log.Write("Scan for cards");
+            LOG.LogInformation("Scan for cards");
             cards = null;
             DeviceStatus ret = SetLastError(Write(COMMAND_SCAN, new byte[0])); // start scanning
             if (ret != DeviceStatus.Ok) {
@@ -48,7 +51,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             }
 
             if (cmd != COMMAND_SCAN || subCmd != SUBCOMMAND_CARD_DATA_START) {
-                Log.WriteError("Unexpected response to Scan packet: " + cmd + "/" + subCmd);
+                LOG.LogError("Unexpected response to Scan packet: " + cmd + "/" + subCmd);
                 return SetLastError(DeviceStatus.ErrorDevice, subCmd);
             }
 
@@ -60,7 +63,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
                 }
 
                 if (cmd != COMMAND_SCAN && (subCmd != SUBCOMMAND_CARD_DATA && subCmd != SUBCOMMAND_CARD_DATA_END)) {
-                    Log.WriteError("Unexpected response while reading cards: " + cmd + "/" + subCmd);
+                    LOG.LogError("Unexpected response while reading cards: " + cmd + "/" + subCmd);
                     return SetLastError(DeviceStatus.ErrorDevice, subCmd);
                 }
 
@@ -72,7 +75,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             }
 
             cards = cardlist.ToArray();
-            Log.Write("Found " + cards.Length + " card(s)");
+            LOG.LogInformation("Found " + cards.Length + " card(s)");
             return DeviceStatus.Ok;
         }
 

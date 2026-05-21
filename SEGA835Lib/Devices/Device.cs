@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices {
     /// <summary>
     /// The base class for any device that this library can handle.
     /// </summary>
     public abstract class Device {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Device));
+
         private int lastError;
         private bool useExceptions;
 
@@ -75,7 +78,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
             }
 
             if (lastError > 0) {
-                Log.WriteWarning("Recorded a device error (" + GetType() + "): " + (DeviceStatus)lastError);
+                LOG.LogWarning("Recorded a device error (" + GetType() + "): " + (DeviceStatus)lastError);
                 if (useExceptions) {
                     throw new IOException(GetType() + " device error: " + (DeviceStatus)lastError);
                 }

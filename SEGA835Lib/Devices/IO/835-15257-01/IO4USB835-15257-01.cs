@@ -1,5 +1,6 @@
 ﻿using System;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
     /// <summary>
@@ -8,6 +9,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
     public class Io4Usb15257 : JvsUsbIo {
         private readonly byte[] gpio = new byte[4];
         private readonly byte[] leds = new byte[32];
+
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Io4Usb15257));
 
         /// <summary>
         /// Creates a new IO4 board.
@@ -30,7 +33,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other status on failure.</returns>
         public DeviceStatus ResetBoardStatus() {
-            Log.Write("ResetBoardStatus");
+            LOG.LogInformation("ResetBoardStatus");
             return Write(new JvsUsbReportOut() {
                 cmd = JvsUsbReports.ClearBoardStatus
             });
@@ -49,7 +52,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
                 throw new ArgumentException("index must be within [0,32)");
             }
 
-            Log.Write("SetGPIO: " + index + " -> " + state);
+            LOG.LogInformation("SetGPIO: " + index + " -> " + state);
             gpio[index / 8] = (byte)((state ? 1 : 0) << (index % 8));
 
             if (update) {
@@ -82,7 +85,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
                 throw new ArgumentException("index must be within [0,32)");
             }
 
-            Log.Write("SetLED: " + index + " -> " + state);
+            LOG.LogInformation("SetLED: " + index + " -> " + state);
             leds[index / 8] = state;
 
             if (update) {

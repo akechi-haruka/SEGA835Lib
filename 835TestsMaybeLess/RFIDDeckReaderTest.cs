@@ -3,10 +3,12 @@ using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
 
 namespace _835TestsMaybeLess;
 
 public class RfidDeckReaderTest {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidDeckReaderTest));
     private RfidDeckReader20004 reader;
 
     [SetUp]
@@ -30,13 +32,13 @@ public class RfidDeckReaderTest {
 
         Assert.That(reader.GetBootVersion(out byte version), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(version, Is.Not.Zero);
-        Log.Write("Boot: " + version);
+        LOG.LogInformation("Boot: " + version);
         Assert.That(reader.GetAppVersion(out byte version2), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(version2, Is.Not.Zero);
-        Log.Write("App: " + version2);
+        LOG.LogInformation("App: " + version2);
         Assert.That(reader.GetBoardInfo(out string board), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(board, Is.Not.Null);
-        Log.Write("Board: " + board);
+        LOG.LogInformation("Board: " + board);
     }
 
     [Test]
@@ -50,7 +52,7 @@ public class RfidDeckReaderTest {
         Assert.That(reader.SetUnknown5(), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(reader.Scan(out byte[][] cards), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(cards, Is.Not.Null);
-        Log.Write("Card Count: " + cards.Length);
+        LOG.LogInformation("Card Count: " + cards.Length);
         if (cards.Length == 0) {
             Assert.Inconclusive("No cards were in reader, can't verify!");
         }
@@ -59,7 +61,8 @@ public class RfidDeckReaderTest {
         Assert.That(cards, Has.None.Length.Not.EqualTo(reader.GetCardPayloadSize()));
         for (int i = 0; i < cards.Length; i++) {
             byte[] card = cards[i];
-            Log.Dump(card, "cards[" + i + "]");
+            LOG.LogInformation("cards[" + i + "]");
+            LOG.LogInformation(Hex.Dump(card));
         }
     }
 }

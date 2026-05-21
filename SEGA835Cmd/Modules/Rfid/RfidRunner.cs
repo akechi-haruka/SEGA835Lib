@@ -2,10 +2,13 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.RFID;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Rfid;
 
 static class RfidRunner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidRunner));
+
     internal static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
@@ -13,31 +16,31 @@ static class RfidRunner {
 
         DeviceStatus ret = rfid.Connect();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Connect failed");
+            LOG.LogError("Connect failed");
             return ret;
         }
 
         ret = rfid.Reset();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Board reset failed");
+            LOG.LogError("Board reset failed");
             return ret;
         }
 
         ret = rfid.GetUnknown81(out byte _);
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Board initialization failed");
+            LOG.LogError("Board initialization failed");
             return ret;
         }
 
         ret = rfid.SetUnknown4();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Board initialization failed");
+            LOG.LogError("Board initialization failed");
             return ret;
         }
 
         ret = rfid.SetUnknown5();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Board initialization failed");
+            LOG.LogError("Board initialization failed");
             return ret;
         }
 
@@ -45,7 +48,7 @@ static class RfidRunner {
         do {
             ret = rfid.Scan(out cards);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Read failed");
+                LOG.LogError("Read failed");
                 return ret;
             }
 
@@ -54,7 +57,7 @@ static class RfidRunner {
             }
         } while (cards.Length < opts.WaitUntil);
 
-        Log.Write("Found " + cards.Length + " card(s)");
+        LOG.LogInformation("Found " + cards.Length + " card(s)");
         foreach (byte[] card in cards) {
             Console.WriteLine(card.ToHexString());
         }

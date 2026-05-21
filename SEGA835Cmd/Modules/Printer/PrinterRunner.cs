@@ -8,45 +8,48 @@ using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 
 static class PrinterRunner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(PrinterRunner));
+
     internal static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
         if (opts.NoWait && opts.PrintCardId) {
-            Log.WriteError("--no-wait and --print-card-id exclude each other.");
+            LOG.LogError("--no-wait and --print-card-id exclude each other.");
             return DeviceStatus.ErrorOther;
         }
 
         if (!File.Exists(opts.ImageFileName)) {
-            Log.WriteError("Image file does not exist!");
+            LOG.LogError("Image file does not exist!");
             return DeviceStatus.ErrorOther;
         }
 
         if (!File.Exists(opts.Icc1FileName)) {
-            Log.WriteError("ICC1 file does not exist: " + opts.Icc1FileName);
+            LOG.LogError("ICC1 file does not exist: " + opts.Icc1FileName);
             return DeviceStatus.ErrorOther;
         }
 
         if (!File.Exists(opts.Icc2FileName)) {
-            Log.WriteError("ICC2 file does not exist: " + opts.Icc2FileName);
+            LOG.LogError("ICC2 file does not exist: " + opts.Icc2FileName);
             return DeviceStatus.ErrorOther;
         }
 
         if (!File.Exists(opts.MtfFileName)) {
-            Log.WriteError("MTF file does not exist: " + opts.MtfFileName);
+            LOG.LogError("MTF file does not exist: " + opts.MtfFileName);
             return DeviceStatus.ErrorOther;
         }
 
         if (opts.HoloFileName != null && !File.Exists(opts.HoloFileName)) {
-            Log.WriteError("Holo file does not exist: " + opts.HoloFileName);
+            LOG.LogError("Holo file does not exist: " + opts.HoloFileName);
             return DeviceStatus.ErrorOther;
         }
 
         if (opts.RfidFileName != null && !File.Exists(opts.RfidFileName)) {
-            Log.WriteError("RFID file does not exist: " + opts.RfidFileName);
+            LOG.LogError("RFID file does not exist: " + opts.RfidFileName);
             return DeviceStatus.ErrorOther;
         }
 
@@ -67,7 +70,7 @@ static class PrinterRunner {
             printers.Add(new Chc330Printer(opts.RfidFileName != null ? new RfidRwPrinter15347(opts.Port) : null));
         }
 
-        Log.Write("Available printers: " + printers.Count);
+        LOG.LogInformation("Available printers: " + printers.Count);
 
         try {
             DeviceStatus ret;
@@ -79,15 +82,15 @@ static class PrinterRunner {
                 }
 
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteWarning(possiblePrinter + " not connected: " + ret);
+                    LOG.LogWarning(possiblePrinter + " not connected: " + ret);
                     possiblePrinter.Disconnect();
                     printers.Remove(possiblePrinter);
                 }
             }
 
-            Log.Write("Connected printers: " + printers.Count);
+            LOG.LogInformation("Connected printers: " + printers.Count);
             if (printers.Count == 0) {
-                Log.WriteError("No printers connected!");
+                LOG.LogError("No printers connected!");
                 return DeviceStatus.ErrorNotConnected;
             }
 
@@ -95,7 +98,7 @@ static class PrinterRunner {
 
             ushort rc = printer.GetPrinterStatusCode();
             if (rc != ChcSeriesCardPrinter.RESULT_NOERROR) {
-                Log.WriteError("Printer reports: " + ChcSeriesCardPrinter.RcToString(rc));
+                LOG.LogError("Printer reports: " + ChcSeriesCardPrinter.RcToString(rc));
                 return DeviceStatus.ErrorNotInitialized;
             }
 
@@ -105,25 +108,25 @@ static class PrinterRunner {
             Bitmap imageFront, holo, imageBack;
             try {
                 imageFront = new Bitmap(Image.FromFile(opts.ImageFileName));
-                Log.Write("Image rotate: " + opts.ImageRotateFlip);
+                LOG.LogInformation("Image rotate: " + opts.ImageRotateFlip);
                 if (opts.ImageRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                     imageFront.RotateFlip(opts.ImageRotateFlip);
                 }
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed loading image from " + opts.ImageFileName);
+                LOG.LogCritical(ex, "Failed loading image from " + opts.ImageFileName);
                 return DeviceStatus.ErrorOther;
             }
 
             if (opts.HoloFileName != null) {
                 try {
                     holo = new Bitmap(Image.FromFile(opts.HoloFileName));
-                    Log.Write("Holo rotate: " + opts.HoloRotateFlip);
+                    LOG.LogInformation("Holo rotate: " + opts.HoloRotateFlip);
                     if (opts.HoloRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                         holo.RotateFlip(opts.HoloRotateFlip);
                     }
 
                     if (opts.HoloSimplify) {
-                        Log.Write("Holo simplify");
+                        LOG.LogInformation("Holo simplify");
                         for (int w = 0; w < holo.Width; w++) {
                             for (int h = 0; h < holo.Height; h++) {
                                 Color p = holo.GetPixel(w, h);
@@ -134,7 +137,7 @@ static class PrinterRunner {
                         }
                     }
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Failed loading holo image from " + opts.HoloFileName);
+                    LOG.LogCritical(ex, "Failed loading holo image from " + opts.HoloFileName);
                     return DeviceStatus.ErrorOther;
                 }
             } else {
@@ -144,12 +147,12 @@ static class PrinterRunner {
             if (opts.BackImageFileName != null) {
                 try {
                     imageBack = new Bitmap(Image.FromFile(opts.BackImageFileName));
-                    Log.Write("Image rotate: " + opts.ImageRotateFlip);
+                    LOG.LogInformation("Image rotate: " + opts.ImageRotateFlip);
                     if (opts.ImageRotateFlip != RotateFlipType.RotateNoneFlipNone) {
                         imageFront.RotateFlip(opts.ImageRotateFlip);
                     }
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Failed loading back side image from " + opts.BackImageFileName);
+                    LOG.LogCritical(ex, "Failed loading back side image from " + opts.BackImageFileName);
                     return DeviceStatus.ErrorOther;
                 }
             } else {
@@ -170,7 +173,7 @@ static class PrinterRunner {
                 if (ret == DeviceStatus.Ok) {
                     Console.WriteLine(BitConverter.ToString(cardid).Replace("-", ""));
                 } else {
-                    Log.WriteError("Could not obtain written RFID card ID: " + ret);
+                    LOG.LogError("Could not obtain written RFID card ID: " + ret);
                 }
             }
 

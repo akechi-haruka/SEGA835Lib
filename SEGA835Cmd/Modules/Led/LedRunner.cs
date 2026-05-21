@@ -2,10 +2,13 @@
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.LED;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Led;
 
 static class LedRunner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(LedRunner));
+
     internal static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
@@ -13,32 +16,32 @@ static class LedRunner {
 
         DeviceStatus ret = led.Connect();
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Connecting to LED board failed");
+            LOG.LogError("Connecting to LED board failed");
             return ret;
         }
 
         ret = led.GetBoardInfo(out string boardNumber, out string chipNumber, out byte fwVer);
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Getting board info failed");
+            LOG.LogError("Getting board info failed");
             return ret;
         }
 
-        Log.Write("Board Number: " + boardNumber);
-        Log.Write("Chip Number: " + chipNumber);
-        Log.Write("FW version: " + fwVer);
+        LOG.LogInformation("Board Number: " + boardNumber);
+        LOG.LogInformation("Chip Number: " + chipNumber);
+        LOG.LogInformation("FW version: " + fwVer);
 
         ret = led.GetFirmwareChecksum(out ushort chk);
         if (ret != DeviceStatus.Ok) {
-            Log.WriteError("Getting board info failed");
+            LOG.LogError("Getting board info failed");
             return ret;
         }
 
-        Log.Write("Board Checksum: " + chk);
+        LOG.LogInformation("Board Checksum: " + chk);
 
         if (opts.MonkeyReset) {
             ret = led.ResetMonkey();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Reset failed");
+                LOG.LogError("Reset failed");
                 return ret;
             }
         }
@@ -46,7 +49,7 @@ static class LedRunner {
         if (opts.MonkeyChecksum > 0) {
             ret = led.SetFirmwareChecksum(opts.MonkeyChecksum);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting checksum failed");
+                LOG.LogError("Setting checksum failed");
                 return ret;
             }
         }
@@ -54,7 +57,7 @@ static class LedRunner {
         if (opts.MonkeyVersion > 0) {
             ret = led.SetFirmwareVersion(opts.MonkeyVersion);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting version failed");
+                LOG.LogError("Setting version failed");
                 return ret;
             }
         }
@@ -62,7 +65,7 @@ static class LedRunner {
         if (opts.MonkeyBoardName != null) {
             ret = led.SetBoardName(opts.MonkeyBoardName);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting board name failed");
+                LOG.LogError("Setting board name failed");
                 return ret;
             }
         }
@@ -70,7 +73,7 @@ static class LedRunner {
         if (opts.MonkeyChipNumber != null) {
             ret = led.SetChipNumber(opts.MonkeyChipNumber);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting chip number failed");
+                LOG.LogError("Setting chip number failed");
                 return ret;
             }
         }
@@ -83,7 +86,7 @@ static class LedRunner {
 
             ret = led.SetLedTranslationTable(data);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting translation table failed");
+                LOG.LogError("Setting translation table failed");
                 return ret;
             }
         }
@@ -91,7 +94,7 @@ static class LedRunner {
         if (opts.MonkeyChannels != null) {
             string[] channels = opts.MonkeyChannels.Split(',');
             if (channels.Length != 3) {
-                Log.WriteError("Invalid argument for channels");
+                LOG.LogError("Invalid argument for channels");
                 return ret;
             }
 
@@ -111,7 +114,7 @@ static class LedRunner {
 
             ret = led.SetLeds(data);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Setting LEDs failed");
+                LOG.LogError("Setting LEDs failed");
             }
         }
 

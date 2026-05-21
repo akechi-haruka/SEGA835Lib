@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using JetBrains.Annotations;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.IO4Con;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Io4Con;
 
 [Verb("io4con", HelpText = "Use a IO4 board as a VJoy controller")]
 [UsedImplicitly]

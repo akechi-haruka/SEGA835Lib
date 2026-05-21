@@ -1,10 +1,13 @@
 ﻿using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Cmd.Modules.AimeReader;
 
-static class AimeReader {
+static class AimeRunner {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(AimeRunner));
+
     public static DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
@@ -12,14 +15,14 @@ static class AimeReader {
         try {
             DeviceStatus ret = aime.Connect();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Connecting to card reader failed");
+                LOG.LogError("Connecting to card reader failed");
                 return ret;
             }
 
             if (opts.ResetLeds) {
                 ret = aime.LedReset();
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Resetting LEDs failed");
+                    LOG.LogError("Resetting LEDs failed");
                     return ret;
                 }
             }
@@ -27,7 +30,7 @@ static class AimeReader {
             if (opts.LedRed > 0 || opts.LedGreen > 0 || opts.LedBlue > 0) {
                 ret = aime.LedSetColor(opts.LedRed, opts.LedGreen, opts.LedBlue);
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Setting LEDs failed");
+                    LOG.LogError("Setting LEDs failed");
                     return ret;
                 }
             }
@@ -35,7 +38,7 @@ static class AimeReader {
             if (opts.GetFirmware) {
                 ret = aime.GetFirmwareVersion(out string version, out byte versionByte);
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Operation failed");
+                    LOG.LogError("Operation failed");
                 }
 
                 if (versionByte > 0) {
@@ -48,7 +51,7 @@ static class AimeReader {
             } else if (opts.GetFirmwareChecksum) {
                 ret = aime.GetFirmwareChecksum(out ushort checksum);
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Operation failed");
+                    LOG.LogError("Operation failed");
                 }
 
                 Console.WriteLine("0x" + checksum.ToString("X2"));
@@ -56,7 +59,7 @@ static class AimeReader {
             } else if (opts.GetHardware) {
                 ret = aime.GetHardwareVersion(out string version);
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("Operation failed");
+                    LOG.LogError("Operation failed");
                 }
 
                 Console.WriteLine(version);
@@ -65,13 +68,13 @@ static class AimeReader {
 
             ret = aime.RadioOn(opts.CardType);
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Failed to start scanning");
+                LOG.LogError("Failed to start scanning");
                 return ret;
             }
 
             ret = aime.StartPolling();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Failed to start scanning");
+                LOG.LogError("Failed to start scanning");
                 return ret;
             }
 
@@ -95,13 +98,13 @@ static class AimeReader {
 
             ret = aime.StopPolling();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Failed to stop scanning");
+                LOG.LogError("Failed to stop scanning");
                 return ret;
             }
 
             ret = aime.RadioOff();
             if (ret != DeviceStatus.Ok) {
-                Log.WriteError("Failed to stop scanning");
+                LOG.LogError("Failed to stop scanning");
             }
 
             return ret;

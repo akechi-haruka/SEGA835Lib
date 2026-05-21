@@ -3,13 +3,14 @@ using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
-
     /// <summary>
     /// A CHC-330 Card Printer for Fate/Grand Order Arcade.
     /// </summary>
     public class Chc330Printer : ChcSeriesCardPrinter {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc330Printer));
 
         private readonly RfidRwPrinter15347 rfid;
 
@@ -25,26 +26,25 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         public override DeviceStatus ConnectRfid() {
             DeviceStatus ret;
             if (rfid != null) {
-
                 int attempt = 1;
                 do {
                     rfid.Disconnect();
                     ret = rfid.Connect();
-                    Log.Write("Attempt to connect: " + attempt);
+                    LOG.LogInformation("Attempt to connect: " + attempt);
                     if (ret != DeviceStatus.Ok) {
-                        Log.WriteError("RFID Connect failed");
+                        LOG.LogError("RFID Connect failed");
                         continue;
                     }
 
                     ret = rfid.ResetWriter();
                     if (ret != DeviceStatus.Ok) {
-                        Log.WriteError("RFID ResetWriter failed");
+                        LOG.LogError("RFID ResetWriter failed");
                     }
                 } while (attempt++ < 3 && ret != DeviceStatus.Ok);
-
             } else {
                 ret = DeviceStatus.Ok;
             }
+
             return SetLastError(ret);
         }
 
@@ -63,10 +63,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             DeviceStatus ret = rfid.Scan(out byte[][] card);
             if (card != null && card.Length == 1) {
                 cardid = card[0];
-                Log.Dump(cardid, "Loaded card ID: ");
+                LOG.LogInformation("Loaded card ID:\n" + Hex.Dump(cardid));
             } else {
                 cardid = null;
             }
+
             return SetLastError(ret);
         }
 
@@ -88,8 +89,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             if (payload != null && rfid == null) {
                 throw new InvalidOperationException("Can't write RFID data to card if no RFID board was set when initializing printer");
             }
+
             if (payload != null && payload.Length != rfid.GetCardPayloadSize() - (overrideCardId ? 0 : CARD_ID_LEN)) {
-                throw new ArgumentException("RFID data size (" + payload.Length + ") must be equal to RFID device's expected data size (" + (rfid.GetCardPayloadSize() - (overrideCardId ? 0 : CARD_ID_LEN)) + ", card ID override = "+overrideCardId+")");
+                throw new ArgumentException("RFID data size (" + payload.Length + ") must be equal to RFID device's expected data size (" + (rfid.GetCardPayloadSize() - (overrideCardId ? 0 : CARD_ID_LEN)) + ", card ID override = " + overrideCardId + ")");
             }
         }
 
@@ -98,15 +100,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             DeviceStatus ret = DeviceStatus.Ok;
             writtenCardId = null;
             if (rfid != null) {
-                Log.Write("Initializing RFID Board");
+                LOG.LogInformation("Initializing RFID Board");
 
                 ret = rfid.ResetWriter();
                 if (ret != DeviceStatus.Ok) {
-                    Log.WriteError("RFID ResetWriter failed");
+                    LOG.LogError("RFID ResetWriter failed");
                     return PrintExitThreadError(ret, RESULT_CARDRFID_COMMAND_ERROR);
                 }
 
-                Log.Write("Reading Card ID from RFID board");
+                LOG.LogInformation("Reading Card ID from RFID board");
                 byte[] cardId = null;
                 ret = PrintWaitFor(ref rc, (ref ushort rc) => {
                     ret = GetLoadedCardId(out cardId);
@@ -118,7 +120,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
                     return CHCUSB_RC_BUSY;
                 }, 20000);
                 if (ret != DeviceStatus.Ok || cardId == null) {
-                    Log.WriteError("RFID Read failed");
+                    LOG.LogError("RFID Read failed");
                     return PrintExitThreadError(ret, RESULT_CARDRFID_COMMAND_ERROR);
                 }
 
@@ -139,11 +141,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
                         ret = rfid.Write(cardid, payload);
                     }
                 } else {
-                    Log.WriteWarning("No RFID data to write");
+                    LOG.LogWarning("No RFID data to write");
                 }
             } else {
-                Log.Write("No RFID board was initialized");
+                LOG.LogInformation("No RFID board was initialized");
             }
+
             return ret;
         }
 

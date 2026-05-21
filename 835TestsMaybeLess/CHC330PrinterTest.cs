@@ -6,10 +6,12 @@ using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace _835TestsMaybeLess;
 
 public class Chc330PrinterTest {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc330PrinterTest));
     private Chc330Printer printer;
 
     [SetUp]
@@ -24,7 +26,7 @@ public class Chc330PrinterTest {
 
     [Test]
     public void T01_TestPrinterDllLoad() {
-        Log.Write("CWD is " + Environment.CurrentDirectory);
+        LOG.LogInformation("CWD is " + Environment.CurrentDirectory);
         if (!File.Exists(Native.DLL)) {
             Assert.Inconclusive("DLL not found in CWD!");
         }
@@ -40,7 +42,7 @@ public class Chc330PrinterTest {
 
         Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(serial, Is.Not.Null);
-        Log.Write(serial);
+        LOG.LogInformation(serial);
     }
 
     [Test]
@@ -53,20 +55,20 @@ public class Chc330PrinterTest {
         Assert.That(rfid, Is.Not.Null);
         Assert.That(rfid.GetBootVersion(out byte version), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(version, Is.Not.Zero);
-        Log.Write("Boot: " + version);
+        LOG.LogInformation("Boot: " + version);
         Assert.That(rfid.GetAppVersion(out byte version2), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(version2, Is.Not.Zero);
-        Log.Write("App: " + version2);
+        LOG.LogInformation("App: " + version2);
         Assert.That(rfid.GetBoardInfo(out string board), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(board, Is.Not.Null);
-        Log.Write("Board: " + board);
+        LOG.LogInformation("Board: " + board);
     }
 
     [Test]
     public void T04_TestImageConversion() {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage330.jpg"));
         byte[] data = image.GetRawPixelsRgbNoPadding();
-        Log.Write("pixels total = " + data.Length);
+        LOG.LogInformation("pixels total = " + data.Length);
 
         Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
     }
@@ -76,7 +78,7 @@ public class Chc330PrinterTest {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestOversized330.jpg"));
         image = image.CopyCentered(printer.ImageDimensions);
         byte[] data = image.GetRawPixelsRgbNoPadding();
-        Log.Write("pixels total = " + data.Length);
+        LOG.LogInformation("pixels total = " + data.Length);
 
         Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
     }
@@ -86,7 +88,7 @@ public class Chc330PrinterTest {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestOversized330.jpg"));
         image = image.CopyStretched(printer.ImageDimensions);
         byte[] data = image.GetRawPixelsRgbNoPadding();
-        Log.Write("pixels total = " + data.Length);
+        LOG.LogInformation("pixels total = " + data.Length);
 
         Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
     }
@@ -95,7 +97,7 @@ public class Chc330PrinterTest {
     public void T07_TestImageConversionHolo() {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo330.png"));
         byte[] data = image.GetRawPixelsMonochrome();
-        Log.Write("pixels total = " + data.Length);
+        LOG.LogInformation("pixels total = " + data.Length);
 
         Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height));
     }
@@ -107,7 +109,7 @@ public class Chc330PrinterTest {
         }
 
         ushort rc = printer.GetPrinterStatusCode();
-        Log.Write(ChcSeriesCardPrinter.RcToString(rc));
+        LOG.LogInformation(ChcSeriesCardPrinter.RcToString(rc));
         Assert.That(rc, Is.Zero);
         printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C330-01.icc");
         printer.SetMtfFile("TestFiles/Printer/mtf140.txt");
@@ -128,7 +130,7 @@ public class Chc330PrinterTest {
         }
 
         ushort rc = printer.GetPrinterStatusCode();
-        Log.Write(ChcSeriesCardPrinter.RcToString(rc));
+        LOG.LogInformation(ChcSeriesCardPrinter.RcToString(rc));
         Assert.That(rc, Is.Zero);
         printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C330-01.icc");
         printer.SetMtfFile("TestFiles/Printer/mtf140.txt");
@@ -164,7 +166,7 @@ public class Chc330PrinterTest {
         }
 
         ushort rc = printer.GetPrinterStatusCode();
-        Log.Write(ChcSeriesCardPrinter.RcToString(rc));
+        LOG.LogInformation(ChcSeriesCardPrinter.RcToString(rc));
         Assert.That(rc, Is.Zero);
         printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C330-01.icc");
         printer.SetMtfFile("TestFiles/Printer/mtf140.txt");

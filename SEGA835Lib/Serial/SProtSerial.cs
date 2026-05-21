@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Ports;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// <summary>
@@ -15,6 +16,8 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// </remarks>
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class SProtSerial : SerialComm {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(SProtSerial));
+
         /// <summary>
         /// The constant synchronization byte. All packets start with this constant.
         /// </summary>
@@ -26,7 +29,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         private const byte ESCAPE_BYTE = 0xD0;
 
         /// <summary>
-        /// Whether read and written bytes should be printed to the <see cref="Log"/>.
+        /// Whether read and written bytes should be printed to the log.
         /// </summary>
         public bool DumpBytesToLog { get; set; }
 
@@ -40,7 +43,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         public override DeviceStatus Read(int len, out byte[] data) {
             lock (locker) {
                 if (DumpReadWriteCommandsToLog) {
-                    Log.Write("SProtSerial Port " + Port + ", Read Len=" + len);
+                    LOG.LogInformation("SProtSerial Port " + Port + ", Read Len=" + len);
                 }
 
                 int pos = 0;
@@ -56,7 +59,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     }
 
                     if (pos == 0 && b != SYNC_BYTE) {
-                        Log.WriteError("SProtSerial Read failed, expected sync byte, got " + b);
+                        LOG.LogError("SProtSerial Read failed, expected sync byte, got " + b);
                         return DeviceStatus.ErrorChecksum;
                     }
 
@@ -82,13 +85,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 data = bytes.ToArray();
 
                 if (DumpBytesToLog) {
-                    Log.Dump(data, "SProtSerial Read:");
+                    LOG.LogInformation("SProtSerial Read:");
+                    LOG.LogInformation(Hex.Dump(data));
                 }
 
                 checksum %= 0x100;
                 byte dataChecksum = data[data.Length - 1];
                 if (checksum != dataChecksum) {
-                    Log.WriteError("SProtSerial Read failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
+                    LOG.LogError("SProtSerial Read failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
                     ret = DeviceStatus.ErrorChecksum;
                 }
 
@@ -119,7 +123,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         public DeviceStatus ReadLenByOffset(int lenByteOffset, out byte[] data, bool lenIncludesSelf = false, bool lenIncludesChecksumByte = false) {
             lock (locker) {
                 if (DumpReadWriteCommandsToLog) {
-                    Log.Write("SProtSerial Port " + Port + ", Read Len By Offset=" + lenByteOffset);
+                    LOG.LogInformation("SProtSerial Port " + Port + ", Read Len By Offset=" + lenByteOffset);
                 }
 
                 int pos = 0;
@@ -133,14 +137,14 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     ret = base.ReadByte(out byte b);
                     if (ret != DeviceStatus.Ok) {
                         if (DumpReadWriteCommandsToLog) {
-                            Log.Write("Error occurred after reading " + pos);
+                            LOG.LogInformation("Error occurred after reading " + pos);
                         }
 
                         return ret;
                     }
 
                     if (pos == 0 && b != SYNC_BYTE) {
-                        Log.WriteError("SProtSerial ReadLenByOffset failed, expected sync byte, got " + b);
+                        LOG.LogError("SProtSerial ReadLenByOffset failed, expected sync byte, got " + b);
                         return DeviceStatus.ErrorChecksum;
                     }
 
@@ -168,7 +172,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 pos = lenIncludesSelf ? 1 : 0;
                 len += lenIncludesChecksumByte ? 0 : 1;
                 if (DumpReadWriteCommandsToLog) {
-                    Log.Write("SProtSerial Port " + Port + ", Read Len Remaining=" + (len - pos));
+                    LOG.LogInformation("SProtSerial Port " + Port + ", Read Len Remaining=" + (len - pos));
                 }
 
                 if (len - pos < 0) {
@@ -204,12 +208,13 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 
                 data = bytes.ToArray();
                 if (DumpBytesToLog) {
-                    Log.Dump(data, "SProtSerial Read:");
+                    LOG.LogInformation("SProtSerial Read:");
+                    LOG.LogInformation(Hex.Dump(data));
                 }
 
                 byte dataChecksum = data[data.Length - 1];
                 if (checksum != dataChecksum) {
-                    Log.WriteError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
+                    LOG.LogError("SProtSerial ReadLenByOffset failed, checksum mismatch, expected " + dataChecksum + ", got " + checksum);
                     ret = DeviceStatus.ErrorChecksum;
                 }
 
@@ -238,7 +243,8 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 bytes.Add((byte)(checksum % 0x100));
                 byte[] encoded = bytes.ToArray();
                 if (DumpBytesToLog) {
-                    Log.Dump(encoded, "SProtSerial Write:");
+                    LOG.LogInformation("SProtSerial Write:");
+                    LOG.LogInformation(Hex.Dump(encoded));
                 }
 
                 return base.Write(encoded);

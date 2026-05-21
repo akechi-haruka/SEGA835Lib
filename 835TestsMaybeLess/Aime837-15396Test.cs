@@ -3,17 +3,22 @@ using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Card;
 using Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 
 namespace _835TestsMaybeLess;
 
 class Aime15396Test {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Aime15396Test));
     private AimeCardReader15396 reader;
 
     [SetUp]
     public void Setup() {
-        reader = new AimeCardReader15396(3);
-        reader.Serial.DumpReadWriteCommandsToLog = true;
-        reader.Serial.DumpBytesToLog = true;
+        reader = new AimeCardReader15396(3) {
+            Serial = {
+                DumpReadWriteCommandsToLog = true,
+                DumpBytesToLog = true
+            }
+        };
     }
 
     [TearDown]
@@ -59,10 +64,10 @@ class Aime15396Test {
 
         Assert.That(reader.LedReset(), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(reader.LedGetInfo(out string info), Is.EqualTo(DeviceStatus.Ok));
-        Log.Write(info);
+        LOG.LogInformation(info);
         Assert.That(info, Is.Not.Null);
         Assert.That(reader.LedGetHwVersion(out string info2), Is.EqualTo(DeviceStatus.Ok));
-        Log.Write(info2);
+        LOG.LogInformation(info2);
         Assert.That(info2, Is.Not.Null);
         Assert.That(reader.LedSetColor(Color.Black), Is.EqualTo(DeviceStatus.Ok));
         Thread.Sleep(200);
@@ -139,11 +144,11 @@ class Aime15396Test {
 
         reader.ReadMifarEeMoneyAuthentication(reader.GetMifareCardLuid() ?? 0, Convert.FromHexString(File.ReadAllText("TestFiles/emoney.key")), out byte proxyType, out byte _, out string storeCardID, out string merchantCode, out UInt128 storeBranchID, out string passphrase);
 
-        Log.Write("Proxy type: " + proxyType);
-        Log.Write("Store Card ID: " + storeCardID);
-        Log.Write("Merchant Code: " + merchantCode);
-        Log.Write("Store branch ID: " + storeBranchID);
-        Log.Write("Passphrase: " + passphrase);
+        LOG.LogInformation("Proxy type: " + proxyType);
+        LOG.LogInformation("Store Card ID: " + storeCardID);
+        LOG.LogInformation("Merchant Code: " + merchantCode);
+        LOG.LogInformation("Store branch ID: " + storeBranchID);
+        LOG.LogInformation("Passphrase: " + passphrase);
 
         Assert.That(proxyType, Is.EqualTo(2).Or.EqualTo(3));
         Assert.That(storeBranchID, Is.Not.EqualTo(new UInt128(0, 0)));

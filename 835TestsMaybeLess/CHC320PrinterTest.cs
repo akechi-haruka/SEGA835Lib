@@ -4,11 +4,13 @@ using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320;
 using Haruka.Arcade.SEGA835Lib.Misc;
+using Microsoft.Extensions.Logging;
 using Native = Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310.Native;
 
 namespace _835TestsMaybeLess;
 
 public class Chc320PrinterTest {
+    private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc320PrinterTest));
     private Chc320Printer printer;
 
     [SetUp]
@@ -23,7 +25,7 @@ public class Chc320PrinterTest {
 
     [Test]
     public void T01_TestPrinterDllLoad() {
-        Log.Write("CWD is " + Environment.CurrentDirectory);
+        LOG.LogInformation("CWD is " + Environment.CurrentDirectory);
         if (!File.Exists(Native.DLL)) {
             Assert.Inconclusive("DLL not found in CWD!");
         }
@@ -39,14 +41,14 @@ public class Chc320PrinterTest {
 
         Assert.That(printer.GetPrinterSerial(out string serial), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(serial, Is.Not.Null);
-        Log.Write(serial);
+        LOG.LogInformation(serial);
     }
 
     [Test]
     public void T03_TestImageConversion() {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320front.bmp"));
         byte[] data = image.GetRawPixelsRgbNoPadding();
-        Log.Write("pixels total = " + data.Length);
+        LOG.LogInformation("pixels total = " + data.Length);
 
         Assert.That(data, Has.Length.EqualTo(printer.ImageDimensions.Width * printer.ImageDimensions.Height * 3));
     }
@@ -58,7 +60,7 @@ public class Chc320PrinterTest {
         }
 
         ushort rc = printer.GetPrinterStatusCode();
-        Log.Write(ChcSeriesCardPrinter.RcToString(rc));
+        LOG.LogInformation(ChcSeriesCardPrinter.RcToString(rc));
         Assert.That(rc, Is.Zero);
         printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C320-01.icc");
         printer.SetMtfFile("TestFiles/Printer/SmplMtf.txt");

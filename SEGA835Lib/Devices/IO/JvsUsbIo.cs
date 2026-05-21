@@ -5,6 +5,7 @@ using System.Text;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using HidLibrary;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     /// <summary>
@@ -13,6 +14,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     public abstract class JvsUsbIo : JvsIo {
         private const int OUTGOING_REPORT_ID = 0x10;
         private const int INCOMING_REPORT_ID = 0x01;
+
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(JvsUsbIo));
 
         /// <summary>
         /// USB vendor ID of this board.
@@ -54,19 +57,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <see cref="DeviceStatus.ErrorNotConnected"/> if the board is not attached or if opening the device fails.<br />
         /// </returns>
         public sealed override DeviceStatus Connect() {
-            Log.Write("Open JVS USB: VID:" + UsbVendorID + ", PID: " + UsbProductID);
+            LOG.LogInformation("Open JVS USB: VID:" + UsbVendorID + ", PID: " + UsbProductID);
             device = HidDevices.Enumerate(UsbVendorID, UsbProductID).FirstOrDefault();
 
             if (device == null) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            Log.Write("Found JVS USB at " + device.DevicePath);
+            LOG.LogInformation("Found JVS USB at " + device.DevicePath);
 
             try {
                 device.OpenDevice();
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Opening USB device failed (" + GetName() + ")");
+                LOG.LogCritical(ex, "Opening USB device failed (" + GetName() + ")");
                 device = null;
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
@@ -106,7 +109,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
         public DeviceStatus GetManufacturer(out string manufacturer) {
-            Log.Write("GetManufacturer");
+            LOG.LogInformation("GetManufacturer");
             manufacturer = null;
             if (device == null) {
                 return SetLastError(DeviceStatus.ErrorNotInitialized);
@@ -121,7 +124,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 manufacturer = Encoding.ASCII.GetString(data);
                 return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed reading USB Device Manufacturer of " + GetName());
+                LOG.LogCritical(ex, "Failed reading USB Device Manufacturer of " + GetName());
                 return SetLastError(DeviceStatus.ErrorOther);
             }
         }
@@ -137,7 +140,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
         /// </returns>
         public DeviceStatus GetProduct(out string product) {
-            Log.Write("GetProduct");
+            LOG.LogInformation("GetProduct");
             product = null;
             if (device == null) {
                 return SetLastError(DeviceStatus.ErrorNotInitialized);
@@ -152,7 +155,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 product = Encoding.ASCII.GetString(data);
                 return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed reading USB Device Product of " + GetName());
+                LOG.LogCritical(ex, "Failed reading USB Device Product of " + GetName());
                 return SetLastError(DeviceStatus.ErrorOther);
             }
         }
@@ -183,7 +186,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
 
                 if (data.ReportId != INCOMING_REPORT_ID) {
                     report = default;
-                    Log.WriteError("Read unknown report id " + data.ReportId);
+                    LOG.LogError("Read unknown report id " + data.ReportId);
                     return SetLastError(DeviceStatus.ErrorIncompatible);
                 }
 
@@ -191,7 +194,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 LastReport = report;
                 return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed reading data from " + GetName());
+                LOG.LogCritical(ex, "Failed reading data from " + GetName());
                 report = default;
                 return SetLastError(DeviceStatus.ErrorOther);
             }
@@ -223,7 +226,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 }, Timeout);
                 return SetLastError(success ? DeviceStatus.Ok : DeviceStatus.ErrorDevice, Marshal.GetLastWin32Error());
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed writing data to " + GetName());
+                LOG.LogCritical(ex, "Failed writing data to " + GetName());
                 return SetLastError(DeviceStatus.ErrorOther);
             }
         }
@@ -262,12 +265,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                     Data = payload
                 }, Timeout);
                 if (!success) {
-                    Log.WriteError("HID Write failed");
+                    LOG.LogError("HID Write failed");
                 }
 
                 return SetLastError(success ? DeviceStatus.Ok : DeviceStatus.ErrorDevice, Marshal.GetLastWin32Error());
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed writing data to " + GetName());
+                LOG.LogCritical(ex, "Failed writing data to " + GetName());
                 return SetLastError(DeviceStatus.ErrorOther);
             }
         }

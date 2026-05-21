@@ -1,7 +1,7 @@
 ﻿using CommandLine;
 using JetBrains.Annotations;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.LED;
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Led;
 
 [Verb("led", HelpText = "Set outputs on LED or Monkey06 boards")]
 [UsedImplicitly]

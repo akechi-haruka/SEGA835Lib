@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// <summary>
@@ -10,6 +11,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
     /// </summary>
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class RfidRwPrinter15347 : RfidDeckReader20004 {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidRwPrinter15347));
+
         private const byte COMMAND_WRITE_START_STOP = 0x02;
         private const byte COMMAND_WRITE_BLOCK = 0x03;
 
@@ -48,8 +51,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
                 throw new ArgumentException("data must be 32 bytes in length (given: " + data.Length + ")");
             }
 
-            Log.Dump(cardid, "Write RFID ID:");
-            Log.Dump(data, "Write RFID Data:");
+            LOG.LogDebug("Write RFID ID:\n" + Hex.Dump(cardid));
+            LOG.LogDebug("Write RFID Data:\n" + Hex.Dump(data));
 
             // todo: these actually return something
 
@@ -64,7 +67,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
             }
 
             for (int i = 0; i < data.Length; i += 2) {
-                Log.Write("Write Block " + (i / 2));
+                LOG.LogInformation("Write Block " + (i / 2));
                 ret = SetLastError(Write(COMMAND_WRITE_BLOCK, new byte[] { data[i], data[i + 1] }));
                 if (ret != DeviceStatus.Ok) {
                     return ret;
@@ -89,7 +92,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
         /// </summary>
         /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
         public DeviceStatus ResetWriter() {
-            Log.Write("ResetWriter");
+            LOG.LogInformation("ResetWriter");
             // I am not sure why this needs to be done, but it seems to be mandatory otherwise Scan will give RC 3
             return SetLastError(GetUnknown81(out byte _));
         }
