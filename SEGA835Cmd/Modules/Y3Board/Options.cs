@@ -14,4 +14,7 @@ class Options : GlobalOptions {
 
     [Option("no-exit-button", Required = false, HelpText = "Disables pressing ESC to exit.")]
     public bool NoExitButton { get; set; }
+
+    [Option("include-invalid", Required = false, HelpText = "Ignore card types and report everything that's detected.")]
+    public bool IgnoreCardType { get; set; }
 }

@@ -55,7 +55,7 @@ static class Y3Runner {
 
                 if (count > 0) {
                     foreach (Y3.CardInfo card in data) {
-                        if (card.IsValid()) {
+                        if (card.IsValid() || (card.CardType != Y3.CardInfo.DetectionType.Invalid && opts.IgnoreCardType)) {
                             Console.Write(card.CardType + "," + card.UnknownType + "," + card.X + "," + card.Y + "," + card.Rotation + "," + card.GetTitleCode() + "," + card.GetIvCode());
                             found = true;
                         }
