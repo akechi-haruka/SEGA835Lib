@@ -86,5 +86,12 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
 
             return value;
         }
+
+        /// <summary>
+        /// Flushes log messages and closes all loggers.
+        /// </summary>
+        public static void FlushAndClose() {
+            Factory.Dispose();
+        }
     }
 }

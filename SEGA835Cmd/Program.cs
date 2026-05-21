@@ -60,6 +60,7 @@ static class Program {
             return Int32.MinValue;
         } finally {
             LOG.LogInformation("Exiting");
+            LogManager.FlushAndClose();
         }
     }
 
@@ -67,7 +68,7 @@ static class Program {
         LogManager.Initialize(LoggerFactory.Create(builder => {
             builder.SetMinimumLevel(LogLevel.Trace);
             if (!options.Silent) {
-                builder.AddConsole();
+                builder.AddSimpleConsole(console => { console.SingleLine = true; });
             }
 
             builder.AddDebug();
