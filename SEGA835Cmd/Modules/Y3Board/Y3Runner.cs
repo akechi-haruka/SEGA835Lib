@@ -32,11 +32,22 @@ static class Y3Runner {
                 return ret;
             }
 
+            LOG.LogInformation("Status: " + y3.GetStatus());
+
+            ret = y3.Start();
+            if (ret != DeviceStatus.Ok) {
+                LOG.LogError("Start failed");
+                return ret;
+            }
+
+            LOG.LogInformation("Status: " + y3.GetStatus());
+
             if (!opts.NoExitButton) {
                 Console.WriteLine("Press ESC to exit.");
             }
 
             bool found = false;
+            DateTime lastinfo = DateTime.Now;
             do {
                 if (!opts.NoExitButton) {
                     if (Console.KeyAvailable) {
@@ -55,11 +66,18 @@ static class Y3Runner {
 
                 if (count > 0) {
                     foreach (Y3.CardInfo card in data) {
-                        if (card.IsValid() || (card.CardType != Y3.CardInfo.DetectionType.Invalid && opts.IgnoreCardType)) {
-                            Console.Write(card.CardType + "," + card.UnknownType + "," + card.X + "," + card.Y + "," + card.Rotation + "," + card.GetTitleCode() + "," + card.GetIvCode());
+                        if (card.IsValidCard() || (opts.IgnoreCardType && card.IsValid())) {
+                            Console.WriteLine(card.CardType + ":" + card.UnknownType + ":" + card.X + ":" + card.Y + ":" + card.Rotation + ":" + card.GetTitleCode() + ":" + card.GetIvCode() + ":" + card.DataCount + ":" + card.Data0 + ":" + card.Data1 + ":" + card.Data2 + ":" + card.Data3 + ":" + card.Data4 + ":" + card.Data5);
                             found = true;
                         }
                     }
+
+                    Thread.Sleep(250);
+                }
+
+                if (DateTime.Now - lastinfo > TimeSpan.FromSeconds(3)) {
+                    LOG.LogInformation("Status: " + y3.GetStatus());
+                    lastinfo = DateTime.Now;
                 }
             } while (!opts.FindOne || !found);
         } finally {

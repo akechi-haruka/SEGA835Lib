@@ -14,6 +14,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         public const uint MAX_CARDS = 16;
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Y3));
 
+        static Y3() {
+#if NET5_0_OR_GREATER
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+        }
+
         public int Port { get; }
 
         public float FirmwareVersion { get; private set; }
@@ -324,7 +330,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             uint ec = Native.API_GetLastError(handle);
             byte[] str = new byte[512];
             Native.API_GetErrorMessage(ec, str, str.Length);
-            LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.ASCII.GetString(str));
+            LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.GetEncoding("shift_jis").GetString(str));
             return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
         }
 
@@ -712,6 +718,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             public byte GetTitleCode() {
                 BitVector32 bitVector = new BitVector32((int)Data);
                 return (byte)bitVector[ID];
+            }
+
+            public override string ToString() {
+                return Data.ToString();
             }
 
             /// <summary>
