@@ -355,11 +355,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
 
         /// Return Type: int
-        ///a1: unsigned byte*
-        ///a2: unsigned byte*
+        ///data: unsigned byte*
+        ///writeSize: unsigned int*
         ///rResult: unsigned short*
         [LibraryImport(DLL, EntryPoint = "chcusb_writeIred")]
-        private static partial int chcusb_writeIred(byte* a1, byte* a2, ref ushort rResult);
+        private static partial int chcusb_writeIred(byte* data, ref uint writeSize, ref ushort rResult);
 
         public string GetDllFileName() {
             return DLL;
@@ -597,9 +597,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             return chcusb_universal_command(a1, a2, a3, a4, ref rResult);
         }
 
-        public int CHC_writeIred(byte* a1, byte* a2, ref ushort rResult) {
+        public int CHC_writeIred(byte* data, ref uint writeSize, ref ushort rResult) {
             LOG.LogDebugWithSource(LogExtensions.Arguments());
-            return chcusb_writeIred(a2, a2, ref rResult);
+            return chcusb_writeIred(data, ref writeSize, ref rResult);
         }
     }
 }

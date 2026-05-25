@@ -80,6 +80,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
             return null;
         }
 
+        /// no-op
+        protected override DeviceStatus ReadCardInformation(ref ushort rc) {
+            // TODO: read from Y3
+            return DeviceStatus.Ok;
+        }
+
+        /// <inheritdoc/>
+        protected override ushort GetInitialCardPosition() {
+            return STANDBY_CARD_CAMERA;
+        }
+
         /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "CHC320";

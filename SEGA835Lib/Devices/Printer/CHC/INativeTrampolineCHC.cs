@@ -67,7 +67,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         int CHC_setParameter(byte a1, uint a2, ref ushort rResult);
         int CHC_getParameter(byte a1, byte* a2, ref ushort rResult);
         int CHC_universal_command(int a1, byte a2, int a3, byte* a4, ref ushort rResult);
-        int CHC_writeIred(byte* a1, byte* a2, ref ushort rResult);
+        int CHC_writeIred(byte* data, ref uint writeSize, ref ushort rResult);
 
 #if RELEASE
 #pragma warning restore CS1591

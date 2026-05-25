@@ -67,7 +67,8 @@ public class Chc320PrinterTest {
         Bitmap image = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320front.bmp"));
         Bitmap image2 = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo320.png"));
         Bitmap image3 = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320back.bmp"));
-        Assert.That(printer.StartPrinting(image, null, image2, false, false, image3), Is.EqualTo(DeviceStatus.Ok));
+        Bitmap image4 = new Bitmap(Image.FromFile("TestFiles/Printer/TestInfrared320.bmp"));
+        Assert.That(printer.StartPrinting(image, null, image2, false, false, image3, image4), Is.EqualTo(DeviceStatus.Ok));
         Assert.That((Func<DeviceStatus>)printer.GetPrintJobResult, Is.Not.EqualTo(DeviceStatus.Busy).After(300_000, 1000));
         Assert.That(printer.GetPrintJobResult(), Is.EqualTo(DeviceStatus.Ok));
     }

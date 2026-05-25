@@ -18,6 +18,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
     /// The base class for a CHC-series card printer.
     /// Note that all calls to the given <see cref="INativeTrampolineChc"/> must be done via <see cref="ExecuteOnPrintThread(PrinterThreadDelegate, bool, bool)"/> as the library checks from what thread any printer function is accessed.
     /// </summary>
+    [SuppressMessage("ReSharper", "RedundantLambdaParameterType", Justification = ".NET 10 feature")]
     public abstract partial class ChcSeriesCardPrinter : Device {
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(ChcSeriesCardPrinter));
 
@@ -138,6 +139,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int STANDBY_YMC = 0;
         protected const int STANDBY_HOLO = 1;
         protected const int STANDBY_RFID = 2;
+        protected const int STANDBY_CARD_CAMERA = 4;
 #pragma warning restore CS1591
 
         #endregion
@@ -890,7 +892,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// </summary>
         /// <param name="cardid">The last written card ID or null if none is available.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.Ok" /> if the print job has successfully passed <see cref="PrintStatus.RfidWrite"/>.<br />
+        /// <see cref="DeviceStatus.Ok" /> if the print job has successfully passed <see cref="PrintStatus.CardDataWriteRfid"/>.<br />
         /// <see cref="DeviceStatus.Busy"/> if it has not.
         /// <see cref="DeviceStatus.ErrorNotInitialized"/> if no print job was ever started.
         /// <see cref="DeviceStatus.ErrorDevice"/> if the print job is in error state.
@@ -902,7 +904,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 return DeviceStatus.ErrorNotInitialized;
             }
 
-            if (status > PrintStatus.RfidWrite && status <= PrintStatus.Finished) {
+            if (status > PrintStatus.CardDataWriteRfid && status <= PrintStatus.Finished) {
                 cardid = Job?.WrittenRfidCardId;
                 return DeviceStatus.Ok;
             }
@@ -925,6 +927,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="waitForCompletion">if this is true, this function will block until the print completes (or errors).</param>
         /// <param name="overrideCardId">if this is true, the card ID of the loaded card will be ignored and instead expected as an added 12 bytes in the rfidPayload.</param>
         /// <param name="backImage">The image to print on the back side. Only certain printers support this.</param>
+        /// <param name="infrared">The image to print on the infrared layer. Only certain printers support this.</param>
         /// <returns>
         /// <see cref="DeviceStatus.Ok"/> if the print completed successfully.<br />
         /// <see cref="DeviceStatus.Busy"/> if the print started successfully and <paramref name="waitForCompletion"/> is false or if a print is already in progress.<br />
@@ -933,7 +936,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <seealso cref="GetPrintJobResult"/>
         /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
         /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
-        public DeviceStatus StartPrinting(Bitmap frontImage, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false, Bitmap backImage = null) {
+        public DeviceStatus StartPrinting(Bitmap frontImage, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false, Bitmap backImage = null, Bitmap infrared = null) {
             NetStandardBackCompatExtensions.ThrowIfNull(frontImage, nameof(frontImage));
             if (frontImage.PhysicalDimension != ImageDimensions) {
                 if (ImageStretchMode == StretchMode.Stretch) {
@@ -975,7 +978,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
             }
 
-            Job = new PrintJob(this, Native, frontImage, backImage, holo, rfidPayload, overrideCardId);
+            Job = new PrintJob(this, Native, frontImage, backImage, infrared, holo, rfidPayload, overrideCardId);
 
             LOG.LogInformation("Start Printing");
             LOG.LogInformation("Current Status: " + RcToString(GetPrinterStatusCode()));
@@ -1026,6 +1029,19 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public static string RcToString(int error) {
             return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).ToString();
         }
+
+        /// <summary>
+        /// Read any relevant card information from the current card inside the printer.
+        /// </summary>
+        /// <param name="rc">The printer status code being returned.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or no-op, any other DeviceStatus otherwise.</returns>
+        protected abstract DeviceStatus ReadCardInformation(ref ushort rc);
+
+        /// <summary>
+        /// Returns the STANDBY_* constant that is required for this printer's call to <see cref="INativeTrampolineChc.CHC_setPrintStandby(ushort, ref ushort)"/>.
+        /// </summary>
+        /// <returns>the constant required for PrintStandby.</returns>
+        protected abstract ushort GetInitialCardPosition();
     }
 }
 

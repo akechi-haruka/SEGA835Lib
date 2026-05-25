@@ -1,5 +1,6 @@
 ﻿#if NET8_0_OR_GREATER
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
@@ -10,6 +11,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
     /// <summary>
     /// The base class for a CHC-series card printer.
     /// </summary>
+    [SuppressMessage("ReSharper", "RedundantLambdaParameterType", Justification = ".NET 10 feature")]
     public abstract partial class ChcSeriesCardPrinter {
         /// <summary>
         /// A print job.
@@ -39,6 +41,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly Bitmap imageFront;
             private readonly Bitmap imageBack;
             private readonly Bitmap holo;
+            private readonly Bitmap infrared;
 
             private readonly byte[] rfidPayload;
 
@@ -53,7 +56,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly byte[] outToneB = new byte[256];
             private readonly bool overrideCardId;
 
-            internal PrintJob(ChcSeriesCardPrinter printer, INativeTrampolineChc native, Bitmap imageFront, Bitmap imageBack, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
+            internal PrintJob(ChcSeriesCardPrinter printer, INativeTrampolineChc native, Bitmap imageFront, Bitmap imageBack, Bitmap infrared, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
                 ArgumentNullException.ThrowIfNull(printer);
                 ArgumentNullException.ThrowIfNull(native);
                 ArgumentNullException.ThrowIfNull(imageFront);
@@ -62,6 +65,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 this.imageFront = imageFront;
                 this.imageBack = imageBack;
                 this.holo = holo;
+                this.infrared = infrared;
                 this.rfidPayload = rfidPayload;
                 JobResult = DeviceStatus.ErrorNotInitialized;
                 JobStatus = PrintStatus.None;
@@ -113,30 +117,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     }
 
                     LOG.LogInformation("Set printer to standby");
-                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(STANDBY_RFID, ref rc), 30000);
+                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(printer.GetInitialCardPosition(), ref rc), 30000);
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    JobStatus = PrintStatus.RfidRead;
+                    JobStatus = PrintStatus.CardDataRead;
 
-                    LOG.LogInformation("Get loaded card ID");
-                    // 310 only
-                    /*byte[] cardIdBuf = new byte[CARD_ID_LEN];
-                    Printer.PrintWaitFor(ref rc, (ref ushort rc) => {
-                        unsafe {
-                            fixed (byte* ptr = cardIdBuf) {
-                                return Native.CHC_getCardRfidTID(ptr, ref rc);
-                            }
-                        }
-                    }, 20000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
-                    if (ret != DeviceStatus.OK) {
+                    ret = printer.ReadCardInformation(ref rc);
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
-                    if (rc != RESULT_CARDRFID_ReadA) {
-                        LOG.LogError("Unexpected result: " + rc);
-                        return PrintExitThreadError(Printer.SetLastErrorByRC(Native.CHC_RC_OK, rc), rc);
-                    }*/
 
                     if (rfidPayload != null) {
                         ret = printer.WriteRfid(ref rc, rfidPayload, overrideCardId, out byte[] writtenCardId);
@@ -311,6 +302,37 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         }
                     } else {
                         LOG.LogInformation("No back image set");
+                    }
+
+                    if (infrared != null) {
+                        JobStatus = PrintStatus.SetImageIr;
+
+                        LOG.LogInformation("Uploading infrared image");
+                        imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height;
+                        imageBytes = infrared.GetRawPixelsMonochrome();
+                        if (imageBytes.Length != imageSize) {
+                            throw new Exception("infrared: imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
+                        }
+
+                        writtenBytes = 0;
+                        fixed (byte* ptr = imageBytes) {
+                            for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
+                                writtenBytes = (uint)imageBytes.Length - pos;
+                                ret = printer.SetLastErrorByReturnCode(native.CHC_writeIred(ptr + pos, ref writtenBytes, ref rc), rc);
+                                if (ret != DeviceStatus.Ok) {
+                                    return PrintExitThreadError(ret, rc, pageId);
+                                }
+                            }
+                        }
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
+                        if (writtenBytes != imageBytes.Length) {
+                            ret = DeviceStatus.ErrorDevice;
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            return PrintExitThreadError(ret, rc, pageId);
+                        }
+                    } else {
+                        LOG.LogInformation("No infrared image set");
                     }
 
                     LOG.LogInformation("Ending page");

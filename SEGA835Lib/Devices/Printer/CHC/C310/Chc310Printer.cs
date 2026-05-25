@@ -174,7 +174,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
                     return PrintExitThreadError(ret, RESULT_CARDRFID_COMMAND_ERROR);
                 }
 
-                Job.JobStatus = PrintStatus.RfidWrite;
+                Job.JobStatus = PrintStatus.CardDataWriteRfid;
 
                 byte[] cardid = new byte[CARD_ID_LEN];
                 if (overrideCardId) {
@@ -272,6 +272,34 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         /// <inheritdoc />
         protected override byte? GetPolishParameter(bool isHolo) {
             return (byte)(isHolo ? 5 : 2);
+        }
+
+        protected override DeviceStatus ReadCardInformation(ref ushort rc) {
+            LOG.LogInformation("Get loaded card ID");
+            // 310 only
+            byte[] cardIdBuf = new byte[CARD_ID_LEN];
+            DeviceStatus ret = PrintWaitFor(ref rc, (ref ushort rc) => {
+                unsafe {
+                    fixed (byte* ptr = cardIdBuf) {
+                        return Native.CHC_getCardRfidTID(ptr, ref rc);
+                    }
+                }
+            }, 20000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
+            if (ret != DeviceStatus.Ok) {
+                return PrintExitThreadError(ret, rc);
+            }
+
+            if (rc != RESULT_CARDRFID_READ_A) {
+                LOG.LogError("Unexpected result: " + rc);
+                return PrintExitThreadError(SetLastErrorByReturnCode(CHCUSB_RC_OK, rc), rc);
+            }
+
+            return SetLastErrorByReturnCode((int)ret, rc);
+        }
+
+        /// <inheritdoc/>
+        protected override ushort GetInitialCardPosition() {
+            return STANDBY_RFID;
         }
     }
 }
