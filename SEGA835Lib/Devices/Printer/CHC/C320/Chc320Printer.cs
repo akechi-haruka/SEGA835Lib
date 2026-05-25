@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Microsoft.Extensions.Logging;
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -11,12 +12,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
     /// A CHC-320 Card Printer for Sangokushi Taisen.
     /// </summary>
     public class Chc320Printer : ChcSeriesCardPrinter {
+        private readonly Y3 printerCamera;
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc320Printer));
+
+        /// <summary>
+        /// Called when card data is successfully read from the printer camera.
+        /// </summary>
+        public event Action<Y3.CardInfo> CardDataRead;
 
         /// <summary>
         /// Creates a new CHC-320 printer.
         /// </summary>
-        public Chc320Printer() : base(new Native(), null, new Size(664, 1036)) {
+        /// <param name="y3">The Y3 board to use as the printer camera, or null to not use.</param>
+        public Chc320Printer(Y3 y3) : base(new Native(), null, new Size(664, 1036)) {
+            printerCamera = y3;
         }
 
         /// <summary>
@@ -80,7 +89,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
             return null;
         }
 
-        /// no-op
+        /// <summary>
+        /// Reads the current card information from the connected Y3 board, and calls <see cref="CardDataRead"/> on success.
+        /// </summary>
+        /// <param name="rc">Ignored.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or if no Y3 board was specified, <see cref="DeviceStatus.ErrorDevice"/> otherwise.</returns>
         protected override DeviceStatus ReadCardInformation(ref ushort rc) {
             // TODO: read from Y3
             return DeviceStatus.Ok;
