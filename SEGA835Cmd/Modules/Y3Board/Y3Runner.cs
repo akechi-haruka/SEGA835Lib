@@ -40,14 +40,18 @@ static class Y3Runner {
                 return ret;
             }
 
-            LOG.LogInformation("Status: " + y3.GetStatus());
+            Y3.Native.Status status = y3.GetStatus();
+            LOG.LogInformation("Status: " + status);
+            if (status != Y3.Native.Status.Active) {
+                LOG.LogError("Expected board status to be Active, got " + status);
+                return DeviceStatus.ErrorDevice;
+            }
 
             if (!opts.NoExitButton) {
                 Console.WriteLine("Press ESC to exit.");
             }
 
             bool found = false;
-            DateTime lastinfo = DateTime.Now;
             do {
                 if (!opts.NoExitButton) {
                     if (Console.KeyAvailable) {
@@ -73,11 +77,6 @@ static class Y3Runner {
                     }
 
                     Thread.Sleep(250);
-                }
-
-                if (DateTime.Now - lastinfo > TimeSpan.FromSeconds(3)) {
-                    LOG.LogInformation("Status: " + y3.GetStatus());
-                    lastinfo = DateTime.Now;
                 }
             } while (!opts.FindOne || !found);
         } finally {
