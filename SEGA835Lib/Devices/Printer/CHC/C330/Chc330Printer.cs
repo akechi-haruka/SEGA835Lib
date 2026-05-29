@@ -160,7 +160,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
             return (byte)(isHolo ? 0x11 : 0x02);
         }
 
-        // no-op
+        /// <summary>
+        /// no-op
+        /// </summary>
+        /// <param name="rc">ignored</param>
+        /// <returns><see cref="DeviceStatus.Ok"/></returns>
         protected override DeviceStatus PostProcessing(ref ushort rc) {
             return DeviceStatus.Ok;
         }
@@ -173,6 +177,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         /// <inheritdoc/>
         protected override byte? GetParameter19() {
             return null;
+        }
+
+        /// <inheritdoc/>
+        protected override DeviceStatus PreProcessing(ref ushort rc) {
+            return DeviceStatus.Ok;
         }
     }
 }

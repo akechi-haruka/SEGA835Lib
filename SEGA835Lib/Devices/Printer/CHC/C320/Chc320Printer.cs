@@ -164,6 +164,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         }
 
         /// <inheritdoc/>
+        protected override DeviceStatus PreProcessing(ref ushort rc) {
+            return DeviceStatus.Ok;
+        }
+
+        /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "CHC320";
         }
