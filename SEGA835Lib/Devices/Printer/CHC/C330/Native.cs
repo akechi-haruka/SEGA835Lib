@@ -1,20 +1,12 @@
 ﻿#if NET8_0_OR_GREATER
-
-using Haruka.Arcade.SEGA835Lib.Debugging;
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
-
-    internal unsafe partial class Native : INativeTrampolineCHC {
+    unsafe partial class Native : INativeTrampolineChc {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Native));
 
         public const String DLL = "C330Ausb.dll";
 
@@ -64,7 +56,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         ///printerSN: unsigned int
         ///rResult: unsigned short*
         [LibraryImport(DLL, EntryPoint = "chcusb_selectPrinterSN")]
-        private static partial int chcusb_selectPrinterSN(ulong printerSN, ref ushort rResult);
+        private static partial int chcusb_selectPrinterSN(ulong printerSerial, ref ushort rResult);
 
 
         /// Return Type: int
@@ -363,255 +355,253 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
 
         /// Return Type: int
-        ///a1: unsigned byte*
-        ///a2: unsigned byte*
+        ///data: unsigned byte*
+        ///writeSize: unsigned int*
         ///rResult: unsigned short*
         [LibraryImport(DLL, EntryPoint = "chcusb_writeIred")]
-        private static partial int chcusb_writeIred(byte* a1, byte* a2, ref ushort rResult);
+        private static partial int chcusb_writeIred(byte* data, ref uint writeSize, ref ushort rResult);
 
-        public string GetDLLFileName() {
+        public string GetDllFileName() {
             return DLL;
         }
 
         public int CHC_MakeThread(ushort maxCount) {
-            Log.Write(Log.Args(maxCount));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(maxCount));
             return chcusb_MakeThread(maxCount);
         }
 
         public int CHC_open(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_open(ref rResult);
         }
 
         public void CHC_close() {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             chcusb_close();
         }
 
         public int CHC_ReleaseThread(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_ReleaseThread(ref rResult);
         }
 
         public int CHC_listupPrinter(byte* rIdArray) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_listupPrinter(rIdArray);
         }
 
         public int CHC_listupPrinterSN(ulong* rSerialArray) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_listupPrinterSN(rSerialArray);
         }
 
         public int CHC_selectPrinter(byte printerId, ref ushort rResult) {
-            Log.Write(Log.Args(printerId));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(printerId));
             return chcusb_selectPrinter(printerId, ref rResult);
         }
 
-        public int CHC_selectPrinterSN(ulong printerSN, ref ushort rResult) {
-            Log.Write(Log.Args(printerSN));
-            return chcusb_selectPrinterSN(printerSN, ref rResult);
+        public int CHC_selectPrinterSN(ulong printerSerial, ref ushort rResult) {
+            LOG.LogDebugWithSource(LogExtensions.Arguments(printerSerial));
+            return chcusb_selectPrinterSN(printerSerial, ref rResult);
         }
 
         public int CHC_getPrinterInfo(ushort tagNumber, byte* rBuffer, ref uint rLen) {
-            Log.Write(Log.Args(tagNumber, rLen));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(tagNumber, rLen));
             return chcusb_getPrinterInfo(tagNumber, rBuffer, ref rLen);
-
         }
 
         public int CHC_imageformat(ushort format, ushort ncomp, ushort depth, ushort width, ushort height, byte* _, ref ushort rResult) {
-            Log.Write(Log.Args(format, ncomp, depth, width, height));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(format, ncomp, depth, width, height));
             return chcusb_imageformat(format, ncomp, depth, width, height, ref rResult);
         }
 
         public int CHC_setmtf(int* mtf) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_setmtf(mtf);
         }
 
         public int CHC_makeGamma(ushort k, byte* intoneR, byte* intoneG, byte* intoneB) {
-            Log.Write(Log.Args(k));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(k));
             return chcusb_makeGamma(k, intoneR, intoneG, intoneB);
         }
 
         public int CHC_setIcctable(string icc1, string icc2, ushort intents, byte* intoneR, byte* intoneG, byte* intoneB, byte* outtoneR, byte* outtoneG, byte* outtoneB, ref ushort rResult) {
-            Log.Write(Log.Args(icc1, icc2, intents));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(icc1, icc2, intents));
             return chcusb_setIcctable(icc1, icc2, intents, intoneR, intoneG, intoneB, outtoneR, outtoneG, outtoneB, ref rResult);
         }
 
         public int CHC_copies(ushort copies, ref ushort rResult) {
-            Log.Write(Log.Args(copies));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(copies));
             return chcusb_copies(copies, ref rResult);
         }
 
         public int CHC_status(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_status(ref rResult);
         }
 
         public int CHC_statusAll(byte* idArray, ref ushort rResultArray) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_statusAll(idArray, ref rResultArray);
         }
 
         public int CHC_startpage(ushort postCardState, ref ushort pageId, ref ushort rResult) {
-            Log.Write(Log.Args(postCardState, pageId));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(postCardState, pageId));
             return chcusb_startpage(postCardState, ref pageId, ref rResult);
         }
 
         public int CHC_endpage(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_endpage(ref rResult);
         }
 
         public int CHC_write(byte* data, ref uint writeSize, ref ushort rResult) {
-            Log.Write(Log.Args(writeSize));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(writeSize));
             return chcusb_write(data, ref writeSize, ref rResult);
         }
 
         public int CHC_writeLaminate(byte* data, ref uint writeSize, ref ushort rResult) {
-            Log.Write(Log.Args(writeSize));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(writeSize));
             return chcusb_writeLaminate(data, ref writeSize, ref rResult);
         }
 
         public int CHC_writeHolo(byte* data, ref uint writeSize, ref ushort rResult) {
-            Log.Write(Log.Args(writeSize));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(writeSize));
             return chcusb_writeHolo(data, ref writeSize, ref rResult);
         }
 
         public int CHC_setPrinterInfo(PrinterInfoTag tagNumber, byte* rBuffer, ref uint rLen, ref ushort rResult) {
-            Log.Write(Log.Args(tagNumber, rLen));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(tagNumber, rLen));
             return chcusb_setPrinterInfo(tagNumber, rBuffer, ref rLen, ref rResult);
         }
 
         public int CHC_getGamma(string filename, byte* r, byte* g, byte* b, ref ushort rResult) {
-            Log.Write(Log.Args(filename));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(filename));
             return chcusb_getGamma(filename, r, g, b, ref rResult);
         }
 
         public int CHC_getMtf(string filename, int* mtf, ref ushort rResult) {
-            Log.Write(Log.Args(filename));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(filename));
             return chcusb_getMtf(filename, mtf, ref rResult);
         }
 
         public int CHC_cancelCopies(ushort pageId, ref ushort rResult) {
-            Log.Write(Log.Args(pageId));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(pageId));
             return chcusb_cancelCopies(pageId, ref rResult);
         }
 
         public int CHC_setPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult) {
-            Log.Write(Log.Args(type, number, data));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(type, number, data));
             return chcusb_setPrinterToneCurve(type, number, ref data, ref rResult);
         }
 
         public int CHC_getPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult) {
-            Log.Write(Log.Args(type, number, data));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(type, number, data));
             return chcusb_getPrinterToneCurve(type, number, ref data, ref rResult);
         }
 
         public int CHC_blinkLED(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_blinkLED(ref rResult);
         }
 
         public int CHC_resetPrinter(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_resetPrinter(ref rResult);
         }
 
         public int CHC_AttachThreadCount(ref ushort rCount, ref ushort rMaxCount) {
-            Log.Write(Log.Args(rMaxCount));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(rMaxCount));
             return chcusb_AttachThreadCount(ref rCount, ref rMaxCount);
         }
 
         public int CHC_getPrintIDStatus(ushort pageId, byte* rBuffer, ref ushort rResult) {
-            Log.Write(Log.Args(pageId));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(pageId));
             return chcusb_getPrintIDStatus(pageId, rBuffer, ref rResult);
         }
 
         public int CHC_setPrintStandby(ushort position, ref ushort rResult) {
-            Log.Write(Log.Args(position));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(position));
             return chcusb_setPrintStandby(position, ref rResult);
         }
 
         public int CHC_testCardFeed(ushort mode, ushort times, ref ushort rResult) {
-            Log.Write(Log.Args(mode));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(mode));
             return chcusb_testCardFeed(mode, times, ref rResult);
         }
 
         public int CHC_exitCard(ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_exitCard(ref rResult);
         }
 
-        public int CHC_getCardRfidTID(byte* rCardTID, ref ushort rResult) {
-            throw new NotImplementedException("CHC330");
+        public int CHC_getCardRfidTID(byte* rCardTid, ref ushort rResult) {
+            throw new NotSupportedException("CHC330 only");
         }
 
         public int CHC_commCardRfidReader(byte* sendData, byte* rRecvData, uint sendSize, ref uint rRecvSize, ref ushort rResult) {
-            throw new NotImplementedException("CHC330");
+            throw new NotSupportedException("CHC330 only");
         }
 
         public int CHC_updateCardRfidReader(byte* data, uint size, ref ushort rResult) {
-            throw new NotImplementedException("CHC330");
+            throw new NotSupportedException("CHC330 only");
         }
 
         public int CHC_getErrorLog(ushort index, byte* rData, ref ushort rResult) {
-            Log.Write(Log.Args(index));
-            return CHC_getErrorLog(index, rData, ref rResult);
+            LOG.LogDebugWithSource(LogExtensions.Arguments(index));
+            return chcusb_getErrorLog(index, rData, ref rResult);
         }
 
         public int CHC_getErrorStatus(ushort* rBuffer) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_getErrorStatus(rBuffer);
         }
 
         public int CHC_setCutList(byte* rData, ref ushort rResult) {
-            Log.Write(Log.Args());
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
             return chcusb_setCutList(rData, ref rResult);
         }
 
         public int CHC_setLaminatePattern(ushort index, byte* rData, ref ushort rResult) {
-            Log.Write(Log.Args(index));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(index));
             return chcusb_setLaminatePattern(index, rData, ref rResult);
         }
 
         public int CHC_color_adjustment(string filename, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult) {
-            Log.Write(Log.Args(filename, a2, a3, a4, a5, a6, a7));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(filename, a2, a3, a4, a5, a6, a7));
             return chcusb_color_adjustment(filename, a2, a3, a4, a5, a6, a7, ref rResult);
         }
 
         public int CHC_color_adjustmentEx(int a1, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult) {
-            Log.Write(Log.Args(a1, a2, a3, a4, a5, a6, a7));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(a1, a2, a3, a4, a5, a6, a7));
             return chcusb_color_adjustmentEx(a1, a2, a3, a4, a5, a6, a7, ref rResult);
         }
 
         public int CHC_getEEPROM(byte index, byte* rData, ref ushort rResult) {
-            Log.Write(Log.Args(index));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(index));
             return chcusb_getEEPROM(index, rData, ref rResult);
         }
 
         public int CHC_setParameter(byte a1, uint a2, ref ushort rResult) {
-            Log.Write(Log.Args(a1, a2));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(a1, a2));
             return chcusb_setParameter(a1, a2, ref rResult);
         }
 
         public int CHC_getParameter(byte a1, byte* a2, ref ushort rResult) {
-            Log.Write(Log.Args(a1));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(a1));
             return chcusb_getParameter(a1, a2, ref rResult);
         }
 
         public int CHC_universal_command(int a1, byte a2, int a3, byte* a4, ref ushort rResult) {
-            Log.Write(Log.Args(a1, a2, a3));
+            LOG.LogDebugWithSource(LogExtensions.Arguments(a1, a2, a3));
             return chcusb_universal_command(a1, a2, a3, a4, ref rResult);
         }
 
-        public int CHC_writeIred(byte* a1, byte* a2, ref ushort rResult) {
-            Log.Write(Log.Args());
-            return chcusb_writeIred(a2, a2, ref rResult);
+        public int CHC_writeIred(byte* data, ref uint writeSize, ref ushort rResult) {
+            LOG.LogDebugWithSource(LogExtensions.Arguments());
+            return chcusb_writeIred(data, ref writeSize, ref rResult);
         }
     }
-
 }
 
 #endif

@@ -1,71 +1,73 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<RootNamespace>Haruka.Arcade.SEGA835Cmd</RootNamespace>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>disable</Nullable>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<ErrorReport>none</ErrorReport>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
-		<Title>SEGA 835 I/O Application</Title>
-		<Version>0.3.1</Version>
-		<Authors>Haruka Akechi</Authors>
-		<Company />
-		<Description>Command-line applicaton to interface with SEGA(R) arcade hardware</Description>
-		<Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
-		<RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
-		<PackageTags>Arcade;I/O;Serial</PackageTags>
-		<Platforms>AnyCPU;x64;ARM64</Platforms>
-		<Configurations>Debug;Release</Configurations>
-		<PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib</PackageProjectUrl>
-		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageIcon>logo.png</PackageIcon>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
-	
-	<PropertyGroup>
-		<GenerateAssemblyInfo>True</GenerateAssemblyInfo>
-		<DebugType>embedded</DebugType>
-		<IsPublishable>True</IsPublishable>
-		<CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-		<FileAlignment>512</FileAlignment>
-	</PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>Haruka.Arcade.SEGA835Cmd</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <ErrorReport>none</ErrorReport>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
+        <Title>SEGA 835 I/O Application</Title>
+        <Version>0.4.0</Version>
+        <Authors>Haruka Akechi</Authors>
+        <Company/>
+        <Description>Command-line applicaton to interface with SEGA(R) arcade hardware</Description>
+        <Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
+        <RepositoryUrl>https://github.com/akechi-haruka/SEGA835Lib</RepositoryUrl>
+        <PackageTags>Arcade;I/O;Serial</PackageTags>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <Configurations>Debug;Release</Configurations>
+        <PackageProjectUrl>https://github.com/akechi-haruka/SEGA835Lib</PackageProjectUrl>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <EnablePackageValidation>true</EnablePackageValidation>
+        <PackageIcon>logo.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Platform)'=='ARM64'">
-		<TargetFramework>net8.0</TargetFramework>
-	</PropertyGroup>
+    <PropertyGroup>
+        <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+        <DebugType>embedded</DebugType>
+        <IsPublishable>True</IsPublishable>
+        <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Platform)'!='ARM64'">
-		<TargetFramework>net8.0-windows10.0.18362.0</TargetFramework>
-	</PropertyGroup>
+    <PropertyGroup Condition="'$(Platform)'=='ARM64'">
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<Compile Remove="publish\**" />
-		<EmbeddedResource Remove="publish\**" />
-		<None Remove="publish\**" />
-		<None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
-		<None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
-		<None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
-	</ItemGroup>
+    <PropertyGroup Condition="'$(Platform)'!='ARM64'">
+        <TargetFramework>net10.0-windows</TargetFramework>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="CommandLineParser" Version="2.9.1" />
-		<PackageReference Include="vJoy.Wrapper" Version="1.0.0.5" />
-	</ItemGroup>
+    <ItemGroup>
+        <Compile Remove="publish\**"/>
+        <EmbeddedResource Remove="publish\**"/>
+        <None Remove="publish\**"/>
+        <None Include="..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+        <None Include="..\logo.png" Pack="true" PackagePath="$(PackageIcon)"/>
+        <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="CommandLineParser" Version="2.9.1"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
+        <PackageReference Include="NReco.Logging.File" Version="1.3.1"/>
+        <PackageReference Include="vJoy.Wrapper" Version="1.0.0.5"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
 </Project>

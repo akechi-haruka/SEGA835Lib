@@ -1,91 +1,95 @@
 ﻿#if NET8_0_OR_GREATER
-
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
-
     /// <summary>
     /// This class defines a "tag" of printer information that can be queried for on a CHC-series printer.
     /// </summary>
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public enum PrinterInfoTag : ushort {
         /// <summary>
         /// Unknown.
         /// </summary>
-        [PrinterTagBufferSize(0x67)]
-        PAPER = 0,
+        [PrinterTagBufferSize(0x67)] Paper = 0,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        USBINQ = 2,
+        Usbinq = 2,
+
         /// <summary>
         /// Mostly unknown, firmware sizes.
         /// </summary>
-        [PrinterTagBufferSize(0x99)]
-        ENGID = 3,
+        [PrinterTagBufferSize(0x99)] EngID = 3,
+
         /// <summary>
         /// A <see cref="PrintCnt"/> structure.
         /// </summary>
-        PRINTCNT = 4,
+        PrintCount = 4,
+
         /// <summary>
         /// A <see cref="PrintCnt2"/> structure.
         /// </summary>
-        [PrinterTagBufferSize(0x28)]
-        PRINTCNT2 = 5,
+        [PrinterTagBufferSize(0x28)] PrintCount2 = 5,
+
         /// <summary>
-        /// A <see cref="PageStatus"/> structure.
+        /// A <see cref="Tags.PageStatus"/> structure.
         /// </summary>
-        [PrinterTagBufferSize(0x20)]
-        PAGESTATUS = 6,
-        /// <summary>
-        /// Unknown.
-        /// </summary>
-        SVCINFO = 7,
+        [PrinterTagBufferSize(0x20)] PageStatus = 6,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        [PrinterTagBufferSize(0x1)]
-        PRINTSTANDBY = 8,
+        SvcInfo = 7,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        MEMORY = 16,
+        [PrinterTagBufferSize(0x1)] PrintStandby = 8,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        PRINTMODE = 20,
+        Memory = 16,
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        Unknown = 19,
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        PrintMode = 20,
+
         /// <summary>
         /// A single string of the printer's serial number.
         /// </summary>
-        [PrinterTagBufferSize(0x8)]
-        SERIALINFO = 26,
+        [PrinterTagBufferSize(0x8)] SerialInfo = 26,
+
         /// <summary>
         /// The first three bytes return the printer temperature?
         /// </summary>
-        [PrinterTagBufferSize(0xA)]
-        TEMPERATURE = 40,
+        [PrinterTagBufferSize(0xA)] Temperature = 40,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        [PrinterTagBufferSize(0x3D)]
-        ERRHISTORY = 50,
+        [PrinterTagBufferSize(0x3D)] ErrorHistory = 50,
+
         /// <summary>
         /// Unknown.
         /// </summary>
-        TONETABLE = 60
+        ToneTable = 60
     }
 
     /// <summary>
     /// Helper class to allow Attribute retrieval.
     /// </summary>
     public static class PrinterInfoTagExtensions {
-
         /// <summary>
         /// Returns the size in bytes that the response buffer for this PrinterInfoTag will be.
         /// </summary>
@@ -94,22 +98,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public static uint GetBufferSize(this PrinterInfoTag tag) {
             return tag.GetAttribute<PrinterTagBufferSize>()?.Value ?? 0;
         }
-
     }
 
-    [AttributeUsage(AttributeTargets.Field, Inherited = false)]
-    internal class PrinterTagBufferSize : Attribute {
-
-        private readonly uint value;
-
+    [AttributeUsage(AttributeTargets.Field)]
+    class PrinterTagBufferSize : Attribute {
         public PrinterTagBufferSize(uint value) {
-            this.value = value;
+            Value = value;
         }
 
-        public uint Value {
-            get { return this.value; }
-        }
-
+        public uint Value { get; }
     }
 }
 

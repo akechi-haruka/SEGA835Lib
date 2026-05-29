@@ -16,12 +16,12 @@
         /// <summary>
         /// Card data is being read.
         /// </summary>
-        RFIDRead,
+        CardDataRead,
 
         /// <summary>
-        /// Card data is being written.
+        /// RFID Card data is being written before printing.
         /// </summary>
-        RFIDWrite,
+        CardDataWriteRfid,
 
         /// <summary>
         /// Properties (MTF, ICC, ...) are being set.
@@ -34,14 +34,19 @@
         SetImage,
 
         /// <summary>
+        /// IR data is being written.
+        /// </summary>
+        SetImageIr,
+
+        /// <summary>
         /// The printer is printing.
         /// </summary>
         Printing,
 
         /// <summary>
-        /// The printing is being finished.
+        /// User-defined post-processing functions are running.
         /// </summary>
-        Ending,
+        Postprocessing,
 
         /// <summary>
         /// The card is being ejected.

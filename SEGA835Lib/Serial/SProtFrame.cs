@@ -1,21 +1,18 @@
-﻿
-
-using Haruka.Arcade.SEGA835Lib.Misc;
+﻿using Haruka.Arcade.SEGA835Lib.Misc;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
-
     /// <summary>
     /// This class holds all relevant information for a single frame of a SProt device.
     /// </summary>
     /// <seealso cref="SProtSerial"/>
     public class SProtFrame {
-
         private static int sequenceCount = 1;
 
         /// <summary>
         /// The sequence ID of the frame. Some SProt devices require this, but not all.
         /// </summary>
         public byte Sequence { get; private set; }
+
         /// <summary>
         /// The command ID of the frame.
         /// </summary>
@@ -43,10 +40,10 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="payload">The payload to send.</param>
         /// <param name="address">The bus address to send this frame to. This is only used by very specific devices.</param>
         public SProtFrame(byte command, byte[] payload, byte address = 0x0) {
-            this.Command = command;
-            this.Payload = payload;
-            this.Address = address;
-            this.Sequence = (byte)(sequenceCount++ % 0x100);
+            Command = command;
+            Payload = payload;
+            Address = address;
+            Sequence = (byte)(sequenceCount++ % 0x100);
         }
 
         /// <summary>
@@ -54,11 +51,11 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <param name="payload">The payload to send.</param>
         /// <param name="address">The bus address to send this frame to. This is only used by very specific devices.</param>
-        public SProtFrame(SProtPayload payload, byte address = 0x0) {
-            this.Command = payload.GetCommandID();
-            this.Payload = StructUtils.GetBytes(payload);
-            this.Address = address;
-            this.Sequence = (byte)(sequenceCount++ % 0x100);
+        public SProtFrame(ISProtPayload payload, byte address = 0x0) {
+            Command = payload.GetCommandID();
+            Payload = StructUtils.GetBytes(payload);
+            Address = address;
+            Sequence = (byte)(sequenceCount++ % 0x100);
         }
 
         /// <summary>
@@ -70,11 +67,11 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="status">The response status that was received.</param>
         /// <param name="payload">The payload to send.</param>
         public SProtFrame(byte sequence, byte command, byte address, byte status, byte[] payload) {
-            this.Sequence = sequence;
-            this.Command = command;
-            this.Address = address;
-            this.Status = status;
-            this.Payload = payload;
+            Sequence = sequence;
+            Command = command;
+            Address = address;
+            Status = status;
+            Payload = payload;
         }
     }
 }

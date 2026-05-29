@@ -1,56 +1,49 @@
 ﻿#if NET8_0_OR_GREATER
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags {
     /// <summary>
-    /// A structure returned by a call to <see cref="CHCSeriesCardPrinter.GetPrinterInfo(PrinterInfoTag, out byte[])" /> with <see cref="PrinterInfoTag.PRINTCNT2"/>.
+    /// A structure returned by a call to <see cref="ChcSeriesCardPrinter.GetPrinterInfo(PrinterInfoTag, out byte[])" /> with <see cref="PrinterInfoTag.PrintCount2"/>.
     /// </summary>
     public struct PrintCnt2 {
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint printCounter0;
+        public uint PrintCounter0;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint printCounter1;
+        public uint PrintCounter1;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint feedRoller;
+        public uint FeedRoller;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint cutterCount;
+        public uint CutterCount;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint headCount;
+        public uint HeadCount;
         /// <summary>
         /// Remaining prints on the color ribbon.
         /// </summary>
-        public uint ribbonRemain;
+        public uint RibbonRemain;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint holoCount;
+        public uint HoloCount;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint paperCount;
+        public uint PaperCount;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint printCounter2;
+        public uint PrintCounter2;
         /// <summary>
         /// Unknown.
         /// </summary>
-        public uint holoPrintCounter;
+        public uint HoloPrintCounter;
     }
 }
 

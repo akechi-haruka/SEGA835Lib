@@ -1,8 +1,9 @@
-﻿using Haruka.Arcade.SEGA835Lib.Debugging;
+﻿using System;
+using System.IO.Ports;
+using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System;
-using System.IO.Ports;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// <summary>
@@ -13,55 +14,57 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
     /// Note that if any of the Read/Write commands fail, the device may be in an inconsistent state, therefore a hard reset (<see cref="Disconnect"/> + <see cref="Connect"/> is highly recommended.
     /// </remarks>
     public class SerialComm {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(SerialComm));
+
         /// <summary>
-        /// Whether R/W commands should be logged to <see cref="Log"/>. Includes command type and read/write byte count.
+        /// Whether R/W commands should be logged to the log. Includes command type and read/write byte count.
         /// </summary>
-        public bool DumpRWCommandsToLog { get; set; }
+        public bool DumpReadWriteCommandsToLog { get; set; }
 
         /// <summary>
         /// The COM port that is being used.
         /// </summary>
-        public int Port { get; private set; }
+        public int Port { get; }
 
         /// <summary>
         /// The baudrate that is being used.
         /// </summary>
-        public int Baudrate { get; private set; }
+        public int Baudrate { get; }
 
         /// <summary>
         /// Whether or not DTR is being used.
         /// </summary>
-        public bool DTR { get; private set; }
+        public bool Dtr { get; }
 
         /// <summary>
         /// Whether or not RTS is being used.
         /// </summary>
-        public bool RTS { get; private set; }
+        public bool Rts { get; }
 
         /// <summary>
         /// The parity that is being used.
         /// </summary>
-        public Parity Parity { get; private set; }
+        public Parity Parity { get; }
 
         /// <summary>
         /// The amount of data bits that are being used.
         /// </summary>
-        public int DataBits { get; private set; }
+        public int DataBits { get; }
 
         /// <summary>
         /// The amount of stop bits that are being used.
         /// </summary>
-        public StopBits StopBits { get; private set; }
+        public StopBits StopBits { get; }
 
         /// <summary>
         /// The type of handshake that is being used.
         /// </summary>
-        public Handshake Handshake { get; private set; }
+        public Handshake Handshake { get; }
 
         /// <summary>
         /// The timeout (in ms) that is being used.
         /// </summary>
-        public int Timeout { get; private set; }
+        public int Timeout { get; }
 
         private SerialPort device;
 
@@ -70,7 +73,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <param name="portNumber">The COM port number to use.</param>
         /// <param name="baudrate">The baudrate to use.</param>
-        /// <param name="timeout">The timeout (in ms) to use before any R/W call to this device will return <see cref="DeviceStatus.ERR_TIMEOUT"/>.</param>
+        /// <param name="timeout">The timeout (in ms) to use before any R/W call to this device will return <see cref="DeviceStatus.ErrorTimeout"/>.</param>
         /// <param name="dtr">Whether or not to use the DTR (Data Terminal Ready) signal. This depends on the specific device being used.</param>
         /// <param name="rts">Whether or not to use the RTS (Request To Send) signal. This depends on the specific device being used.</param>
         /// <param name="parity">The parity bit(s) to use. This depends on the specific device being used.</param>
@@ -78,11 +81,11 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="stopBits">The amount of stop bits to use. This depends on the specific device being used.</param>
         /// <param name="flowControl">The type of flow control being used. This depends on the specific device being used.</param>
         public SerialComm(int portNumber, int baudrate = 115_200, int timeout = 1000, bool dtr = false, bool rts = false, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One, Handshake flowControl = Handshake.None) {
-            Log.Write("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts + ", handshake=" + flowControl);
+            LOG.LogInformation("Initializing Serial connection on port " + portNumber + ", baud=" + baudrate + ", dtr=" + dtr + ", rts=" + rts + ", handshake=" + flowControl);
             Port = portNumber;
             Baudrate = baudrate;
-            DTR = dtr;
-            RTS = rts;
+            Dtr = dtr;
+            Rts = rts;
             Parity = parity;
             DataBits = dataBits;
             StopBits = stopBits;
@@ -95,7 +98,7 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <returns>true if successful, false if not</returns>
         public bool Connect() {
-            Log.Write("Connecting to port " + Port + " (" + Baudrate + ") DTR=" + DTR + ",RTS=" + RTS);
+            LOG.LogInformation("Connecting to port " + Port + " (" + Baudrate + ") DTR=" + Dtr + ",RTS=" + Rts);
 #if LINUX
             string portPrefix = "/dev/ttySC";
 #else
@@ -104,8 +107,8 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
             string portPrefix = @"\\.\COM";
 #endif
             device = new SerialPort(portPrefix + Port, Baudrate, Parity, DataBits, StopBits) {
-                DtrEnable = DTR,
-                RtsEnable = RTS,
+                DtrEnable = Dtr,
+                RtsEnable = Rts,
                 ReadTimeout = Timeout,
                 WriteTimeout = Timeout,
                 Handshake = Handshake
@@ -115,21 +118,21 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
 #if !LINUX
             } catch (ArgumentException ex) {
                 // TODO: this seems implementation specific, even though I do not know when this starting being an issue
-                Log.WriteWarning("Failed to open port with backslash path, trying regular... (Error was: "+ex.Message+")");
+                LOG.LogWarning("Failed to open port with backslash path, trying regular... (Error was: " + ex.Message + ")");
                 device.PortName = "COM" + Port;
                 try {
                     device.Open();
                 } catch (Exception ex2) {
-                    Log.WriteFault(ex2, "Failed to connect to port " + Port);
+                    LOG.LogCritical(ex2, "Failed to connect to port " + Port);
                     return false;
                 }
 #endif
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed to connect to port " + Port);
+                LOG.LogCritical(ex, "Failed to connect to port " + Port);
                 return false;
             }
 
-            Log.Write("Connected");
+            LOG.LogInformation("Connected");
             return true;
         }
 
@@ -146,20 +149,20 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <param name="data">The byte that was read or 0 if any error occurred.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the requested number of bytes was read.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the requested number of bytes was read.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         public virtual DeviceStatus ReadByte(out byte data) {
             data = 0;
             if (device == null) {
-                return DeviceStatus.ERR_NOT_INITIALIZED;
+                return DeviceStatus.ErrorNotInitialized;
             }
 
             if (!IsConnected()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ErrorNotConnected;
             }
 
             try {
@@ -169,19 +172,19 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 }
 
                 data = (byte)ret;
-                //Log.Write("byte=" + data);
+                //LOG.LogInformation("byte=" + data);
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + " (1): Interrupted");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                LOG.LogError("Failed reading from port " + Port + " (1): Interrupted");
+                return DeviceStatus.ErrorNotConnected;
             } catch (TimeoutException) {
-                Log.WriteError("Failed reading from port " + Port + " (1): Timed out");
-                return DeviceStatus.ERR_TIMEOUT;
+                LOG.LogError("Failed reading from port " + Port + " (1): Timed out");
+                return DeviceStatus.ErrorTimeout;
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed reading from port " + Port);
-                return DeviceStatus.ERR_OTHER;
+                LOG.LogCritical(ex, "Failed reading from port " + Port);
+                return DeviceStatus.ErrorOther;
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <summary>
@@ -191,28 +194,28 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// <param name="len">The number of bytes to read</param>
         /// <param name="data">The bytes that were read or null any error occurred.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the requested number of bytes was read.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the requested number of bytes was read.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         public virtual DeviceStatus Read(int len, out byte[] data) {
             data = new byte[len];
             if (device == null) {
-                return DeviceStatus.ERR_NOT_INITIALIZED;
+                return DeviceStatus.ErrorNotInitialized;
             }
 
             if (!IsConnected()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ErrorNotConnected;
             }
 
             if (len == 0) {
-                return DeviceStatus.OK;
+                return DeviceStatus.Ok;
             }
 
-            if (DumpRWCommandsToLog) {
-                Log.Write("Port " + Port + ", Read Len=" + data.Length);
+            if (DumpReadWriteCommandsToLog) {
+                LOG.LogInformation("Port " + Port + ", Read Len=" + data.Length);
             }
 
             int pos = 0;
@@ -226,17 +229,17 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                     pos += read;
                 }
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Interrupted");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                LOG.LogError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Interrupted");
+                return DeviceStatus.ErrorNotConnected;
             } catch (TimeoutException) {
-                Log.WriteError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Timed out");
-                return DeviceStatus.ERR_TIMEOUT;
+                LOG.LogError("Failed reading from port " + Port + " (" + pos + "/" + len + "): Timed out");
+                return DeviceStatus.ErrorTimeout;
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed reading from port " + Port);
-                return DeviceStatus.ERR_OTHER;
+                LOG.LogCritical(ex, "Failed reading from port " + Port);
+                return DeviceStatus.ErrorOther;
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <summary>
@@ -244,44 +247,44 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
         /// </summary>
         /// <param name="data">The bytes to write to the device.</param>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if the bytes were successfully written.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if <see cref="Connect"/> was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_TIMEOUT"/> if no byte(s) were read for <see cref="Timeout"/> ms.
-        /// <see cref="DeviceStatus.ERR_OTHER"/> if an exception occurred.
+        /// <see cref="DeviceStatus.Ok"/> if the bytes were successfully written.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or <see cref="Disconnect"/> was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorTimeout"/> if no byte(s) were read for <see cref="Timeout"/> ms.
+        /// <see cref="DeviceStatus.ErrorOther"/> if an exception occurred.
         /// </returns>
         public virtual DeviceStatus Write(byte[] data) {
             if (device == null) {
-                return DeviceStatus.ERR_NOT_INITIALIZED;
+                return DeviceStatus.ErrorNotInitialized;
             }
 
             if (!IsConnected()) {
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                return DeviceStatus.ErrorNotConnected;
             }
 
             NetStandardBackCompatExtensions.ThrowIfNull(data, nameof(data));
-            if (DumpRWCommandsToLog) {
-                Log.Write("Port " + Port + ", Write Len=" + data.Length);
+            if (DumpReadWriteCommandsToLog) {
+                LOG.LogInformation("Port " + Port + ", Write Len=" + data.Length);
             }
 
             if (data.Length == 0) {
-                return DeviceStatus.OK;
+                return DeviceStatus.Ok;
             }
 
             try {
                 device.Write(data, 0, data.Length);
             } catch (OperationCanceledException) {
-                Log.WriteError("Failed reading from port " + Port + ": Interrupted");
-                return DeviceStatus.ERR_NOT_CONNECTED;
+                LOG.LogError("Failed reading from port " + Port + ": Interrupted");
+                return DeviceStatus.ErrorNotConnected;
             } catch (TimeoutException) {
-                Log.WriteError("Failed writing to port " + Port + ": Timed out");
-                return DeviceStatus.ERR_TIMEOUT;
+                LOG.LogError("Failed writing to port " + Port + ": Timed out");
+                return DeviceStatus.ErrorTimeout;
             } catch (Exception ex) {
-                Log.WriteFault(ex, "Failed writing to port " + Port);
-                return DeviceStatus.ERR_OTHER;
+                LOG.LogCritical(ex, "Failed writing to port " + Port);
+                return DeviceStatus.ErrorOther;
             }
 
-            return DeviceStatus.OK;
+            return DeviceStatus.Ok;
         }
 
         /// <summary>

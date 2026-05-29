@@ -21,47 +21,27 @@
         /// <summary>
         /// Red.
         /// </summary>
-        public static Color Red {
-            get {
-                return FromArgb(255, 0, 0);
-            }
-        }
+        public static Color Red => FromArgb(255, 0, 0);
 
         /// <summary>
         /// Green.
         /// </summary>
-        public static Color Green {
-            get {
-                return FromArgb(0, 255, 0);
-            }
-        }
+        public static Color Green => FromArgb(0, 255, 0);
 
         /// <summary>
         /// Blue.
         /// </summary>
-        public static Color Blue {
-            get {
-                return FromArgb(0, 0, 255);
-            }
-        }
+        public static Color Blue => FromArgb(0, 0, 255);
 
         /// <summary>
         /// White.
         /// </summary>
-        public static Color White {
-            get {
-                return FromArgb(255, 255, 255);
-            }
-        }
+        public static Color White => FromArgb(255, 255, 255);
 
         /// <summary>
         /// Black.
         /// </summary>
-        public static Color Black {
-            get {
-                return FromArgb(0, 0, 0);
-            }
-        }
+        public static Color Black => FromArgb(0, 0, 0);
 
         /// <summary>
         /// Creates a new color object.

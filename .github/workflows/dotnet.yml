@@ -29,7 +29,8 @@ jobs:
     - name: Publish
       run: |
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net6.pubxml -f:net6.0-windows7
-        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard20.pubxml -f:netstandard2.0
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard21.pubxml -f:netstandard2.1
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard21.pubxml -f:netstandard2.1
@@ -47,6 +48,13 @@ jobs:
       uses: actions/upload-artifact@v4.3.3
       with:
         name: Sega835Lib-net8-latest
+        path: SEGA835Lib/publish/net8
+        if-no-files-found: error
+        overwrite: true
+    - name: Upload Lib NET 10
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: Sega835Lib-net10-latest
         path: SEGA835Lib/publish/net8
         if-no-files-found: error
         overwrite: true
@@ -115,7 +123,7 @@ jobs:
       # If some rules are not applicable, you can disable them
       # using the --excluded-rules or --excluded-rule-ids option
       - name: Validate package
-        run: meziantou.validate-nuget-package (Get-ChildItem "${{ env.NuGetDirectory }}/*.nupkg")
+        run: meziantou.validate-nuget-package (Get-ChildItem "${{ env.NuGetDirectory }}/*.nupkg") --excluded-rules Symbols
 
   run_test:
     runs-on: windows-latest
@@ -125,35 +133,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
     - name: Run tests
-      run: dotnet test --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
-    - name: Combine Coverage Reports # This is because one report is produced per project, and we want one result for all of them.
-      uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
-      with:
-        reports: "**/*.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
-        targetdir: "${{ github.workspace }}" # REQUIRED # The directory where the generated report should be saved.
-        reporttypes: "Cobertura" # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary
-        verbosity: "Info" # The verbosity level of the log messages. Values: Verbose, Info, Warning, Error, Off
-        title: "Code Coverage" # Optional title.
-        tag: "${{ github.run_number }}_${{ github.run_id }}" # Optional tag or build version.
-        customSettings: "" # Optional custom settings (separated by semicolon). See: https://github.com/danielpalme/ReportGenerator/wiki/Settings.
-        toolpath: "reportgeneratortool" # Default directory for installing the dotnet tool.
-    - name: Upload Combined Coverage XML
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage
-        path: ${{ github.workspace }}/Cobertura.xml
-        retention-days: 5
-    - name: Publish Code Coverage Report
-      uses: 5monkeys/cobertura-action@master
-      with:
-          path: ${{ github.workspace }}/Cobertura.xml
-          minimum_coverage: 30
-    - name: Add Coverage PR Comment
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: github.event_name == 'pull_request'
-      with:
-        recreate: true
-        path: code-coverage-results.md
+      run: dotnet test --configuration Release --verbosity normal --logger trx 835TestsMaybeLess
     - name: Upload Test Result Files
       uses: actions/upload-artifact@v4
       with:

@@ -1,61 +1,74 @@
 ﻿#if !LINUX
 
+using System.Drawing;
 using CommandLine;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
-using System.Drawing;
 
-namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer {
-    [Verb("printer", HelpText = "Print things to CHC-series printers")]
-    internal class Options : GlobalOptions {
-        public enum PrinterModel {
-            CHC310, CHC310B, CHC330, Any
-        }
+namespace Haruka.Arcade.SEGA835Cmd.Modules.Printer;
 
-        [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port.", Default = 4)]
-        public int Port { get; set; }
-
-        [Option('m', "model", Required = false, HelpText = "The printer model to use. (CHC310,CHC330,Any)", Default = PrinterModel.Any)]
-        public PrinterModel Model { get; set; }
-
-        [Option("no-wait", Required = false, HelpText = "Does not wait for successful print completion, will return immediately with exit code BUSY (-1).")]
-        public bool NoWait { get; set; }
-
-        [Option("print-card-id", Required = false, HelpText = "Prints the written RFID card ID to stdout.")]
-        public bool PrintCardId { get; set; }
-
-        [Option("size", Required = false, HelpText = "Set how the image should be stretched it's size doesn't match the paper. (SizeMustMatch,Stretch,Center)", Default = StretchMode.SizeMustMatch)]
-        public StretchMode Stretch { get; set; }
-
-        [Option("rfid-data", Required = false, HelpText = "The RFID .bin file to write.")]
-        public string RFIDFileName { get; set; }
-
-        [Option("rfid-override-card-id", Required = false, Hidden = true)]
-        public bool RFIDOverrideCardId { get; set; }
-
-        [Option("holo-simplify", Required = false, HelpText = "Strips everything except fully black (0,0,0) pixels from the holo")]
-        public bool HoloSimplify { get; set; }
-
-        [Option("holo-rf", Required = false, HelpText = "Rotate and/or flip the holo image", Default = RotateFlipType.RotateNoneFlipNone)]
-        public RotateFlipType HoloRotateFlip { get; set; }
-
-        [Option("image-rf", Required = false, HelpText = "Rotate and/or flip the image", Default = RotateFlipType.RotateNoneFlipNone)]
-        public RotateFlipType ImageRotateFlip { get; set; }
-
-        [Option("holo", Required = false, HelpText = "The holo image file to print.")]
-        public string HoloFileName { get; set; }
-
-        [Value(0, MetaName = "ImageFileName", Required = true, HelpText = "The image file to print.")]
-        public string ImageFileName { get; set; }
-
-        [Value(1, MetaName = "ICC1FileName", Required = true, HelpText = "The input .icc table file.")]
-        public string ICC1FileName { get; set; }
-
-        [Value(2, MetaName = "ICC2FileName", Required = true, HelpText = "The output .icc table file.")]
-        public string ICC2FileName { get; set; }
-
-        [Value(3, MetaName = "MtfFileName", Required = true, HelpText = "The MTF file used for printing.")]
-        public string MtfFileName { get; set; }
+[Verb("printer", HelpText = "Print things to CHC-series printers")]
+class Options : GlobalOptions {
+    public enum PrinterModel {
+        Chc310,
+        Chc310B,
+        Chc320,
+        Chc330,
+        Any
     }
+
+    [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port. (CHC-310 only)", Default = 4)]
+    public int Port { get; set; }
+
+    [Option('y', "y3-port", Required = false, HelpText = "Sets the Y3 board's port. (CHC-320 only)", Default = 4)]
+    public int Y3Port { get; set; }
+
+    [Option('m', "model", Required = false, HelpText = "The printer model to use. (Chc310,Chc320,Chc330,Any)", Default = PrinterModel.Any)]
+    public PrinterModel Model { get; set; }
+
+    [Option("no-wait", Required = false, HelpText = "Does not wait for successful print completion, will return immediately with exit code BUSY (-1).")]
+    public bool NoWait { get; set; }
+
+    [Option("print-card-id", Required = false, HelpText = "Prints the written RFID card ID to stdout.")]
+    public bool PrintCardId { get; set; }
+
+    [Option("size", Required = false, HelpText = "Set how the image should be stretched it's size doesn't match the paper. (SizeMustMatch,Stretch,Center)", Default = StretchMode.SizeMustMatch)]
+    public StretchMode Stretch { get; set; }
+
+    [Option("rfid-data", Required = false, HelpText = "The RFID .bin file to write.")]
+    public string RfidFileName { get; set; }
+
+    [Option("rfid-override-card-id", Required = false, Hidden = true)]
+    public bool RfidOverrideCardId { get; set; }
+
+    [Option("holo-simplify", Required = false, HelpText = "Strips everything except fully black (0,0,0) pixels from the holo")]
+    public bool HoloSimplify { get; set; }
+
+    [Option("holo-rf", Required = false, HelpText = "Rotate and/or flip the holo image", Default = RotateFlipType.RotateNoneFlipNone)]
+    public RotateFlipType HoloRotateFlip { get; set; }
+
+    [Option("image-rf", Required = false, HelpText = "Rotate and/or flip the image", Default = RotateFlipType.RotateNoneFlipNone)]
+    public RotateFlipType ImageRotateFlip { get; set; }
+
+    [Option("holo", Required = false, HelpText = "The holo image file to print.")]
+    public string HoloFileName { get; set; }
+
+    [Option("back", Required = false, HelpText = "The back image file to print. Only available on CHC-320.")]
+    public string BackImageFileName { get; set; }
+
+    [Option("card-camera-output", Required = false, HelpText = "The path to output a .csv of card values that were read from the card camera in a CHC-320.")]
+    public string Y3OutputFile { get; set; }
+
+    [Value(0, MetaName = "ImageFileName", Required = true, HelpText = "The image file to print.")]
+    public string ImageFileName { get; set; }
+
+    [Value(1, MetaName = "ICC1FileName", Required = true, HelpText = "The input .icc table file.")]
+    public string Icc1FileName { get; set; }
+
+    [Value(2, MetaName = "ICC2FileName", Required = true, HelpText = "The output .icc table file.")]
+    public string Icc2FileName { get; set; }
+
+    [Value(3, MetaName = "MtfFileName", Required = true, HelpText = "The MTF file used for printing.")]
+    public string MtfFileName { get; set; }
 }
 
 #endif

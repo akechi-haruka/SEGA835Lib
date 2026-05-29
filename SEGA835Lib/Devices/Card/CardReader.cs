@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
     /// <summary>
     /// Base class for any Aime card reader board.
     /// A CardReader can read NFC cards of certain types with communication based on an <see cref="SProtDevice"/>.
     /// </summary>
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public abstract class CardReader : SProtDevice {
         /// <summary>
         /// Creates a new CardReader object.
@@ -19,8 +21,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// This method does not block until a card is read. Use <see cref="IsPolling"/> and <see cref="HasDetectedCard"/> to build your blocking loop.
         /// </summary>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if polling was successfully started or polling is already running.
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if polling failed to start.
+        /// <see cref="DeviceStatus.Ok"/> if polling was successfully started or polling is already running.
+        /// <see cref="DeviceStatus.ErrorDevice"/> if polling failed to start.
         /// </returns>
         public abstract DeviceStatus StartPolling();
 
@@ -33,13 +35,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// <summary>
         /// Stops scanning (polling) for cards.
         /// This method will also implicitely turn off all radios.
-        /// The last read card will still remain accessible by <see cref="GetCardType"/> and <see cref="GetCardUID"/>.
+        /// The last read card will still remain accessible by <see cref="GetCardType"/> and <see cref="GetCardUid"/>.
         /// </summary>
         /// <returns>
-        /// <see cref="DeviceStatus.OK"/> if polling was successfully stopped or polling was not running.
-        /// <see cref="DeviceStatus.ERR_NOT_INITIALIZED"/> if "Connect" was never called.
-        /// <see cref="DeviceStatus.ERR_NOT_CONNECTED"/> if the device is not/no longer connected, the thread was interrupted or "Disconnect" was called while this call was waiting.
-        /// <see cref="DeviceStatus.ERR_DEVICE"/> if polling could not be stopped.
+        /// <see cref="DeviceStatus.Ok"/> if polling was successfully stopped or polling was not running.
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if "Connect" was never called.
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the device is not/no longer connected, the thread was interrupted or "Disconnect" was called while this call was waiting.
+        /// <see cref="DeviceStatus.ErrorDevice"/> if polling could not be stopped.
         /// </returns>
         public abstract DeviceStatus StopPolling();
 
@@ -53,25 +55,25 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// Returns the last read card UID since the last call to <see cref="StartPolling"/>.
         /// </summary>
         /// <returns>the card UID</returns>
-        public abstract byte[] GetCardUID();
+        public abstract byte[] GetCardUid();
 
         /// <summary>
         /// Returns the last read card UID since the last call to <see cref="StartPolling"/> as a string (ex. 010312345678...).
         /// </summary>
-        /// <param name="felica_include_pmm">If the card is a FeliCa card, whether or not the PMm value should be retained. If this is false, this will only return the IDm part of a FeliCa. This has no effect for MIFARE cards.</param>
+        /// <param name="felicaIncludePmm">If the card is a FeliCa card, whether or not the PMm value should be retained. If this is false, this will only return the IDm part of a FeliCa. This has no effect for MIFARE cards.</param>
         /// <returns>the card UID</returns>
-        public String GetCardUIDAsString(bool felica_include_pmm = false) {
-            byte[] uid = GetCardUID();
+        public String GetCardUidAsString(bool felicaIncludePmm = false) {
+            byte[] uid = GetCardUid();
             if (uid != null) {
                 int len = uid.Length;
-                if (GetCardType() == CardType.FeliCa && !felica_include_pmm) {
+                if (GetCardType() == CardType.FeliCa && !felicaIncludePmm) {
                     len = 8;
                 }
 
                 return BitConverter.ToString(uid, 0, len).Replace("-", "");
-            } else {
-                return null;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// <summary>
         /// Clears the last card values from the reader.
         /// </summary>
-        /// <seealso cref="GetCardUID"/>
+        /// <seealso cref="GetCardUid"/>
         public abstract void ClearCard();
 
         /// <summary>
@@ -92,13 +94,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
         /// <param name="red">The R value of the color. [0-255]</param>
         /// <param name="green">The G value of the color. [0-255]</param>
         /// <param name="blue">The B value of the color. [0-255]</param>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public abstract DeviceStatus LEDSetColor(byte red, byte green, byte blue);
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public abstract DeviceStatus LedSetColor(byte red, byte green, byte blue);
 
         /// <summary>
         /// Resets the card reader's LEDs to default and/or initializes the LED sub-board.
         /// </summary>
-        /// <returns><see cref="DeviceStatus.OK"/> on success or any other DeviceStatus on failure.</returns>
-        public abstract DeviceStatus LEDReset();
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other DeviceStatus on failure.</returns>
+        public abstract DeviceStatus LedReset();
     }
 }

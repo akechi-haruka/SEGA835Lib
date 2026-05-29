@@ -1,89 +1,96 @@
 ﻿#if NET8_0_OR_GREATER
-
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Misc;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
-
     /// <summary>
     /// The base class for a CHC-series card printer.
     /// </summary>
-    public abstract partial class CHCSeriesCardPrinter : Device {
-
+    [SuppressMessage("ReSharper", "RedundantLambdaParameterType", Justification = ".NET 10 feature")]
+    public abstract partial class ChcSeriesCardPrinter {
         /// <summary>
         /// A print job.
         /// </summary>
         public class PrintJob { // subclass so we can grab the constants from CHCSeriesCardPrinter
 
-            private PrintStatus _jobStatus;
+            private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(PrintJob));
+
+            private PrintStatus jobStatus;
+
             internal PrintStatus JobStatus {
-                get {
-                    return _jobStatus;
-                }
+                get => jobStatus;
                 set {
-                    if (_jobStatus != value) {
-                        Log.Write(_jobStatus + " => " + value);
-                        _jobStatus = value;
+                    if (jobStatus != value) {
+                        LOG.LogInformation(jobStatus + " => " + value);
+                        jobStatus = value;
                     }
                 }
             }
+
             internal DeviceStatus JobResult { get; private set; }
-            internal byte[] WrittenRFIDCardId { get; private set; }
+            internal byte[] WrittenRfidCardId { get; private set; }
             internal Exception JobException { get; private set; }
 
-            private readonly CHCSeriesCardPrinter Printer;
-            private readonly INativeTrampolineCHC Native;
-            private readonly Bitmap Image;
-            private readonly Bitmap Holo;
-            private readonly byte[] RfidPayload;
+            private readonly ChcSeriesCardPrinter printer;
+            private readonly INativeTrampolineChc native;
+            private readonly Bitmap imageFront;
+            private readonly Bitmap imageBack;
+            private readonly Bitmap holo;
+            private readonly Bitmap infrared;
+
+            private readonly byte[] rfidPayload;
+
             // these two are probably structs...
             private readonly byte[] paperInfo = new byte[10];
             private readonly int[] mtf = new int[9];
-            private readonly byte[] InToneR = new byte[256];
-            private readonly byte[] InToneG = new byte[256];
-            private readonly byte[] InToneB = new byte[256];
-            private readonly byte[] OutToneR = new byte[256];
-            private readonly byte[] OutToneG = new byte[256];
-            private readonly byte[] OutToneB = new byte[256];
-            private readonly bool OverrideCardId;
+            private readonly byte[] inToneR = new byte[256];
+            private readonly byte[] inToneG = new byte[256];
+            private readonly byte[] inToneB = new byte[256];
+            private readonly byte[] outToneR = new byte[256];
+            private readonly byte[] outToneG = new byte[256];
+            private readonly byte[] outToneB = new byte[256];
+            private readonly bool overrideCardId;
 
-            internal PrintJob(CHCSeriesCardPrinter printer, INativeTrampolineCHC native, Bitmap image, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
+            internal PrintJob(ChcSeriesCardPrinter printer, INativeTrampolineChc native, Bitmap imageFront, Bitmap imageBack, Bitmap infrared, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
                 ArgumentNullException.ThrowIfNull(printer);
                 ArgumentNullException.ThrowIfNull(native);
-                ArgumentNullException.ThrowIfNull(image);
-                Printer = printer;
-                Native = native;
-                Image = image;
-                Holo = holo;
-                RfidPayload = rfidPayload;
-                JobResult = DeviceStatus.ERR_NOT_INITIALIZED;
+                ArgumentNullException.ThrowIfNull(imageFront);
+                this.printer = printer;
+                this.native = native;
+                this.imageFront = imageFront;
+                this.imageBack = imageBack;
+                this.holo = holo;
+                this.infrared = infrared;
+                this.rfidPayload = rfidPayload;
+                JobResult = DeviceStatus.ErrorNotInitialized;
                 JobStatus = PrintStatus.None;
                 JobException = null;
                 paperInfo[0] = 0x02; // ???
-                paperInfo[1] = (byte)(Printer.ImageDimensions.Width % 0x100);
-                paperInfo[2] = (byte)((Printer.ImageDimensions.Width >> 8) % 0x100);
-                paperInfo[3] = (byte)(Printer.ImageDimensions.Height % 0x100);
-                paperInfo[4] = (byte)((Printer.ImageDimensions.Height >> 8) % 0x100);
-                OverrideCardId = overrideCardId;
+                paperInfo[1] = (byte)(this.printer.ImageDimensions.Width % 0x100);
+                paperInfo[2] = (byte)((this.printer.ImageDimensions.Width >> 8) % 0x100);
+                paperInfo[3] = (byte)(this.printer.ImageDimensions.Height % 0x100);
+                paperInfo[4] = (byte)((this.printer.ImageDimensions.Height >> 8) % 0x100);
+                this.overrideCardId = overrideCardId;
             }
+
             internal DeviceStatus PrintExitThreadError(DeviceStatus ret, ushort rc, ushort? pageId = null) {
                 if (JobStatus == PrintStatus.Errored) {
                     return ret;
                 }
-                Log.Write("Terminating print job with error");
-                Log.Write("Last printer return code: " + RCToString(rc));
+
+                LOG.LogInformation("Terminating print job with error");
+                LOG.LogInformation("Last printer return code: " + RcToString(rc));
                 if (pageId != null) {
-                    Log.Write("Cancelling print job");
+                    LOG.LogInformation("Cancelling print job");
                     ushort _ = 0;
-                    Native.CHC_cancelCopies(pageId.Value, ref _);
+                    native.CHC_cancelCopies(pageId.Value, ref _);
                 }
+
                 JobResult = ret;
                 JobStatus = PrintStatus.Errored;
                 return ret;
@@ -95,163 +102,171 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
 
                 JobStatus = PrintStatus.Started;
-                JobResult = DeviceStatus.BUSY;
+                JobResult = DeviceStatus.Busy;
 
-                DeviceStatus ret = DeviceStatus.ERR_OTHER;
-                uint len = 0;
+                DeviceStatus ret = DeviceStatus.ErrorOther;
                 ushort? pageId = 0;
 
-                Log.Write("Started");
+                LOG.LogInformation("Started");
 
                 try {
-                    Log.Write("Checking status");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 10000);
-                    if (ret != DeviceStatus.OK) {
+                    LOG.LogInformation("Checking status");
+                    ret = printer.PrintWaitFor(ref rc, native.CHC_status, 10000);
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Set printer to standby");
-                    Printer.PrintWaitFor(ref rc, (ref ushort rc) => Native.CHC_setPrintStandby(Standby_RFID, ref rc), 30000);
-                    if (ret != DeviceStatus.OK) {
-                        return PrintExitThreadError(ret, rc);
-                    }
-
-                    JobStatus = PrintStatus.RFIDRead;
-
-                    Log.Write("Get loaded card ID");
-                    // 310 only
-                    /*byte[] cardIdBuf = new byte[CARD_ID_LEN];
-                    Printer.PrintWaitFor(ref rc, (ref ushort rc) => {
-                        unsafe {
-                            fixed (byte* ptr = cardIdBuf) {
-                                return Native.CHC_getCardRfidTID(ptr, ref rc);
-                            }
+                    ushort? initialPosition = printer.GetInitialCardPosition();
+                    if (initialPosition != null) {
+                        LOG.LogInformation("Set printer to standby");
+                        ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(initialPosition.Value, ref rc), 30000);
+                        if (ret != DeviceStatus.Ok) {
+                            return PrintExitThreadError(ret, rc);
                         }
-                    }, 20000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
-                    if (ret != DeviceStatus.OK) {
-                        return PrintExitThreadError(ret, rc);
+                    } else {
+                        LOG.LogDebug("setPrintStandby is not needed on this model");
                     }
-                    if (rc != RESULT_CARDRFID_ReadA) {
-                        Log.WriteError("Unexpected result: " + rc);
-                        return PrintExitThreadError(Printer.SetLastErrorByRC(Native.CHC_RC_OK, rc), rc);
-                    }*/
 
-                    if (RfidPayload != null) {
-                        ret = Printer.WriteRFID(ref rc, RfidPayload, OverrideCardId, out byte[] writtenCardId);
-                        if (ret != DeviceStatus.OK || JobStatus == PrintStatus.Errored) {
+                    JobStatus = PrintStatus.CardDataRead;
+
+                    if (rfidPayload != null) {
+                        ret = printer.WriteRfid(ref rc, rfidPayload, overrideCardId, out byte[] writtenCardId);
+                        if (ret != DeviceStatus.Ok || JobStatus == PrintStatus.Errored) {
                             return PrintExitThreadError(ret, rc);
                         }
 
-                        WrittenRFIDCardId = writtenCardId;
+                        WrittenRfidCardId = writtenCardId;
                     } else {
-                        Log.WriteWarning("No RFID data to write");
+                        LOG.LogDebug("No RFID data to write");
                     }
 
                     JobStatus = PrintStatus.SetPrinterProperties;
 
-                    Log.Write("Setting paper info");
+                    LOG.LogInformation("Setting paper info");
+                    uint len;
                     fixed (byte* ptr = paperInfo) {
                         len = (uint)paperInfo.Length;
-                        ret = Printer.SetLastErrorByRC(Native.CHC_setPrinterInfo(PrinterInfoTag.PAPER, ptr, ref len, ref rc), rc);
+                        ret = printer.SetLastErrorByReturnCode(native.CHC_setPrinterInfo(PrinterInfoTag.Paper, ptr, ref len, ref rc), rc);
                     }
-                    if (ret != DeviceStatus.OK) {
+
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Setting polish info");
-                    byte[] polish = new byte[2];
-                    polish[0] = Printer.GetPolishParameter(Holo != null);
-                    fixed (byte* ptr = polish) {
-                        len = (uint)polish.Length;
-                        ret = Printer.SetLastErrorByRC(Native.CHC_setPrinterInfo(PrinterInfoTag.PRINTMODE, ptr, ref len, ref rc), rc);
+                    byte? parameter19 = printer.GetParameter19();
+                    if (parameter19 != null) {
+                        LOG.LogInformation("Setting parameter19");
+                        byte[] param = new byte[2];
+                        param[0] = parameter19.Value;
+                        fixed (byte* ptr = param) {
+                            len = (uint)param.Length;
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_setPrinterInfo(PrinterInfoTag.Unknown, ptr, ref len, ref rc), rc);
+                        }
+
+                        if (ret != DeviceStatus.Ok) {
+                            return PrintExitThreadError(ret, rc);
+                        }
+                    } else {
+                        LOG.LogDebug("Parameter 19 not needed for this printer model");
                     }
-                    if (ret != DeviceStatus.OK) {
+
+                    byte? polishParameter = printer.GetPolishParameter(holo != null);
+                    if (polishParameter != null) {
+                        LOG.LogInformation("Setting polish info");
+                        byte[] polish = new byte[2];
+                        polish[0] = polishParameter.Value;
+                        fixed (byte* ptr = polish) {
+                            len = (uint)polish.Length;
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_setPrinterInfo(PrinterInfoTag.PrintMode, ptr, ref len, ref rc), rc);
+                        }
+
+                        if (ret != DeviceStatus.Ok) {
+                            return PrintExitThreadError(ret, rc);
+                        }
+                    } else {
+                        LOG.LogDebug("Polish info not needed for this printer model");
+                    }
+
+                    LOG.LogInformation("Checking status");
+                    ret = printer.PrintWaitFor(ref rc, native.CHC_status, 10000);
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Checking status");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_status, 10000);
-                    if (ret != DeviceStatus.OK) {
+                    LOG.LogInformation("Setting page parameters");
+                    ret = printer.SetLastErrorByReturnCode(native.CHC_imageformat(FORMAT_PIXEL_RGB, COMPONENT_RGB, COLOR_DEPTH, (ushort)printer.ImageDimensions.Width, (ushort)printer.ImageDimensions.Height, (byte*)0, ref rc), rc); // TODO
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Setting page parameters");
-                    ret = Printer.SetLastErrorByRC(Native.CHC_imageformat(FORMAT_PIXEL_RGB, COMPONENT_RGB, COLOR_DEPTH, (ushort)Printer.ImageDimensions.Width, (ushort)Printer.ImageDimensions.Height, (byte*)0, ref rc), rc); // TODO
-                    if (ret != DeviceStatus.OK) {
-                        return PrintExitThreadError(ret, rc);
-                    }
+                    fixed (byte* ptrR = inToneR, ptrG = inToneG, ptrB = inToneB, ptrOutR = outToneR, ptrOutG = outToneG, ptrOutB = outToneB) {
+                        LOG.LogInformation("Building tone tables");
+                        _ = native.CHC_makeGamma(100, ptrR, ptrG, ptrB);
+                        _ = native.CHC_makeGamma(100, ptrOutR, ptrOutG, ptrOutB);
 
-                    fixed (byte* ptrR = InToneR, ptrG = InToneG, ptrB = InToneB, ptrOR = OutToneR, ptrOG = OutToneG, ptrOB = OutToneB) {
-                        Log.Write("Building tone tables");
-                        _ = Native.CHC_makeGamma(100, ptrR, ptrG, ptrB);
-                        _ = Native.CHC_makeGamma(100, ptrOR, ptrOG, ptrOB);
-
-                        Log.Write("Setting ICC tables");
-                        ret = Printer.SetLastErrorByRC(Native.CHC_setIcctable(Printer.IccTable1FileName, Printer.IccTable2FileName, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOR, ptrOG, ptrOB, ref rc), rc);
-                        if (ret != DeviceStatus.OK) {
+                        LOG.LogInformation("Setting ICC tables");
+                        ret = printer.SetLastErrorByReturnCode(native.CHC_setIcctable(printer.IccTable1FileName, printer.IccTable2FileName, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOutR, ptrOutG, ptrOutB, ref rc), rc);
+                        if (ret != DeviceStatus.Ok) {
                             return PrintExitThreadError(ret, rc);
                         }
                     }
 
                     fixed (int* ptr = mtf) {
-                        Log.Write("Reading MTF");
-                        ret = Printer.SetLastErrorByRC(Native.CHC_getMtf(Printer.MtfFileName, ptr, ref rc), rc);
-                        if (ret != DeviceStatus.OK) {
+                        LOG.LogInformation("Reading MTF");
+                        ret = printer.SetLastErrorByReturnCode(native.CHC_getMtf(printer.MtfFileName, ptr, ref rc), rc);
+                        if (ret != DeviceStatus.Ok) {
                             return PrintExitThreadError(ret, rc);
                         }
 
-                        Log.Write("Setting MTF");
-                        _ = Native.CHC_setmtf(ptr);
+                        LOG.LogInformation("Setting MTF");
+                        _ = native.CHC_setmtf(ptr);
                     }
 
                     JobStatus = PrintStatus.SetImage;
 
-                    Log.Write("Setting page count");
-                    ret = Printer.SetLastErrorByRC(Native.CHC_copies(1, ref rc), rc);
-                    if (ret != DeviceStatus.OK) {
+                    LOG.LogInformation("Setting page count");
+                    ret = printer.SetLastErrorByReturnCode(native.CHC_copies(1, ref rc), rc);
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    Log.Write("Starting page");
+                    LOG.LogInformation("Starting page");
                     ushort pageIdQ = 0;
-                    ret = Printer.PrintWaitFor(ref rc, (ref ushort rc) => Native.CHC_startpage(Printer.GetStartPageParameter(), ref pageIdQ, ref rc), 3000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
+                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_startpage(printer.GetStartPageParameter(), ref pageIdQ, ref rc), 3000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
                     pageId = pageIdQ;
-                    if (ret != DeviceStatus.OK) {
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    uint writtenBytes;
-                    int imageSize;
-                    byte[] imageBytes;
-
-                    Log.Write("Uploading image data (" + Printer.ImageDimensions.Width + "x" + Printer.ImageDimensions.Height + ")");
-                    imageSize = Printer.ImageDimensions.Width * Printer.ImageDimensions.Height * COMPONENT_RGB;
-                    imageBytes = Image.GetRawPixelsRGBNoPadding();
+                    LOG.LogInformation("Uploading image data (" + printer.ImageDimensions.Width + "x" + printer.ImageDimensions.Height + ")");
+                    int imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height * COMPONENT_RGB;
+                    byte[] imageBytes = imageFront.GetRawPixelsRgbNoPadding();
                     if (imageBytes.Length != imageSize) {
                         throw new Exception("imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                     }
 
-                    writtenBytes = 0;
+                    uint writtenBytes = 0;
                     fixed (byte* ptr = imageBytes) {
                         for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
                             writtenBytes = (uint)imageBytes.Length - pos;
-                            ret = Printer.SetLastErrorByRC(Native.CHC_write(ptr + pos, ref writtenBytes, ref rc), rc);
-                            if (ret != DeviceStatus.OK) {
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_write(ptr + pos, ref writtenBytes, ref rc), rc);
+                            if (ret != DeviceStatus.Ok) {
                                 return PrintExitThreadError(ret, rc, pageId);
                             }
                         }
                     }
-                    Log.Write(writtenBytes + " bytes written");
+
+                    LOG.LogInformation(writtenBytes + " bytes written");
                     if (writtenBytes != imageBytes.Length) {
-                        ret = DeviceStatus.ERR_DEVICE;
-                        Log.WriteError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                        ret = DeviceStatus.ErrorDevice;
+                        LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    if (Holo != null) {
-                        Log.Write("Uploading holo image");
-                        imageSize = Printer.ImageDimensions.Width * Printer.ImageDimensions.Height;
-                        imageBytes = Holo.GetRawPixelsMonochrome();
+                    if (holo != null) {
+                        LOG.LogInformation("Uploading holo image");
+                        imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height;
+                        imageBytes = holo.GetRawPixelsMonochrome();
                         if (imageBytes.Length != imageSize) {
                             throw new Exception("holo: imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                         }
@@ -260,92 +275,159 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         fixed (byte* ptr = imageBytes) {
                             for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
                                 writtenBytes = (uint)imageBytes.Length - pos;
-                                ret = Printer.SetLastErrorByRC(Native.CHC_writeHolo(ptr + pos, ref writtenBytes, ref rc), rc);
-                                if (ret != DeviceStatus.OK) {
+                                ret = printer.SetLastErrorByReturnCode(native.CHC_writeHolo(ptr + pos, ref writtenBytes, ref rc), rc);
+                                if (ret != DeviceStatus.Ok) {
                                     return PrintExitThreadError(ret, rc, pageId);
                                 }
                             }
                         }
-                        Log.Write(writtenBytes + " bytes written");
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
                         if (writtenBytes != imageBytes.Length) {
-                            ret = DeviceStatus.ERR_DEVICE;
-                            Log.WriteError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            ret = DeviceStatus.ErrorDevice;
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
                             return PrintExitThreadError(ret, rc, pageId);
                         }
                     } else {
-                        Log.Write("No holo image set");
+                        LOG.LogInformation("No holo image set");
                     }
 
-                    Log.Write("Ending page");
+                    if (imageBack != null) {
+                        LOG.LogInformation("Uploading back side image");
+                        imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height * COMPONENT_RGB;
+                        imageBytes = imageBack.GetRawPixelsRgbNoPadding();
+                        if (imageBytes.Length != imageSize) {
+                            throw new Exception("backImageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
+                        }
+
+                        writtenBytes = 0;
+                        fixed (byte* ptr = imageBytes) {
+                            for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
+                                writtenBytes = (uint)imageBytes.Length - pos;
+                                ret = printer.SetLastErrorByReturnCode(native.CHC_write(ptr + pos, ref writtenBytes, ref rc), rc);
+                                if (ret != DeviceStatus.Ok) {
+                                    return PrintExitThreadError(ret, rc, pageId);
+                                }
+                            }
+                        }
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
+                        if (writtenBytes != imageBytes.Length) {
+                            ret = DeviceStatus.ErrorDevice;
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            return PrintExitThreadError(ret, rc, pageId);
+                        }
+                    } else {
+                        LOG.LogInformation("No back image set");
+                    }
+
+                    if (infrared != null) {
+                        JobStatus = PrintStatus.SetImageIr;
+
+                        LOG.LogInformation("Uploading infrared image");
+                        imageSize = printer.ImageDimensions.Width * printer.ImageDimensions.Height;
+                        imageBytes = infrared.GetRawPixelsMonochrome();
+                        if (imageBytes.Length != imageSize) {
+                            throw new Exception("infrared: imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
+                        }
+
+                        writtenBytes = 0;
+                        fixed (byte* ptr = imageBytes) {
+                            for (uint pos = 0; pos < imageBytes.Length; pos += writtenBytes) {
+                                writtenBytes = (uint)imageBytes.Length - pos;
+                                ret = printer.SetLastErrorByReturnCode(native.CHC_writeIred(ptr + pos, ref writtenBytes, ref rc), rc);
+                                if (ret != DeviceStatus.Ok) {
+                                    return PrintExitThreadError(ret, rc, pageId);
+                                }
+                            }
+                        }
+
+                        LOG.LogInformation(writtenBytes + " bytes written");
+                        if (writtenBytes != imageBytes.Length) {
+                            ret = DeviceStatus.ErrorDevice;
+                            LOG.LogError("Failed writing entire image: " + writtenBytes + "/" + imageBytes.Length);
+                            return PrintExitThreadError(ret, rc, pageId);
+                        }
+                    } else {
+                        LOG.LogInformation("No infrared image set");
+                    }
+
+                    LOG.LogInformation("Ending page");
 
                     JobStatus = PrintStatus.Printing;
 
-                    ret = Printer.SetLastErrorByRC(Native.CHC_endpage(ref rc), rc);
-                    if (ret != DeviceStatus.OK) {
+                    ret = printer.SetLastErrorByReturnCode(native.CHC_endpage(ref rc), rc);
+                    if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    Log.Write("Now printing...");
-                    ret = Printer.PrintWaitFor(ref rc, (ref ushort rc) => {
-                        if (Native.CHC_status(ref rc) == CHCUSB_RC_BUSY) {
-                            if (rc != RESULT_STATUS_BUSY && rc != RESULT_STATUS_Operation && rc != 1007) {
-                                Log.WriteError("Status check failed: " + rc);
+                    LOG.LogInformation("Now printing...");
+                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => {
+                        if (native.CHC_status(ref rc) == CHCUSB_RC_BUSY) {
+                            if (rc != RESULT_STATUS_BUSY && rc != RESULT_STATUS_OPERATION && rc != 1007) {
+                                LOG.LogError("Status check failed: " + rc);
                                 return rc;
                             }
                         }
 
                         byte[] buf = new byte[8];
                         fixed (byte* ptr = buf) {
-                            ret = Printer.SetLastErrorByRC(Native.CHC_getPrintIDStatus(0, ptr, ref rc), rc);
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_getPrintIDStatus(0, ptr, ref rc), rc);
                         }
 
-                        if (ret != DeviceStatus.OK) {
-                            Log.WriteError("GetPrintIDStatus check failed: " + rc);
+                        if (ret != DeviceStatus.Ok) {
+                            LOG.LogError("GetPrintIDStatus check failed: " + rc);
                             return rc;
                         }
 
                         int printStatus = buf[7] << 8 | buf[6];
-                        if (printStatus == RESULT_STATUS_PrinttingComplete || printStatus == RESULT_STATUS_NoPrintting) {
+                        if (printStatus == RESULT_STATUS_PRINTTING_COMPLETE || printStatus == RESULT_STATUS_NO_PRINTTING) {
                             return CHCUSB_RC_OK;
                         }
 
                         return CHCUSB_RC_BUSY;
-                    }, 180000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
-                    if (ret != DeviceStatus.OK) {
-                        if (ret == DeviceStatus.ERR_TIMEOUT) {
+                    }, 180000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
+                    if (ret != DeviceStatus.Ok) {
+                        if (ret == DeviceStatus.ErrorTimeout) {
                             rc = RESULT_PRINT_TIMEOUT;
                         }
+
                         return PrintExitThreadError(ret, rc, pageId);
                     }
-                    Log.Write("Print complete");
+
+                    LOG.LogInformation("Print complete");
+
+                    JobStatus = PrintStatus.Postprocessing;
+
+                    ret = printer.PostProcessing(ref rc);
+                    if (ret != DeviceStatus.Ok) {
+                        return PrintExitThreadError(ret, rc);
+                    }
 
                     JobStatus = PrintStatus.Ejecting;
 
-                    Log.Write("Ejecting card");
-                    ret = Printer.PrintWaitFor(ref rc, Native.CHC_exitCard, 180_000, RESULT_STATUS_BUSY, RESULT_STATUS_Operation);
-                    if (ret != DeviceStatus.OK) {
-                        Log.WriteError("ExitCard failed");
+                    LOG.LogInformation("Ejecting card");
+                    ret = printer.PrintWaitFor(ref rc, native.CHC_exitCard, 180_000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
+                    if (ret != DeviceStatus.Ok) {
+                        LOG.LogError("ExitCard failed");
                         return PrintExitThreadError(ret, rc, pageId);
                     }
 
-                    Log.Write("Print finished");
+                    LOG.LogInformation("Print finished");
                     JobStatus = PrintStatus.Finished;
-                    JobResult = DeviceStatus.OK;
-
+                    JobResult = DeviceStatus.Ok;
                 } catch (Exception ex) {
-                    Log.WriteFault(ex, "Exception in print job");
+                    LOG.LogCritical(ex, "Exception in print job");
                     JobException = ex;
-                    PrintExitThreadError(DeviceStatus.ERR_OTHER, 0, pageId);
+                    PrintExitThreadError(DeviceStatus.ErrorOther, 0, pageId);
                 } finally {
-                    Log.Write("Print job finished");
+                    LOG.LogInformation("Print job finished");
                 }
 
                 return ret;
             }
         }
-
     }
-
 }
 
 #endif

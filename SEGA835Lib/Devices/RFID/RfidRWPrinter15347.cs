@@ -1,0 +1,100 @@
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Misc;
+using Haruka.Arcade.SEGA835Lib.Serial;
+using Microsoft.Extensions.Logging;
+
+namespace Haruka.Arcade.SEGA835Lib.Devices.RFID {
+    /// <summary>
+    /// A 837-15347 RFID card reader/writer that is found inside a CHC-330 printer.
+    /// </summary>
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    public class RfidRwPrinter15347 : RfidDeckReader20004 {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(RfidRwPrinter15347));
+
+        private const byte COMMAND_WRITE_START_STOP = 0x02;
+        private const byte COMMAND_WRITE_BLOCK = 0x03;
+
+        /// <inheritdoc/>
+        public RfidRwPrinter15347(int port) : base(port) {
+        }
+
+        /// <inheritdoc/>
+        public override string GetDeviceModel() {
+            return "837-15347";
+        }
+
+        /// <inheritdoc/>
+        public override string GetName() {
+            return "RFID Reader BD For Embedded";
+        }
+
+        /// <summary>
+        /// Writes the given data to the currently loaded card.
+        /// </summary>
+        /// <remarks>
+        /// To verify that a card is loaded, call <see cref="RfidDeckReader20004.Scan(out byte[][])"/> beforehand and check if the first dimension array length is equal to 1.
+        /// </remarks>
+        /// <param name="cardid">The card id to write (must be 12 bytes).</param>
+        /// <param name="data">The card data to write (must be <see cref="RfidReadWriteDevice.GetCardPayloadSize"/> - 12 bytes).</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
+        /// <exception cref="ArgumentException">If cardid is not 12 bytes or the data is not <see cref="RfidReadWriteDevice.GetCardPayloadSize"/> - 12 bytes.</exception>
+        public DeviceStatus Write(byte[] cardid, byte[] data) {
+            NetStandardBackCompatExtensions.ThrowIfNull(cardid, nameof(cardid));
+            NetStandardBackCompatExtensions.ThrowIfNull(data, nameof(data));
+            if (cardid.Length != 12) {
+                throw new ArgumentException("cardid must be 12 bytes in length (given: " + cardid.Length + ")");
+            }
+
+            if (data.Length != GetCardPayloadSize() - 12) {
+                throw new ArgumentException("data must be 32 bytes in length (given: " + data.Length + ")");
+            }
+
+            LOG.LogDebug("Write RFID ID:\n" + Hex.Dump(cardid));
+            LOG.LogDebug("Write RFID Data:\n" + Hex.Dump(data));
+
+            // todo: these actually return something
+
+            DeviceStatus ret = SetLastError(Write(COMMAND_WRITE_START_STOP, cardid));
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            ret = SetLastError(Read(out SProtFrame _));
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            for (int i = 0; i < data.Length; i += 2) {
+                LOG.LogInformation("Write Block " + (i / 2));
+                ret = SetLastError(Write(COMMAND_WRITE_BLOCK, new byte[] { data[i], data[i + 1] }));
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+
+                ret = SetLastError(Read(out SProtFrame _));
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+            }
+
+            ret = SetLastError(Write(COMMAND_WRITE_START_STOP, new byte[0]));
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            return SetLastError(Read(out SProtFrame _));
+        }
+
+        /// <summary>
+        /// Calls <see cref="RfidReadWriteDevice.GetUnknown81(out byte)"/> on the underlying RFID board. I do not know why this is needed, otherwise calling <see cref="RfidDeckReader20004.Scan(out byte[][])" /> will return code 3.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, any other DeviceStatus on error.</returns>
+        public DeviceStatus ResetWriter() {
+            LOG.LogInformation("ResetWriter");
+            // I am not sure why this needs to be done, but it seems to be mandatory otherwise Scan will give RC 3
+            return SetLastError(GetUnknown81(out byte _));
+        }
+    }
+}

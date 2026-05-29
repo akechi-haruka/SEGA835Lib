@@ -1,12 +1,15 @@
-﻿namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
     /// <summary>
     /// The type for which card(s) the radio should be turned on.
     /// </summary>
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public enum RadioOnType {
         /// <summary>
         /// Turn on radio for MIFARE cards.
         /// </summary>
-        MIFARE = 1,
+        Mifare = 1,
 
         /// <summary>
         /// Turn on radio for FeliCa cards.

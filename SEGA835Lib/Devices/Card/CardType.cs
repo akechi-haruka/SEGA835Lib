@@ -1,5 +1,4 @@
 ﻿namespace Haruka.Arcade.SEGA835Lib.Devices.Card {
-
     /// <summary>
     /// An enum of card types this library supports.
     /// </summary>
@@ -7,7 +6,8 @@
         /// <summary>
         /// A MIFARE card.
         /// </summary>
-        MIFARE,
+        Mifare,
+
         /// <summary>
         /// A FeliCa card.
         /// </summary>

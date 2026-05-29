@@ -1,10 +1,10 @@
-﻿using Haruka.Arcade.SEGA835Lib.Serial;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Haruka.Arcade.SEGA835Lib.Serial;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketReset : SProtPayload {
+    struct ReqPacketReset : ISProtPayload {
         public byte reset_type;
 
         public byte GetCommandID() {
@@ -13,21 +13,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketReset : SProtPayload {
+    struct RespPacketReset : ISProtPayload {
         public byte GetCommandID() {
             return 0x10;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketGetBoardInfo : SProtPayload {
+    struct ReqPacketGetBoardInfo : ISProtPayload {
         public byte GetCommandID() {
             return 0xF0;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal unsafe struct RespPacketGetBoardInfo : SProtPayload {
+    struct RespPacketGetBoardInfo : ISProtPayload {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 8)]
         public String board_number;
 
@@ -45,14 +45,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketGetFirmwareChecksum : SProtPayload {
+    struct ReqPacketGetFirmwareChecksum : ISProtPayload {
         public byte GetCommandID() {
             return 0xF2;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketGetFirmwareChecksum : SProtPayload {
+    struct RespPacketGetFirmwareChecksum : ISProtPayload {
         public byte fw_checksum_b1;
         public byte fw_checksum_b2;
 
@@ -62,14 +62,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketGetProtocolVersion : SProtPayload {
+    struct ReqPacketGetProtocolVersion : ISProtPayload {
         public byte GetCommandID() {
             return 0xF3;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketGetProtocolVersion : SProtPayload {
+    struct RespPacketGetProtocolVersion : ISProtPayload {
         public byte appli_mode;
         public byte major;
         public byte minor;
@@ -80,7 +80,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketSetTimeout : SProtPayload {
+    struct ReqPacketSetTimeout : ISProtPayload {
         public ushort timeout;
 
         public byte GetCommandID() {
@@ -89,7 +89,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketSetTimeout : SProtPayload {
+    struct RespPacketSetTimeout : ISProtPayload {
         public ushort timeout;
 
         public byte GetCommandID() {
@@ -98,7 +98,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketGetBoardStatus : SProtPayload {
+    struct ReqPacketGetBoardStatus : ISProtPayload {
         public byte flagclear;
 
         public byte GetCommandID() {
@@ -107,7 +107,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketGetBoardStatus : SProtPayload {
+    struct RespPacketGetBoardStatus : ISProtPayload {
         public byte boardflag;
         public byte uartflag;
         public byte cmdflag;
@@ -118,7 +118,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketSetDisableResponse : SProtPayload {
+    struct ReqPacketSetDisableResponse : ISProtPayload {
         public byte enable;
 
         public byte GetCommandID() {
@@ -127,7 +127,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketSetDisableResponse : SProtPayload {
+    struct RespPacketSetDisableResponse : ISProtPayload {
         public byte enable;
 
         public byte GetCommandID() {
@@ -136,7 +136,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal unsafe struct ReqPacketSetLEDs : SProtPayload {
+    unsafe struct ReqPacketSetLeds : ISProtPayload {
         public fixed byte pixels[66 * 3];
 
         public byte GetCommandID() {
@@ -145,7 +145,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketSetLEDs : SProtPayload {
+    struct RespPacketSetLeds : ISProtPayload {
         public byte GetCommandID() {
             return 0x82;
         }
@@ -153,7 +153,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct ReqPacketSetLEDCount : SProtPayload {
+    struct ReqPacketSetLedCount : ISProtPayload {
         public byte count;
 
         public byte GetCommandID() {
@@ -162,7 +162,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    internal struct RespPacketSetLEDCount : SProtPayload {
+    struct RespPacketSetLedCount : ISProtPayload {
         public byte count;
 
         public byte GetCommandID() {
