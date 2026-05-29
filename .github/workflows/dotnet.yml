@@ -29,7 +29,8 @@ jobs:
     - name: Publish
       run: |
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net6.pubxml -f:net6.0-windows7
-        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows10.0.18362.0
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net8.pubxml -f:net8.0-windows
+        dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net10.pubxml -f:net10.0-windows
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard20.pubxml -f:netstandard2.0
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard21.pubxml -f:netstandard2.1
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\NetStandard21.pubxml -f:netstandard2.1
@@ -47,6 +48,13 @@ jobs:
       uses: actions/upload-artifact@v4.3.3
       with:
         name: Sega835Lib-net8-latest
+        path: SEGA835Lib/publish/net8
+        if-no-files-found: error
+        overwrite: true
+    - name: Upload Lib NET 10
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: Sega835Lib-net10-latest
         path: SEGA835Lib/publish/net8
         if-no-files-found: error
         overwrite: true
