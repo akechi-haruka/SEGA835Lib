@@ -2,13 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0-windows</TargetFramework>
-        <RootNamespace>_835TestsMaybeLess</RootNamespace>
+        <RootNamespace>_835TestsMaybeLess32</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <RollForward>LatestMajor</RollForward>
+        <PlatformTarget>x86</PlatformTarget>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\835TestsMaybeLess\835TestsMaybeLess.csproj"/>
         <ProjectReference Include="..\SEGA835Lib\SEGA835Lib.csproj"/>
     </ItemGroup>
 
@@ -34,34 +36,25 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="TestFiles\Printer\CHC-C330-01.icc">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="TestFiles\Printer\mtf140.txt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
         <None Update="TestFiles\Printer\sRGB_IEC61966-2-1_black_scaled.icc">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestHolo330.png">
+        <None Update="TestFiles\Printer\TestImage320front.bmp">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestImage330.jpg">
+        <None Update="TestFiles\Printer\TestImage320back.bmp">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestOversized330.jpg">
+        <None Update="TestFiles\Printer\TestHolo320.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestImage310.jpg">
+        <None Update="TestFiles\Printer\SmplMtf.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestHolo310.png">
+        <None Update="TestFiles\Printer\CHC-C320-01.icc">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="TestFiles\Printer\TestImageSAO.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="TestFiles\Printer\TestHoloSAO.png">
+        <None Update="TestFiles\Printer\TestInfrared320.bmp">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>

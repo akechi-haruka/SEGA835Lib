@@ -44,6 +44,11 @@
         Printing,
 
         /// <summary>
+        /// User-defined post-processing functions are running.
+        /// </summary>
+        Postprocessing,
+
+        /// <summary>
         /// The card is being ejected.
         /// </summary>
         Ejecting,

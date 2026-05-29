@@ -71,7 +71,7 @@ static class Y3Runner {
                 if (count > 0) {
                     foreach (Y3.CardInfo card in data) {
                         if (card.IsValidCard() || (opts.IgnoreCardType && card.IsValid())) {
-                            Console.WriteLine(card.CardType + ":" + card.UnknownType + ":" + card.X + ":" + card.Y + ":" + card.Rotation + ":" + card.GetTitleCode() + ":" + card.GetIvCode() + ":" + card.DataCount + ":" + card.Data0 + ":" + card.Data1 + ":" + card.Data2 + ":" + card.Data3 + ":" + card.Data4 + ":" + card.Data5);
+                            Console.WriteLine(card.ToCsv());
                             found = true;
                         }
                     }

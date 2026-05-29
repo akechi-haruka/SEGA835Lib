@@ -1,4 +1,7 @@
-﻿using Haruka.Arcade.SEGA835Lib.Devices;
+﻿using System.Runtime.CompilerServices;
+using Haruka.Arcade.SEGA835Lib.Devices;
+
+[assembly: InternalsVisibleTo("835TestsMaybeLess32")]
 
 namespace _835TestsMaybeLess;
 

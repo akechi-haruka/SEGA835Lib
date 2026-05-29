@@ -29,7 +29,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             Factory = LoggerFactory.Create(_ => { });
             LoggerShim.MessageLogged += DefaultConsoleLogging;
 #else
-            Factory = LoggerFactory.Create(builder => builder.AddConsole().AddDebug());
+            Factory = LoggerFactory.Create(builder => builder.AddConsole(options => options.DisableColors = true).AddDebug().SetMinimumLevel(LogLevel.Trace));
 #endif
         }
 

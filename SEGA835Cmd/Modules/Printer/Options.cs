@@ -16,8 +16,11 @@ class Options : GlobalOptions {
         Any
     }
 
-    [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port.", Default = 4)]
+    [Option('p', "port", Required = false, HelpText = "Sets the RFID writer's port. (CHC-310 only)", Default = 4)]
     public int Port { get; set; }
+
+    [Option('y', "y3-port", Required = false, HelpText = "Sets the Y3 board's port. (CHC-320 only)", Default = 4)]
+    public int Y3Port { get; set; }
 
     [Option('m', "model", Required = false, HelpText = "The printer model to use. (Chc310,Chc320,Chc330,Any)", Default = PrinterModel.Any)]
     public PrinterModel Model { get; set; }
@@ -51,6 +54,9 @@ class Options : GlobalOptions {
 
     [Option("back", Required = false, HelpText = "The back image file to print. Only available on CHC-320.")]
     public string BackImageFileName { get; set; }
+
+    [Option("card-camera-output", Required = false, HelpText = "The path to output a .csv of card values that were read from the card camera in a CHC-320.")]
+    public string Y3OutputFile { get; set; }
 
     [Value(0, MetaName = "ImageFileName", Required = true, HelpText = "The image file to print.")]
     public string ImageFileName { get; set; }

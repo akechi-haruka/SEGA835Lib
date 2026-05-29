@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("835TestsMaybeLess")]
+[assembly: InternalsVisibleTo("835TestsMaybeLess32")]
 
 namespace Haruka.Arcade.SEGA835Lib {
     /// <summary>

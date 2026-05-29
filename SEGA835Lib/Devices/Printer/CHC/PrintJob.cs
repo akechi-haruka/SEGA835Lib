@@ -116,18 +116,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    LOG.LogInformation("Set printer to standby");
-                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(printer.GetInitialCardPosition(), ref rc), 30000);
-                    if (ret != DeviceStatus.Ok) {
-                        return PrintExitThreadError(ret, rc);
+                    ushort? initialPosition = printer.GetInitialCardPosition();
+                    if (initialPosition != null) {
+                        LOG.LogInformation("Set printer to standby");
+                        ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(initialPosition.Value, ref rc), 30000);
+                        if (ret != DeviceStatus.Ok) {
+                            return PrintExitThreadError(ret, rc);
+                        }
+                    } else {
+                        LOG.LogDebug("setPrintStandby is not needed on this model");
                     }
 
                     JobStatus = PrintStatus.CardDataRead;
-
-                    ret = printer.ReadCardInformation(ref rc);
-                    if (ret != DeviceStatus.Ok) {
-                        return PrintExitThreadError(ret, rc);
-                    }
 
                     if (rfidPayload != null) {
                         ret = printer.WriteRfid(ref rc, rfidPayload, overrideCardId, out byte[] writtenCardId);
@@ -137,7 +137,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                         WrittenRfidCardId = writtenCardId;
                     } else {
-                        LOG.LogWarning("No RFID data to write");
+                        LOG.LogDebug("No RFID data to write");
                     }
 
                     JobStatus = PrintStatus.SetPrinterProperties;
@@ -151,6 +151,23 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc);
+                    }
+
+                    byte? parameter19 = printer.GetParameter19();
+                    if (parameter19 != null) {
+                        LOG.LogInformation("Setting parameter19");
+                        byte[] param = new byte[2];
+                        param[0] = parameter19.Value;
+                        fixed (byte* ptr = param) {
+                            len = (uint)param.Length;
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_setPrinterInfo(PrinterInfoTag.Unknown, ptr, ref len, ref rc), rc);
+                        }
+
+                        if (ret != DeviceStatus.Ok) {
+                            return PrintExitThreadError(ret, rc);
+                        }
+                    } else {
+                        LOG.LogDebug("Parameter 19 not needed for this printer model");
                     }
 
                     byte? polishParameter = printer.GetPolishParameter(holo != null);
@@ -167,7 +184,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                             return PrintExitThreadError(ret, rc);
                         }
                     } else {
-                        LOG.LogInformation("Polish info not needed for this printer model");
+                        LOG.LogDebug("Polish info not needed for this printer model");
                     }
 
                     LOG.LogInformation("Checking status");
@@ -379,6 +396,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     }
 
                     LOG.LogInformation("Print complete");
+
+                    JobStatus = PrintStatus.Postprocessing;
+
+                    ret = printer.PostProcessing(ref rc);
+                    if (ret != DeviceStatus.Ok) {
+                        return PrintExitThreadError(ret, rc);
+                    }
 
                     JobStatus = PrintStatus.Ejecting;
 

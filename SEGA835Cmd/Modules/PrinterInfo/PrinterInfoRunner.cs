@@ -29,7 +29,7 @@ static class PrinterInfoRunner {
         }
 
         if (opts.Model == Options.PrinterModel.Chc320 || opts.Model == Options.PrinterModel.Any) {
-            printers.Add(new Chc320Printer());
+            printers.Add(new Chc320Printer(null));
         }
 
         if (opts.Model == Options.PrinterModel.Chc330 || opts.Model == Options.PrinterModel.Any) {

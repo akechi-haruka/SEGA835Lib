@@ -1,6 +1,7 @@
 ﻿#if NET8_0_OR_GREATER
 using System;
 using System.Drawing;
+using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Microsoft.Extensions.Logging;
@@ -12,8 +13,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
     /// A CHC-320 Card Printer for Sangokushi Taisen.
     /// </summary>
     public class Chc320Printer : ChcSeriesCardPrinter {
-        private readonly Y3 printerCamera;
+        private const int MAX_CARD_SCAN_RETRIES = 10;
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc320Printer));
+
+        private readonly Y3 printerCamera;
 
         /// <summary>
         /// Called when card data is successfully read from the printer camera.
@@ -24,7 +27,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// Creates a new CHC-320 printer.
         /// </summary>
         /// <param name="y3">The Y3 board to use as the printer camera, or null to not use.</param>
-        public Chc320Printer(Y3 y3) : base(new Native(), null, new Size(664, 1036)) {
+        public Chc320Printer(Y3 y3) : base(new Native(), null, new Size(662, 1024)) {
             printerCamera = y3;
         }
 
@@ -81,12 +84,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
 
         /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
-            return START_PAGE_EXIT;
+            return START_PAGE_STANDBY_RFID_OR_CARD_CAMERA;
         }
 
         /// <inheritdoc />
         protected override byte? GetPolishParameter(bool isHolo) {
-            return null;
+            return (byte)(isHolo ? 0x08 : 0x02);
         }
 
         /// <summary>
@@ -94,14 +97,70 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         /// </summary>
         /// <param name="rc">Ignored.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or if no Y3 board was specified, <see cref="DeviceStatus.ErrorDevice"/> otherwise.</returns>
-        protected override DeviceStatus ReadCardInformation(ref ushort rc) {
-            // TODO: read from Y3
+        protected override DeviceStatus PostProcessing(ref ushort rc) {
+            if (printerCamera != null) {
+                DeviceStatus ret;
+                DeviceStatus cardDetectionStatus = DeviceStatus.ErrorTimeout;
+
+                if (printerCamera.GetStatus() == Y3.Native.Status.Idle) {
+                    ret = printerCamera.SetParamsForPrinter();
+                    if (ret != DeviceStatus.Ok) {
+                        return ret;
+                    }
+
+                    ret = printerCamera.Start();
+                    if (ret != DeviceStatus.Ok) {
+                        return ret;
+                    }
+                }
+
+                int retry = 0;
+                do {
+                    LOG.LogDebug("Retry " + retry);
+
+                    ret = printerCamera.GetCards(out uint count, out Y3.CardInfo[] cards, out uint procTime);
+                    LOG.LogTrace("Y3 card read took " + procTime);
+                    if (ret != DeviceStatus.Ok) {
+                        return ret;
+                    }
+
+                    if (count > 0) {
+                        foreach (Y3.CardInfo card in cards) {
+                            if (card.IsValidCard()) {
+                                CardDataRead?.Invoke(card);
+                                cardDetectionStatus = DeviceStatus.Ok;
+                            }
+                        }
+                    } else {
+                        LOG.LogWarning("Printer camera did not find a card");
+                        Thread.Sleep(500);
+                    }
+                } while (retry++ < MAX_CARD_SCAN_RETRIES && cardDetectionStatus != DeviceStatus.Ok);
+
+                if (cardDetectionStatus != DeviceStatus.Ok) {
+                    LOG.LogError("Timed out trying to find card");
+                }
+
+                ret = printerCamera.Stop();
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+
+                return cardDetectionStatus;
+            }
+
+            LOG.LogWarning("Printer camera not configured");
             return DeviceStatus.Ok;
         }
 
         /// <inheritdoc/>
-        protected override ushort GetInitialCardPosition() {
-            return STANDBY_CARD_CAMERA;
+        protected override ushort? GetInitialCardPosition() {
+            return null;
+        }
+
+        /// <inheritdoc/>
+        protected override byte? GetParameter19() {
+            return 5;
         }
 
         /// <inheritdoc/>

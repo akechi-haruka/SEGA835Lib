@@ -134,7 +134,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected const int START_PAGE_EXIT = 0;
         protected const int START_PAGE_STANDBY_YMC = 1;
         protected const int START_PAGE_STANDBY_HOLO = 2;
-        protected const int START_PAGE_STANDBY_RFID = 3;
+        protected const int START_PAGE_STANDBY_RFID_OR_CARD_CAMERA = 3;
 
         protected const int STANDBY_YMC = 0;
         protected const int STANDBY_HOLO = 1;
@@ -958,6 +958,26 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
             }
 
+            if (backImage != null && backImage.PhysicalDimension != ImageDimensions) {
+                if (ImageStretchMode == StretchMode.Stretch) {
+                    backImage = backImage.CopyStretched(ImageDimensions);
+                } else if (ImageStretchMode == StretchMode.Center) {
+                    backImage = backImage.CopyCentered(ImageDimensions);
+                } else {
+                    throw new ArgumentException("Back image to print with size " + backImage.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
+                }
+            }
+
+            if (infrared != null && infrared.PhysicalDimension != ImageDimensions) {
+                if (ImageStretchMode == StretchMode.Stretch) {
+                    infrared = infrared.CopyStretched(ImageDimensions);
+                } else if (ImageStretchMode == StretchMode.Center) {
+                    infrared = infrared.CopyCentered(ImageDimensions);
+                } else {
+                    throw new ArgumentException("Infrared image to print with size " + infrared.PhysicalDimension + " does not match expected printer size of " + ImageDimensions);
+                }
+            }
+
             VerifyRfidData(rfidPayload, overrideCardId);
             if (MtfFileName == null) {
                 throw new InvalidOperationException("MTF file must be set before attempting to print, call SetMtfFile");
@@ -1031,17 +1051,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         }
 
         /// <summary>
-        /// Read any relevant card information from the current card inside the printer.
+        /// Read any relevant card information from the current card inside the printer or do some other final operations. The card will be in the position as specified by <see cref="GetStartPageParameter"/>. This function may block and may call printer functions. This function does not have a timeout enforced.
         /// </summary>
         /// <param name="rc">The printer status code being returned.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> on success or no-op, any other DeviceStatus otherwise.</returns>
-        protected abstract DeviceStatus ReadCardInformation(ref ushort rc);
+        protected abstract DeviceStatus PostProcessing(ref ushort rc);
 
         /// <summary>
         /// Returns the STANDBY_* constant that is required for this printer's call to <see cref="INativeTrampolineChc.CHC_setPrintStandby(ushort, ref ushort)"/>.
         /// </summary>
-        /// <returns>the constant required for PrintStandby.</returns>
-        protected abstract ushort GetInitialCardPosition();
+        /// <returns>the constant required for PrintStandby or null if setPrintStandby should not be called.</returns>
+        protected abstract ushort? GetInitialCardPosition();
+
+
+        /// <summary>
+        /// Returns the parameter sent to setPrinterInfo(19). Only ever observed on a CHC-320. Unknown what it does.
+        /// </summary>
+        /// <returns>the constant required for setPrinterInfo(19), or null if this should not be called</returns>
+        protected abstract byte? GetParameter19();
     }
 }
 

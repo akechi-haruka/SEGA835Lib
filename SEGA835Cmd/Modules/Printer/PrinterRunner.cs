@@ -3,6 +3,7 @@
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
+using Haruka.Arcade.SEGA835Lib.Devices.Misc;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320;
@@ -62,8 +63,13 @@ static class PrinterRunner {
             printers.Add(new Chc310BPrinter());
         }
 
+        Y3 y3 = null;
+        if (opts.Y3Port > 0) {
+            y3 = new Y3(opts.Y3Port);
+        }
+
         if (opts.Model == Options.PrinterModel.Chc320 || opts.Model == Options.PrinterModel.Any) {
-            printers.Add(new Chc320Printer());
+            printers.Add(new Chc320Printer(y3));
         }
 
         if (opts.Model == Options.PrinterModel.Chc330 || opts.Model == Options.PrinterModel.Any) {
@@ -166,6 +172,34 @@ static class PrinterRunner {
 
             printer.ImageStretchMode = opts.Stretch;
 
+            if (y3 != null) {
+                ret = y3.Connect();
+                if (ret != DeviceStatus.Ok) {
+                    LOG.LogError("Error connecting to Y3 board");
+                    return ret;
+                }
+
+                ret = y3.SetParamsForPrinter();
+                if (ret != DeviceStatus.Ok) {
+                    LOG.LogError("Error setting parameters for printer");
+                    return ret;
+                }
+
+                ret = y3.Start();
+                if (ret != DeviceStatus.Ok) {
+                    LOG.LogError("Error starting printer camera");
+                    return ret;
+                }
+
+                Y3.Native.Status status = y3.GetStatus();
+                if (status != Y3.Native.Status.Active) {
+                    LOG.LogError("Unexpected printer camera status: " + status);
+                    return DeviceStatus.ErrorOther;
+                }
+
+                ((Chc320Printer)printer).CardDataRead += (card) => OnCardDataRead(opts.Y3OutputFile, card);
+            }
+
             ret = printer.StartPrinting(imageFront, rfid, holo, !opts.NoWait, opts.RfidOverrideCardId, imageBack);
 
             if (opts.PrintCardId) {
@@ -182,7 +216,13 @@ static class PrinterRunner {
             foreach (ChcSeriesCardPrinter printer in printers) {
                 printer.Disconnect();
             }
+
+            y3?.Disconnect();
         }
+    }
+
+    private static void OnCardDataRead(string outputFile, Y3.CardInfo obj) {
+        File.WriteAllText(outputFile, obj.ToCsv());
     }
 }
 

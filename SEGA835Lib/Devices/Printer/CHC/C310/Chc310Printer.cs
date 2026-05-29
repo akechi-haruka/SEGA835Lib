@@ -274,7 +274,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             return (byte)(isHolo ? 5 : 2);
         }
 
-        protected override DeviceStatus ReadCardInformation(ref ushort rc) {
+        protected override DeviceStatus PostProcessing(ref ushort rc) {
             LOG.LogInformation("Get loaded card ID");
             // 310 only
             byte[] cardIdBuf = new byte[CARD_ID_LEN];
@@ -298,8 +298,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
 
         /// <inheritdoc/>
-        protected override ushort GetInitialCardPosition() {
+        protected override ushort? GetInitialCardPosition() {
             return STANDBY_RFID;
+        }
+
+        /// <inheritdoc/>
+        protected override byte? GetParameter19() {
+            return null;
         }
     }
 }

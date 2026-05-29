@@ -129,8 +129,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
         public DeviceStatus SetParamsForPrinter() {
             LOG.LogInformation("SetParamsForPrinter");
-
-            throw new NotImplementedException();
+            return SetCardCount(1);
         }
 
         public DeviceStatus SetCardCount(uint count) {
@@ -336,6 +335,61 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
         public Native.Status GetStatus() {
             return (Native.Status)Native.API_GetStatus(handle);
+        }
+
+        /// <summary>
+        /// Checks that on a printer camera board if the camera marker is detected. As a convenience, this method starts and stops the board if the board is not started. If it is, no change in status will be performed.
+        /// </summary>
+        /// <param name="detected">Whether or not the marker was detected.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> if a read attempt was made, any other status on error</returns>
+        public DeviceStatus DetectPrinterMarker(out bool detected) {
+            LOG.LogInformation("Detecting printer marker");
+
+            DeviceStatus ret;
+            detected = false;
+            bool isRunning = GetStatus() == Native.Status.Active;
+
+            if (!isRunning) {
+                ret = SetParamsForPrinter();
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+
+                ret = Start();
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+            }
+
+            const int maxRetries = 10;
+            int retry = 0;
+            do {
+                LOG.LogDebug("Retry " + retry);
+
+                ret = GetCards(out uint count, out CardInfo[] data, out _);
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+
+                LOG.LogDebug("Count " + count);
+                if (count > 0) {
+                    foreach (CardInfo card in data) {
+                        if (card.IsValidMarker()) {
+                            detected = true;
+                        }
+                    }
+                }
+
+                if (!detected) {
+                    Thread.Sleep(500);
+                }
+            } while (retry++ < maxRetries && !detected);
+
+            if (!isRunning) {
+                ret = Stop();
+            }
+
+            return ret;
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -680,7 +734,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// </summary>
             /// <returns>true if this card is a marker</returns>
             public bool IsValidMarker() {
-                return CardType == DetectionType.Marker && Data1.Data == 0x4000 && Data3.Data == 0x0;
+                return CardType != DetectionType.Invalid && ID == 0x10 && Data0.Data > 0x0 && Data3.Data == 0x0;
             }
 
             /// <summary>
@@ -697,6 +751,36 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// <returns>true if the object in this slot is valid</returns>
             public bool IsValid() {
                 return IsValidCard() || IsValidMarker();
+            }
+
+            /// <inheritdoc/>
+            public override string ToString() {
+                return ToCsv();
+            }
+
+            /// <summary>
+            /// Converts this card data to a csv seperated by ";" (to work around decimal seperators)
+            /// where the fields are: <see cref="CardType"/>;<see cref="UnknownType"/>;<see cref="X"/>;<see cref="Y"/>;<see cref="Rotation"/>;<see cref="ID"/>;<see cref="DataCount"/>;<see cref="GetIvCode"/>;<see cref="GetTitleCode"/>;<see cref="Data0"/>;<see cref="Data1"/>;<see cref="Data2"/>;<see cref="Data3"/>;<see cref="Data4"/>;<see cref="Data5"/>
+            /// </summary>
+            /// <remarks>any <see cref="CardByteData"/>s at indexes greater than <see cref="DataCount"/> are not </remarks>
+            /// <example>Card;Type5;123;456;123.456;1234567;4;123456;EiketsuTaisen;1;2;3;4;0;0</example>
+            /// <returns>A string representing this object in delimited format</returns>
+            public String ToCsv() {
+                return CardType + ";" +
+                       UnknownType + ";" +
+                       X + ";" +
+                       Y + ";" +
+                       Rotation + ";" +
+                       ID + ";" +
+                       DataCount + ";" +
+                       GetIvCode() + ";" +
+                       GetTitleCode() + ";" +
+                       Data0 + ";" +
+                       Data1 + ";" +
+                       Data2 + ";" +
+                       Data3 + ";" +
+                       Data4 + ";" +
+                       Data5 + ";";
             }
         }
 

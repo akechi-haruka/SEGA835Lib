@@ -152,7 +152,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
         /// <inheritdoc/>
         protected override ushort GetStartPageParameter() {
-            return START_PAGE_STANDBY_RFID;
+            return START_PAGE_STANDBY_RFID_OR_CARD_CAMERA;
         }
 
         /// <inheritdoc />
@@ -161,13 +161,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         }
 
         // no-op
-        protected override DeviceStatus ReadCardInformation(ref ushort rc) {
+        protected override DeviceStatus PostProcessing(ref ushort rc) {
             return DeviceStatus.Ok;
         }
 
         /// <inheritdoc/>
-        protected override ushort GetInitialCardPosition() {
+        protected override ushort? GetInitialCardPosition() {
             return STANDBY_RFID;
+        }
+
+        /// <inheritdoc/>
+        protected override byte? GetParameter19() {
+            return null;
         }
     }
 }
