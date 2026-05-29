@@ -133,7 +133,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
     - name: Run tests
-      run: dotnet test --configuration Release --verbosity normal --logger trx
+      run: dotnet test --configuration Release --verbosity normal --logger trx 835TestsMaybeLess
     - name: Combine Coverage Reports # This is because one report is produced per project, and we want one result for all of them.
       uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
       with:
