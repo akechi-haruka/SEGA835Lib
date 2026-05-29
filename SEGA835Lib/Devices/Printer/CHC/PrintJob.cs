@@ -129,6 +129,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                     JobStatus = PrintStatus.CardDataRead;
 
+                    ret = printer.PreProcessing(ref rc);
+                    if (ret != DeviceStatus.Ok || JobStatus == PrintStatus.Errored) {
+                        return PrintExitThreadError(ret, rc);
+                    }
+
                     if (rfidPayload != null) {
                         ret = printer.WriteRfid(ref rc, rfidPayload, overrideCardId, out byte[] writtenCardId);
                         if (ret != DeviceStatus.Ok || JobStatus == PrintStatus.Errored) {

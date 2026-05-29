@@ -1069,6 +1069,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// </summary>
         /// <returns>the constant required for setPrinterInfo(19), or null if this should not be called</returns>
         protected abstract byte? GetParameter19();
+
+        /// <summary>
+        /// Read any relevant card information from the current card inside the printer or do some other operations before printing. The card will be in the position as specified by <see cref="GetInitialCardPosition"/>. This function may block and may call printer functions. This function does not have a timeout enforced.
+        /// </summary>
+        /// <param name="rc">The printer status code being returned.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or no-op, any other DeviceStatus otherwise.</returns>
+        protected abstract DeviceStatus PreProcessing(ref ushort rc);
     }
 }
 
