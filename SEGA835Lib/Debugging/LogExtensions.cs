@@ -6,6 +6,9 @@ using System.Text;
 #endif
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
+    /// <summary>
+    /// Log utility class, mostly internal use only.
+    /// </summary>
     public static class LogExtensions {
         private static string FormatSource(string message, string callerFilePath, string callerFunc) {
             return "<" + callerFilePath + ":" + callerFunc + "> " + message;

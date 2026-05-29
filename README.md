@@ -54,6 +54,9 @@ What devices are supported?
 * 837-15093-06 IC BD I/O 7CH CONT RS232 12V (Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093.Led15093)
 * MONKEY06 837-15093-06 EMULATOR (Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06.LedMonkey06
   * https://github.com/akechi-haruka/SuperMonkeyLEDs
+* Y3CR BD SIE F720MM 601-13160 (Haruka.Arcade.SEGA835Lib.Devices.Misc.Y3)
+    * both -01 and -02 are supported
+    * requires Y3CodeReaderNE.dll (TODO: analyze serial protocol and get rid of the DLL)
 
 ----------------
 Implementation Notes:

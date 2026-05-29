@@ -34,7 +34,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices {
         /// <param name="serial">The SProtSerial object to use for communication.</param>
         protected SProtDevice(SProtSerial serial) {
             NetStandardBackCompatExtensions.ThrowIfNull(serial, nameof(serial));
-            this.Serial = serial;
+            Serial = serial;
             Port = serial.Port;
         }
 

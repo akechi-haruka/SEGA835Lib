@@ -8,10 +8,18 @@ using Haruka.Arcade.SEGA835Lib.Debugging;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
+    /// <summary>
+    /// A Y3 601-13160(-01,-02) camera board, also known as playfield camera, printer camera or Y3CR BD SIE F720MM used in the Taisen series.
+    /// TODO: get rid of the DLL dependency and analyze serial protocol
+    /// </summary>
     [SuppressMessage("ReSharper", "UnassignedField.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Y3 : Device {
+        /// <summary>
+        /// The maximum number of cards the game can read.
+        /// </summary>
         public const uint MAX_CARDS = 16;
+
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Y3));
 
         static Y3() {
@@ -20,27 +28,58 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 #endif
         }
 
+        /// <summary>
+        /// The COM port where this board is connected to.
+        /// </summary>
         public int Port { get; }
 
+        /// <summary>
+        /// The firmware version installed on this board.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
         public float FirmwareVersion { get; private set; }
+
+        /// <summary>
+        /// The firmware name installed on this board.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
         public String FirmwareName { get; private set; }
+
+        /// <summary>
+        /// Unknown.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
         public String TargetCode { get; private set; }
 
         private IntPtr handle;
         private CardInfo[] cards;
 
+        /// <summary>
+        /// Creates a new Y3 board.
+        /// </summary>
+        /// <param name="port">The COM port to use.</param>
         public Y3(int port) {
             Port = port;
         }
 
+        /// <inheritdoc/>
         public override string GetName() {
             return "Y3";
         }
 
+        /// <inheritdoc/>
         public override string GetDeviceModel() {
             return "601-13160";
         }
 
+        /// <summary>
+        /// Connects to the device.
+        /// </summary>
+        /// <returns>
+        /// <see cref="DeviceStatus.Ok"/> if connection was successful.
+        /// <see cref="DeviceStatus.ErrorLibrary"/> if there is an error trying to load Y3CodeReaderNE.dll<br />
+        /// <see cref="DeviceStatus.ErrorNotConnected"/> if the board is not attached or if opening the device fails.<br />
+        /// </returns>
         public override DeviceStatus Connect() {
             try {
                 LOG.LogInformation("Y3 DLL version: " + Native.API_DLLVersion());
@@ -68,7 +107,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
-        [SuppressMessage("Performance", "CA1806")]
+        /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             if (handle != IntPtr.Zero) {
                 LOG.LogInformation("Disconnecting on Port " + Port);
@@ -82,12 +121,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
-        public void UpdateBoardInfo() {
+        private void UpdateBoardInfo() {
             FirmwareVersion = Native.API_GetFirmVersion(handle);
             FirmwareName = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetFirmName(handle)));
             TargetCode = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetTargetCode(handle)));
         }
 
+        /// <summary>
+        /// Returns the type of firmware that is installed on this Y3 board.
+        /// </summary>
+        /// <returns>a <see cref="FirmwareType"/> based on the <see cref="FirmwareName"/>.</returns>
         public FirmwareType GetFirmwareType() {
             switch (FirmwareName) {
                 case "SFPR":
@@ -99,6 +142,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
         }
 
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        /// <returns>a <see cref="TargetCodeType"/> based on the <see cref="TargetCode"/>.</returns>
         public TargetCodeType GetTargetCodeType() {
             switch (TargetCode) {
                 case "SFR0":
@@ -112,8 +159,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
         }
 
+        /// <summary>
+        /// Returns true if calibration is needed for this board. The value of this is only valid after <see cref="Connect"/> was called.
+        /// </summary>
         public bool IsCalibrationNeeded => GetFirmwareType() == FirmwareType.Field && GetTargetCodeType() != TargetCodeType.Field;
 
+        /// <summary>
+        /// Sets the Y3 board parameters to defaults that SEGA uses for Eiketsu Taisen's playfield camera.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus SetParamsForPlayfield() {
             LOG.LogInformation("SetParamsForPlayfield");
 
@@ -127,11 +181,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return ret;
         }
 
+        /// <summary>
+        /// Sets the Y3 board parameters to defaults that SEGA uses for Sangokushi Taisen's Printer Camera.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus SetParamsForPrinter() {
             LOG.LogInformation("SetParamsForPrinter");
             return SetCardCount(1);
         }
 
+        /// <summary>
+        /// Sets the number of cards this board should concurrently read.
+        /// </summary>
+        /// <param name="count">The number of cards to read.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus SetCardCount(uint count) {
             LOG.LogInformation("SetCardCount(" + count + ")");
             if (handle == IntPtr.Zero) {
@@ -147,6 +210,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        /// <param name="set">true to enable "Clb", false to disable.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus SetClbMode(bool set) {
             LOG.LogInformation("SetClbMode(" + set + ")");
             if (handle == IntPtr.Zero) {
@@ -160,6 +228,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Starts reading cards.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus Start() {
             LOG.LogInformation("Start");
             if (handle == IntPtr.Zero) {
@@ -173,6 +245,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Stops reading cards.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus Stop() {
             LOG.LogInformation("Stop");
             if (handle == IntPtr.Zero) {
@@ -186,6 +262,17 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Retrieves the cards that were detected by the camera.
+        /// </summary>
+        /// <param name="validCards">The number of cards that were detected.</param>
+        /// <param name="cardData">An array with a size equal to the parameter passed to <see cref="SetCardCount"/> containing the scanned cards (including empty entries if not enough cards were scanned).</param>
+        /// <param name="procTime">The time it took to detect the cards in milliseconds.</param>
+        /// <returns>
+        /// * <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called<br />
+        /// * <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="SetCardCount"/> was not called, either directly or indirectly via <see cref="SetParamsForPlayfield"/>/<see cref="SetParamsForPrinter"/> <br />
+        /// * or any other status on failure.
+        /// </returns>
         public DeviceStatus GetCards(out uint validCards, out CardInfo[] cardData, out uint procTime) {
             cardData = null;
             procTime = 0;
@@ -211,6 +298,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Resets the board (without reconnecting)
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other status on error.</returns>
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
         public DeviceStatus Reset() {
             LOG.LogInformation("Reset");
@@ -221,6 +312,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
+        /// <summary>
+        /// Starts board calibration. This is normally never needed. This method blocks until completion. 
+        /// </summary>
+        /// <param name="mode">The mode to use for calibration. Use <see cref="CalibrationType.AutoParam"/> for the playfield and <see cref="CalibrationType.Led"/> for the printer camera.</param>
+        /// <returns>
+        /// * <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called<br />
+        /// * <see cref="DeviceStatus.ErrorTimeout"/> if the calibration was not finished in time or status changes didn't happen in time
+        /// * <see cref="DeviceStatus.ErrorDevice"/> if settings were read back incorrectly or an unexpected <see cref="TargetCode"/> was encountered
+        /// * or any other status on failure.
+        /// </returns>
         public DeviceStatus Calibrate(CalibrationType mode) {
             LOG.LogInformation("Calibrate");
             if (handle == IntPtr.Zero) {
@@ -231,7 +332,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
             LOG.LogInformation("Waiting for idle status");
 
-            Native.Status lastStatus;
+            Status lastStatus;
             DateTime start = DateTime.Now;
             TimeSpan timeout = TimeSpan.FromSeconds(5);
             do {
@@ -239,7 +340,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 LOG.LogInformation("Status = " + lastStatus);
 
                 Thread.Sleep(250);
-            } while (lastStatus != Native.Status.Idle && DateTime.Now - start < timeout);
+            } while (lastStatus != Status.Idle && DateTime.Now - start < timeout);
 
             if (DateTime.Now - start >= timeout) {
                 LOG.LogError("Calibration timed out");
@@ -272,7 +373,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 do {
                     lastStatus = GetStatus();
                     Thread.Sleep(250);
-                } while (lastStatus == Native.Status.Calibration);
+                } while (lastStatus == Status.Calibration);
 
                 LOG.LogInformation("AutoParam calibration done");
 
@@ -299,16 +400,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 uint[] ledInfo = new uint[128];
                 do {
                     lastStatus = GetStatus();
-                    if (lastStatus == Native.Status.ErrorCalibrationLed) {
+                    if (lastStatus == Status.ErrorCalibrationLed) {
                         Thread.Sleep(250);
-                    } else if (lastStatus >= Native.Status.ErrorBegin) {
+                    } else if (lastStatus >= Status.ErrorBegin) {
                         return ReportBoardError();
                     }
 
                     if (Native.API_GetCalibrationResult(handle, Native.CalibrationMode.LED_5x5, ledInfo) == 0) {
                         LOG.LogInformation("Calibrated at X:" + ledInfo[0] + ",Y:" + ledInfo[1]); // TODO: what do we do with this?
                     }
-                } while (lastStatus != Native.Status.Calibration);
+                } while (lastStatus != Status.Calibration);
 
                 if (Native.API_Calibration(handle, 0) != 0) {
                     return ReportBoardError();
@@ -333,8 +434,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
         }
 
-        public Native.Status GetStatus() {
-            return (Native.Status)Native.API_GetStatus(handle);
+        /// <summary>
+        /// Returns the current board status.
+        /// </summary>
+        /// <returns>the current board status</returns>
+        public Status GetStatus() {
+            return (Status)Native.API_GetStatus(handle);
         }
 
         /// <summary>
@@ -347,7 +452,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
             DeviceStatus ret;
             detected = false;
-            bool isRunning = GetStatus() == Native.Status.Active;
+            bool isRunning = GetStatus() == Status.Active;
 
             if (!isRunning) {
                 ret = SetParamsForPrinter();
@@ -393,7 +498,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public static class Native {
+        [SuppressMessage("ReSharper", "UnusedMember.Local")]
+        private static class Native {
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern float API_DLLVersion();
 
@@ -501,50 +607,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 CardMode = 0xF4,
                 CardType = 0xF5,
                 ClbMode = 0x100
-            }
-
-            public enum Status : uint {
-                Idle = 0x0,
-                Active = 0x1,
-                BlockingProcess = 0x2,
-                Reboot = 0x3,
-                Calibration = 0x4,
-                ParameterProcessing = 0x5,
-                BoardChecking = 0x6,
-                BoardChecked = 0x7,
-                ErrorBegin = 0xF0000000,
-                ErrorSystem = 0xF0000001,
-                ErrorInput = 0xF0000002,
-                ErrorFan = 0xF0000003,
-                ErrorOther = 0xF0000004,
-                ErrorInit = 0xF00000F0,
-                ErrorInitHeader = 0xF00000F1,
-                ErrorInitEeprom = 0xF00000F2,
-                ErrorParamLoad = 0xF0000010,
-                ErrorParamSave = 0xF0000020,
-                ErrorEepromBlockRead = 0xF0000030,
-                ErrorFlashBlockRead = 0xF0000040,
-                ErrorFlashChecksum = 0xF0000048,
-                ErrorDdrBlockRead = 0xF0000050,
-                ErrorEepromBlockWriteW = 0xF0000060,
-                ErrorEepromBlockWriteR = 0xF0000061,
-                ErrorEepromBlockWriteV = 0xF0000062,
-                ErrorEepromBlockWriteD = 0xF0000068,
-                ErrorFlashBlockWriteW = 0xF0000070,
-                ErrorFlashBlockWriteR = 0xF0000071,
-                ErrorFlashBlockWriteV = 0xF0000072,
-                ErrorFlashBlockWriteD = 0xF0000078,
-                ErrorCameraSelect = 0xF0000080,
-                ErrorCameraRegRead = 0xF00000A0,
-                ErrorCameraRegWrite = 0xF00000A1,
-                ErrorEepromRead = 0xF00000B0,
-                ErrorEepromWrite = 0xF00000B1,
-                ErrorCalibrationCamera = 0xF00000C1,
-                ErrorCalibrationParam = 0xF00000C2,
-                ErrorCalibrationLed = 0xF00000C8,
-                ErrorCalibrationView = 0xF00000C9,
-                ErrorCheckBoard = 0xF00000D0,
-                ErrorTimeout = 0xF0000100
             }
         }
 
@@ -804,6 +866,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return (byte)bitVector[ID];
             }
 
+            /// <inheritdoc/>
             public override string ToString() {
                 return Data.ToString();
             }
@@ -876,6 +939,66 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// Unknown. Used for the printer camera.
             /// </summary>
             Led
+        }
+
+        /// <summary>
+        /// Status codes returned by <see cref="GetStatus"/>. Most of these are unknown.
+        /// </summary>
+        public enum Status : uint {
+            /// <summary>
+            /// Connected to the board, but not reading anything. Call <see cref="Start"/> to start reading.
+            /// </summary>
+            Idle = 0x0,
+
+            /// <summary>
+            /// The board is reading (asynchronously). Call <see cref="GetCards"/> to retrieve detected cards.
+            /// </summary>
+            Active = 0x1,
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+            BlockingProcess = 0x2,
+            Reboot = 0x3,
+
+            /// <summary>
+            /// Calibration is in progress.
+            /// </summary>
+            Calibration = 0x4,
+            ParameterProcessing = 0x5,
+            BoardChecking = 0x6,
+            BoardChecked = 0x7,
+            ErrorBegin = 0xF0000000,
+            ErrorSystem = 0xF0000001,
+            ErrorInput = 0xF0000002,
+            ErrorFan = 0xF0000003,
+            ErrorOther = 0xF0000004,
+            ErrorInit = 0xF00000F0,
+            ErrorInitHeader = 0xF00000F1,
+            ErrorInitEeprom = 0xF00000F2,
+            ErrorParamLoad = 0xF0000010,
+            ErrorParamSave = 0xF0000020,
+            ErrorEepromBlockRead = 0xF0000030,
+            ErrorFlashBlockRead = 0xF0000040,
+            ErrorFlashChecksum = 0xF0000048,
+            ErrorDdrBlockRead = 0xF0000050,
+            ErrorEepromBlockWriteW = 0xF0000060,
+            ErrorEepromBlockWriteR = 0xF0000061,
+            ErrorEepromBlockWriteV = 0xF0000062,
+            ErrorEepromBlockWriteD = 0xF0000068,
+            ErrorFlashBlockWriteW = 0xF0000070,
+            ErrorFlashBlockWriteR = 0xF0000071,
+            ErrorFlashBlockWriteV = 0xF0000072,
+            ErrorFlashBlockWriteD = 0xF0000078,
+            ErrorCameraSelect = 0xF0000080,
+            ErrorCameraRegRead = 0xF00000A0,
+            ErrorCameraRegWrite = 0xF00000A1,
+            ErrorEepromRead = 0xF00000B0,
+            ErrorEepromWrite = 0xF00000B1,
+            ErrorCalibrationCamera = 0xF00000C1,
+            ErrorCalibrationParam = 0xF00000C2,
+            ErrorCalibrationLed = 0xF00000C8,
+            ErrorCalibrationView = 0xF00000C9,
+            ErrorCheckBoard = 0xF00000D0,
+            ErrorTimeout = 0xF0000100
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         }
     }
 }

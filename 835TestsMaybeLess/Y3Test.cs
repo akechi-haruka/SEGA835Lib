@@ -22,7 +22,7 @@ public class Y3Test {
             return;
         }
 
-        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Native.Status.Idle));
+        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Status.Idle));
         Assert.That(y3.SetParamsForPrinter(), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(y3.DetectPrinterMarker(out bool detected), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(detected, Is.True);

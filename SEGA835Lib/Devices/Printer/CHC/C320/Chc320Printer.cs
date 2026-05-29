@@ -102,7 +102,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
                 DeviceStatus ret;
                 DeviceStatus cardDetectionStatus = DeviceStatus.ErrorTimeout;
 
-                if (printerCamera.GetStatus() == Y3.Native.Status.Idle) {
+                if (printerCamera.GetStatus() == Y3.Status.Idle) {
                     ret = printerCamera.SetParamsForPrinter();
                     if (ret != DeviceStatus.Ok) {
                         return ret;

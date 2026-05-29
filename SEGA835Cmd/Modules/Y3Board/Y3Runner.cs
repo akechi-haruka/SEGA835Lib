@@ -40,9 +40,9 @@ static class Y3Runner {
                 return ret;
             }
 
-            Y3.Native.Status status = y3.GetStatus();
+            Y3.Status status = y3.GetStatus();
             LOG.LogInformation("Status: " + status);
-            if (status != Y3.Native.Status.Active) {
+            if (status != Y3.Status.Active) {
                 LOG.LogError("Expected board status to be Active, got " + status);
                 return DeviceStatus.ErrorDevice;
             }

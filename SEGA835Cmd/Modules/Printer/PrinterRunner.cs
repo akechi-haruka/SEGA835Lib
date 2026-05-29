@@ -191,8 +191,8 @@ static class PrinterRunner {
                     return ret;
                 }
 
-                Y3.Native.Status status = y3.GetStatus();
-                if (status != Y3.Native.Status.Active) {
+                Y3.Status status = y3.GetStatus();
+                if (status != Y3.Status.Active) {
                     LOG.LogError("Unexpected printer camera status: " + status);
                     return DeviceStatus.ErrorOther;
                 }

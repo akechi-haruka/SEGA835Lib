@@ -94,13 +94,13 @@ public class Chc320PrinterTest {
         LOG.LogInformation(ChcSeriesCardPrinter.RcToString(rc));
         Assert.That(rc, Is.Zero);
 
-        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Native.Status.Idle));
+        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Status.Idle));
         Assert.That(y3.SetParamsForPrinter(), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(y3.Start(), Is.EqualTo(DeviceStatus.Ok));
-        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Native.Status.Active));
+        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Status.Active));
         Assert.That(y3.DetectPrinterMarker(out bool detected), Is.EqualTo(DeviceStatus.Ok));
         Assert.That(detected, Is.True);
-        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Native.Status.Active));
+        Assert.That(y3.GetStatus(), Is.EqualTo(Y3.Status.Active));
 
         printerWithY3.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C320-01.icc");
         printerWithY3.SetMtfFile("TestFiles/Printer/SmplMtf.txt");
