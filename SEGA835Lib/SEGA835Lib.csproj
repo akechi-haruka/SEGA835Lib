@@ -26,6 +26,7 @@
         <EnablePackageValidation>true</EnablePackageValidation>
         <PackageIcon>logo.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <SuppressTfmSupportBuildWarnings Condition="'$(TargetFramework)' == 'net6.0-windows7'">true</SuppressTfmSupportBuildWarnings>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">

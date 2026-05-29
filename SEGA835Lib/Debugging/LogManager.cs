@@ -1,10 +1,12 @@
+#if NET35
+using Haruka.Logging.Net35Shim;
+#else
+using Microsoft.Extensions.Logging.Console;
+#endif
 using System;
 using System.Collections.Generic;
 using Haruka.Arcade.SEGA835Lib.Misc;
 using Microsoft.Extensions.Logging;
-#if NET35
-using Haruka.Logging.Net35Shim;
-#endif
 
 namespace Haruka.Arcade.SEGA835Lib.Debugging {
     /// <summary>
@@ -29,7 +31,7 @@ namespace Haruka.Arcade.SEGA835Lib.Debugging {
             Factory = LoggerFactory.Create(_ => { });
             LoggerShim.MessageLogged += DefaultConsoleLogging;
 #else
-            Factory = LoggerFactory.Create(builder => builder.AddConsole(options => options.DisableColors = true).AddDebug().SetMinimumLevel(LogLevel.Trace));
+            Factory = LoggerFactory.Create(builder => builder.AddSimpleConsole(options => options.ColorBehavior = LoggerColorBehavior.Disabled).AddDebug().SetMinimumLevel(LogLevel.Trace));
 #endif
         }
 
