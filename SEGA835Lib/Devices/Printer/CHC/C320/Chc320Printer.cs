@@ -159,8 +159,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         }
 
         /// <inheritdoc/>
-        protected override byte? GetParameter19() {
-            return 5;
+        protected override byte? GetParameter19(bool isHolo) {
+            return (byte)(isHolo ? 0x5 : 0x0);
         }
 
         /// <inheritdoc/>

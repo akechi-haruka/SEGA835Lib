@@ -70,7 +70,7 @@ public class Chc320PrinterTest {
         printer.SetIccTables("TestFiles/Printer/sRGB_IEC61966-2-1_black_scaled.icc", "TestFiles/Printer/CHC-C320-01.icc");
         printer.SetMtfFile("TestFiles/Printer/SmplMtf.txt");
         Bitmap front = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320front.bmp"));
-        Bitmap holo = new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo320.png"));
+        Bitmap holo = null; //new Bitmap(Image.FromFile("TestFiles/Printer/TestHolo320.png"));
         Bitmap back = new Bitmap(Image.FromFile("TestFiles/Printer/TestImage320back.bmp"));
         Bitmap ir = new Bitmap(Image.FromFile("TestFiles/Printer/TestInfrared320.bmp"));
         printer.ImageStretchMode = StretchMode.Center;

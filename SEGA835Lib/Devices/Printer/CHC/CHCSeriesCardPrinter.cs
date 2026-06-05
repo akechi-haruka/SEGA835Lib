@@ -1065,10 +1065,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
 
         /// <summary>
-        /// Returns the parameter sent to setPrinterInfo(19). Only ever observed on a CHC-320. Unknown what it does.
+        /// Returns the parameter sent to setPrinterInfo(19). Only ever observed on a CHC-320. Somewhat unknown what it does. Must be 0x5 if a holo is printed, otherwise layers get swapped around.
         /// </summary>
+        /// <param name="isHolo">Whether the print job includes a holo image or not.</param>
         /// <returns>the constant required for setPrinterInfo(19), or null if this should not be called</returns>
-        protected abstract byte? GetParameter19();
+        protected abstract byte? GetParameter19(bool isHolo);
 
         /// <summary>
         /// Read any relevant card information from the current card inside the printer or do some other operations before printing. The card will be in the position as specified by <see cref="GetInitialCardPosition"/>. This function may block and may call printer functions. This function does not have a timeout enforced.

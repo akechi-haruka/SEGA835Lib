@@ -158,7 +158,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         return PrintExitThreadError(ret, rc);
                     }
 
-                    byte? parameter19 = printer.GetParameter19();
+                    byte? parameter19 = printer.GetParameter19(holo != null);
                     if (parameter19 != null) {
                         LOG.LogInformation("Setting parameter19");
                         byte[] param = new byte[2];
