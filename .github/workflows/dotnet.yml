@@ -149,6 +149,8 @@ jobs:
 
 
   deploy:
+    permissions:
+        contents: write
     if: github.event_name == 'release'
     runs-on: windows-latest
     needs: [ validate_nuget, run_test ]
@@ -156,8 +158,9 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           path: ${{ env.NuGetDirectory }}
+          merge-multiple: true
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
