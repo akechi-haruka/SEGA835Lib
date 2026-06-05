@@ -8,7 +8,7 @@
         <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <ErrorReport>none</ErrorReport>
-        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
         <Title>SEGA 835/837 I/O Library</Title>
         <Version>0.8.2</Version>
