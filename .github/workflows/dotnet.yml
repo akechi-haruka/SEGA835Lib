@@ -159,6 +159,7 @@ jobs:
         with:
           path: ${{ env.NuGetDirectory }}
           merge-multiple: true
+          skip-decompress: true
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
       - name: Publish NuGet package
