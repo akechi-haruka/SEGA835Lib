@@ -259,6 +259,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public string MtfFileName { get; private set; }
 
         /// <summary>
+        /// A 256-entry RGB output tone table to apply before uploading image data, used when no ICC files are configured.
+        /// </summary>
+        public byte[] DefaultRgbOutputToneTable { get; private set; }
+
+        /// <summary>
+        /// The MTF values to use directly, used when no MTF file is configured.
+        /// </summary>
+        public int[] DefaultMtfValues { get; private set; }
+
+        /// <summary>
         /// How the image being printed should be stretched.
         /// </summary>
         public StretchMode ImageStretchMode { get; set; } = StretchMode.SizeMustMatch;
@@ -451,6 +461,30 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         }
 
         /// <summary>
+        /// Clears the configured ICC files so printing uses a configured default RGB output tone table instead.
+        /// </summary>
+        public void ClearIccTables() {
+            IccTable1FileName = null;
+            IccTable2FileName = null;
+            LOG.LogInformation("ICC tables cleared");
+        }
+
+        /// <summary>
+        /// Sets a default 256-entry RGB output tone table used when ICC files are not configured.
+        /// </summary>
+        /// <param name="toneTable">A 256-entry byte lookup table.</param>
+        /// <exception cref="ArgumentException">If the table is not exactly 256 bytes long.</exception>
+        public void SetDefaultRgbOutputToneTable(byte[] toneTable) {
+            NetStandardBackCompatExtensions.ThrowIfNull(toneTable, nameof(toneTable));
+            if (toneTable.Length != 256) {
+                throw new ArgumentException("Tone table must contain exactly 256 entries", nameof(toneTable));
+            }
+
+            DefaultRgbOutputToneTable = (byte[])toneTable.Clone();
+            LOG.LogInformation("Default RGB output tone table set");
+        }
+
+        /// <summary>
         /// Sets the mtf.txt file used for printing.
         /// </summary>
         /// <param name="mtfFilename">The file to be used.</param>
@@ -462,7 +496,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
 
             MtfFileName = mtfFilename;
+            DefaultMtfValues = null;
             LOG.LogInformation("MTF set to: " + MtfFileName);
+        }
+
+        /// <summary>
+        /// Sets MTF values directly so an MTF file is not required.
+        /// </summary>
+        /// <param name="mtfValues">Nine MTF kernel values.</param>
+        /// <exception cref="ArgumentException">If the array is not exactly nine entries long.</exception>
+        public void SetMtfValues(int[] mtfValues) {
+            NetStandardBackCompatExtensions.ThrowIfNull(mtfValues, nameof(mtfValues));
+            if (mtfValues.Length != 9) {
+                throw new ArgumentException("MTF must contain exactly 9 values", nameof(mtfValues));
+            }
+
+            DefaultMtfValues = (int[])mtfValues.Clone();
+            MtfFileName = null;
+            LOG.LogInformation("Default MTF values set");
         }
 
         /// <inheritdoc/>
@@ -935,7 +986,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// </returns>
         /// <seealso cref="GetPrintJobResult"/>
         /// <exception cref="ArgumentException">If RFID payload verification fails or if <see cref="ImageStretchMode"/> is <see cref="StretchMode.SizeMustMatch"/> and the image dimensions do not match <see cref="ImageDimensions"/>.</exception>
-        /// <exception cref="InvalidOperationException">If <see cref="SetMtfFile(string)"/> was not called, <see cref="SetIccTables(string, string)"/> was not called or the last print job result is <see cref="PrintStatus.Errored"/></exception>
+        /// <exception cref="InvalidOperationException">If no MTF file/default MTF was set, no ICC files/default RGB output tone table was set, or the last print job result is <see cref="PrintStatus.Errored"/></exception>
         public DeviceStatus StartPrinting(Bitmap frontImage, byte[] rfidPayload = null, Bitmap holo = null, bool waitForCompletion = false, bool overrideCardId = false, Bitmap backImage = null, Bitmap infrared = null) {
             NetStandardBackCompatExtensions.ThrowIfNull(frontImage, nameof(frontImage));
             if (frontImage.PhysicalDimension != ImageDimensions) {
@@ -979,12 +1030,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             }
 
             VerifyRfidData(rfidPayload, overrideCardId);
-            if (MtfFileName == null) {
-                throw new InvalidOperationException("MTF file must be set before attempting to print, call SetMtfFile");
+            if (MtfFileName == null && DefaultMtfValues == null) {
+                throw new InvalidOperationException("MTF file or default MTF values must be set before attempting to print, call SetMtfFile or SetMtfValues");
             }
 
-            if (IccTable1FileName == null) {
-                throw new InvalidOperationException("ICC table files must be set before attempting to print, call SetIccTables");
+            if (IccTable1FileName == null && DefaultRgbOutputToneTable == null) {
+                throw new InvalidOperationException("ICC table files or a default RGB output tone table must be set before attempting to print, call SetIccTables or SetDefaultRgbOutputToneTable");
             }
 
             if (Job != null) {

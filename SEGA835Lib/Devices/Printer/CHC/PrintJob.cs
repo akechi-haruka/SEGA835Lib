@@ -209,18 +209,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         _ = native.CHC_makeGamma(100, ptrR, ptrG, ptrB);
                         _ = native.CHC_makeGamma(100, ptrOutR, ptrOutG, ptrOutB);
 
-                        LOG.LogInformation("Setting ICC tables");
-                        ret = printer.SetLastErrorByReturnCode(native.CHC_setIcctable(printer.IccTable1FileName, printer.IccTable2FileName, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOutR, ptrOutG, ptrOutB, ref rc), rc);
-                        if (ret != DeviceStatus.Ok) {
-                            return PrintExitThreadError(ret, rc);
+                        if (printer.IccTable1FileName != null) {
+                            LOG.LogInformation("Setting ICC tables");
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_setIcctable(printer.IccTable1FileName, printer.IccTable2FileName, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOutR, ptrOutG, ptrOutB, ref rc), rc);
+                            if (ret != DeviceStatus.Ok) {
+                                return PrintExitThreadError(ret, rc);
+                            }
+                        } else {
+                            LOG.LogInformation("No ICC tables set; using default RGB output tone table");
                         }
                     }
 
                     fixed (int* ptr = mtf) {
-                        LOG.LogInformation("Reading MTF");
-                        ret = printer.SetLastErrorByReturnCode(native.CHC_getMtf(printer.MtfFileName, ptr, ref rc), rc);
-                        if (ret != DeviceStatus.Ok) {
-                            return PrintExitThreadError(ret, rc);
+                        if (printer.MtfFileName != null) {
+                            LOG.LogInformation("Reading MTF");
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_getMtf(printer.MtfFileName, ptr, ref rc), rc);
+                            if (ret != DeviceStatus.Ok) {
+                                return PrintExitThreadError(ret, rc);
+                            }
+                        } else {
+                            LOG.LogInformation("Using default MTF values");
+                            Array.Copy(printer.DefaultMtfValues, mtf, mtf.Length);
                         }
 
                         LOG.LogInformation("Setting MTF");
@@ -249,6 +258,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     if (imageBytes.Length != imageSize) {
                         throw new Exception("imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                     }
+
+                    ApplyDefaultRgbOutputToneTable(imageBytes);
 
                     uint writtenBytes = 0;
                     fixed (byte* ptr = imageBytes) {
@@ -304,6 +315,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         if (imageBytes.Length != imageSize) {
                             throw new Exception("backImageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                         }
+
+                        ApplyDefaultRgbOutputToneTable(imageBytes);
 
                         writtenBytes = 0;
                         fixed (byte* ptr = imageBytes) {
@@ -430,6 +443,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 }
 
                 return ret;
+            }
+
+            private void ApplyDefaultRgbOutputToneTable(byte[] imageBytes) {
+                if (printer.IccTable1FileName != null || printer.DefaultRgbOutputToneTable == null) {
+                    return;
+                }
+
+                byte[] table = printer.DefaultRgbOutputToneTable;
+                for (int i = 0; i < imageBytes.Length; i += COMPONENT_RGB) {
+                    imageBytes[i] = table[imageBytes[i]];
+                    imageBytes[i + 1] = table[imageBytes[i + 1]];
+                    imageBytes[i + 2] = table[imageBytes[i + 2]];
+
+                    if (imageBytes[i] == 255 && imageBytes[i + 1] == 255 && imageBytes[i + 2] == 255) {
+                        imageBytes[i + 1] = 254;
+                        imageBytes[i + 2] = 254;
+                    }
+                }
             }
         }
     }
