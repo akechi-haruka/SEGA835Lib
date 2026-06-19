@@ -11,8 +11,8 @@
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <PackageId>Haruka.Arcade.$(AssemblyName)</PackageId>
         <Title>SEGA 835 I/O Application</Title>
-        <Version>0.4.0</Version>
-        <Authors>Haruka Akechi</Authors>
+        <Version>0.4.1</Version>
+        <Authors>Haruka Akechi and contributors</Authors>
         <Company/>
         <Description>Command-line applicaton to interface with SEGA(R) arcade hardware</Description>
         <Copyright>(c) 2024-2026 Haruka Akechi and contributors</Copyright>
