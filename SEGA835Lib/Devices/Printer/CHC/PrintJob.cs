@@ -216,7 +216,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                                 return PrintExitThreadError(ret, rc);
                             }
                         } else {
-                            LOG.LogInformation("No ICC tables set; using default RGB output tone table");
+                            LOG.LogInformation("Setting default RGB output tone table");
+                            Array.Copy(printer.DefaultRgbOutputToneTable, outToneR, outToneR.Length);
+                            Array.Copy(printer.DefaultRgbOutputToneTable, outToneG, outToneG.Length);
+                            Array.Copy(printer.DefaultRgbOutputToneTable, outToneB, outToneB.Length);
+
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_setIcctable(null, null, RENDERING_INTENTS_PERCEPTUAL, ptrR, ptrG, ptrB, ptrOutR, ptrOutG, ptrOutB, ref rc), rc);
+                            if (ret != DeviceStatus.Ok) {
+                                return PrintExitThreadError(ret, rc);
+                            }
                         }
                     }
 
@@ -258,8 +266,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     if (imageBytes.Length != imageSize) {
                         throw new Exception("imageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                     }
-
-                    ApplyDefaultRgbOutputToneTable(imageBytes);
 
                     uint writtenBytes = 0;
                     fixed (byte* ptr = imageBytes) {
@@ -315,8 +321,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                         if (imageBytes.Length != imageSize) {
                             throw new Exception("backImageBytes (" + imageBytes.Length + ") != imageSize (" + imageSize + ")");
                         }
-
-                        ApplyDefaultRgbOutputToneTable(imageBytes);
 
                         writtenBytes = 0;
                         fixed (byte* ptr = imageBytes) {
@@ -445,23 +449,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 return ret;
             }
 
-            private void ApplyDefaultRgbOutputToneTable(byte[] imageBytes) {
-                if (printer.IccTable1FileName != null || printer.DefaultRgbOutputToneTable == null) {
-                    return;
-                }
-
-                byte[] table = printer.DefaultRgbOutputToneTable;
-                for (int i = 0; i < imageBytes.Length; i += COMPONENT_RGB) {
-                    imageBytes[i] = table[imageBytes[i]];
-                    imageBytes[i + 1] = table[imageBytes[i + 1]];
-                    imageBytes[i + 2] = table[imageBytes[i + 2]];
-
-                    if (imageBytes[i] == 255 && imageBytes[i + 1] == 255 && imageBytes[i + 2] == 255) {
-                        imageBytes[i + 1] = 254;
-                        imageBytes[i + 2] = 254;
-                    }
-                }
-            }
         }
     }
 }
