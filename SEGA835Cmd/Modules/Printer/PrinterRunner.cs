@@ -29,19 +29,32 @@ static class PrinterRunner {
             return DeviceStatus.ErrorOther;
         }
 
-        if (!File.Exists(opts.Icc1FileName)) {
-            LOG.LogError("ICC1 file does not exist: " + opts.Icc1FileName);
-            return DeviceStatus.ErrorOther;
-        }
+        bool useLegacyIccFiles = opts.Icc1FileName != null || opts.Icc2FileName != null || opts.MtfFileName != null;
+        if (useLegacyIccFiles) {
+            if (opts.Icc1FileName == null || opts.Icc2FileName == null || opts.MtfFileName == null) {
+                LOG.LogError("Legacy ICC mode requires ImageFileName ICC1FileName ICC2FileName MtfFileName.");
+                return DeviceStatus.ErrorOther;
+            }
 
-        if (!File.Exists(opts.Icc2FileName)) {
-            LOG.LogError("ICC2 file does not exist: " + opts.Icc2FileName);
-            return DeviceStatus.ErrorOther;
-        }
+            if (!File.Exists(opts.Icc1FileName)) {
+                LOG.LogError("ICC1 file does not exist: " + opts.Icc1FileName);
+                return DeviceStatus.ErrorOther;
+            }
 
-        if (!File.Exists(opts.MtfFileName)) {
-            LOG.LogError("MTF file does not exist: " + opts.MtfFileName);
-            return DeviceStatus.ErrorOther;
+            if (!File.Exists(opts.Icc2FileName)) {
+                LOG.LogError("ICC2 file does not exist: " + opts.Icc2FileName);
+                return DeviceStatus.ErrorOther;
+            }
+
+            if (!File.Exists(opts.MtfFileName)) {
+                LOG.LogError("MTF file does not exist: " + opts.MtfFileName);
+                return DeviceStatus.ErrorOther;
+            }
+        } else {
+            if (opts.Model != Options.PrinterModel.Chc310B) {
+                LOG.LogError("Default no-ICC conversion is only available with -m CHC310B. Other models still require ICC1 ICC2 MTF.");
+                return DeviceStatus.ErrorOther;
+            }
         }
 
         if (opts.HoloFileName != null && !File.Exists(opts.HoloFileName)) {
@@ -63,12 +76,8 @@ static class PrinterRunner {
             printers.Add(new Chc310BPrinter());
         }
 
-        Y3 y3 = null;
-        if (opts.Y3Port > 0) {
-            y3 = new Y3(opts.Y3Port);
-        }
-
         if (opts.Model == Options.PrinterModel.Chc320 || opts.Model == Options.PrinterModel.Any) {
+            Y3 y3 = opts.Model == Options.PrinterModel.Chc320 && opts.Y3Port > 0 ? new Y3(opts.Y3Port) : null;
             printers.Add(new Chc320Printer(y3));
         }
 
@@ -108,8 +117,10 @@ static class PrinterRunner {
                 return DeviceStatus.ErrorNotInitialized;
             }
 
-            printer.SetIccTables(opts.Icc1FileName, opts.Icc2FileName);
-            printer.SetMtfFile(opts.MtfFileName);
+            if (useLegacyIccFiles) {
+                printer.SetIccTables(opts.Icc1FileName, opts.Icc2FileName);
+                printer.SetMtfFile(opts.MtfFileName);
+            }
 
             Bitmap imageFront, holo, imageBack;
             try {
@@ -172,6 +183,7 @@ static class PrinterRunner {
 
             printer.ImageStretchMode = opts.Stretch;
 
+            Y3 y3 = printer is Chc320Printer ? ((Chc320Printer)printer).PrinterCamera : null;
             if (y3 != null) {
                 ret = y3.Connect();
                 if (ret != DeviceStatus.Ok) {
@@ -215,9 +227,10 @@ static class PrinterRunner {
         } finally {
             foreach (ChcSeriesCardPrinter printer in printers) {
                 printer.Disconnect();
+                if (printer is Chc320Printer chc320Printer) {
+                    chc320Printer.PrinterCamera?.Disconnect();
+                }
             }
-
-            y3?.Disconnect();
         }
     }
 

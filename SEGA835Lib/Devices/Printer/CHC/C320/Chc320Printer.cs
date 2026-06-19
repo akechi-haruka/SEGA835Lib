@@ -19,6 +19,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         private readonly Y3 printerCamera;
 
         /// <summary>
+        /// The Y3 board used as the printer camera, or null if no Y3 board is configured.
+        /// </summary>
+        public Y3 PrinterCamera => printerCamera;
+
+        /// <summary>
         /// Called when card data is successfully read from the printer camera.
         /// </summary>
         public event Action<Y3.CardInfo> CardDataRead;

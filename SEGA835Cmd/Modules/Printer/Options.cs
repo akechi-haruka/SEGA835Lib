@@ -61,13 +61,13 @@ class Options : GlobalOptions {
     [Value(0, MetaName = "ImageFileName", Required = true, HelpText = "The image file to print.")]
     public string ImageFileName { get; set; }
 
-    [Value(1, MetaName = "ICC1FileName", Required = true, HelpText = "The input .icc table file.")]
+    [Value(1, MetaName = "ICC1FileName", Required = false, HelpText = "The input .icc table file. If specified, ICC2 and MTF must also be specified.")]
     public string Icc1FileName { get; set; }
 
-    [Value(2, MetaName = "ICC2FileName", Required = true, HelpText = "The output .icc table file.")]
+    [Value(2, MetaName = "ICC2FileName", Required = false, HelpText = "The output .icc table file. If specified, the legacy ICC conversion path is used.")]
     public string Icc2FileName { get; set; }
 
-    [Value(3, MetaName = "MtfFileName", Required = true, HelpText = "The MTF file used for printing.")]
+    [Value(3, MetaName = "MtfFileName", Required = false, HelpText = "The MTF file used for printing. Required when ICC files are specified.")]
     public string MtfFileName { get; set; }
 }
 
