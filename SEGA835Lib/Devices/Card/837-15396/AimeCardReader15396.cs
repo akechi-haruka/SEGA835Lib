@@ -509,6 +509,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             return ret;
         }
 
+        internal unsafe DeviceStatus SetMifareParametersEMoney() {
+            byte[] k = { 0x74, 0x68, 0x69, 0x6e, 0x63, 0x61 };
+
+            LOG.LogInformation("Set E-Money Key");
+            ReqPacketMifareSetKeySega req = new ReqPacketMifareSetKeySega();
+            StructUtils.Copy(k, req.key, k.Length);
+            return SetLastError(WriteAndRead(req, out RespPacketMifareSetKeySega _, out byte status), status);
+        }
+
         private DeviceStatus PrepareMifareCommunication(uint uid) {
             LOG.LogInformation("Select Mifare (" + uid + ")");
             DeviceStatus ret = SetLastError(WriteAndRead(new ReqPacketSelectMifare() {
@@ -592,6 +601,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Card._837_15396 {
             }
 
             DeviceStatus ret = PrepareMifareCommunication(uid);
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            ret = SetMifareParametersEMoney();
             if (ret != DeviceStatus.Ok) {
                 return ret;
             }
