@@ -17,7 +17,7 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
@@ -38,63 +38,63 @@ jobs:
         dotnet publish .\SEGA835Lib\SEGA835Lib.csproj --configuration Release /p:PublishProfile=.\SEGA835Lib\Properties\PublishProfiles\Net481.pubxml -f:net481
         dotnet publish .\SEGA835Cmd\SEGA835Cmd.csproj --configuration Release /p:PublishProfile=.\SEGA835Cmd\Properties\PublishProfiles\Sega835Cmd.pubxml
     - name: Upload Lib NET 6
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-net6-latest
         path: SEGA835Lib/publish/net6
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET 8
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-net8-latest
         path: SEGA835Lib/publish/net8
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET 10
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-net10-latest
         path: SEGA835Lib/publish/net8
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET Standard 2.0
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-netstandard2.0-latest
         path: SEGA835Lib/publish/netstandard20
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET Standard 2.1
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-netstandard2.1-latest
         path: SEGA835Lib/publish/netstandard21
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET Framework 3.5
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-netframework35
         path: SEGA835Lib/publish/net35
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib NET Framework 4.8.1
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib-netframework481
         path: SEGA835Lib/publish/net481
         if-no-files-found: error
         overwrite: true
     - name: Upload Cmd
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Cmd-latest
         path: SEGA835Cmd/publish
         if-no-files-found: error
         overwrite: true
     - name: Upload Lib nupkg
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: Sega835Lib.nupkg
         path: SEGA835Lib/bin/Release/*.nupkg
@@ -129,13 +129,13 @@ jobs:
     runs-on: windows-latest
     permissions: write-all
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
     - name: Run tests
       run: dotnet test --configuration Release --verbosity normal --logger trx 835TestsMaybeLess
     - name: Upload Test Result Files
-      uses: actions/upload-artifact@v4.3.3
+      uses: actions/upload-artifact@v7
       with:
         name: test-results
         path: ${{ github.workspace }}/**/TestResults/**/*
