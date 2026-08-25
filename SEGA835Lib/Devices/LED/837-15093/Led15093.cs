@@ -127,6 +127,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED._837_15093 {
                 return ret;
             }
 
+            if (data.Length < 7) {
+                LOG.LogError("Received data too short: length=" + data.Length);
+                LOG.LogDebug(Hex.Dump(data));
+                src = 0;
+                dest = 0;
+                cmd = 0;
+                status = 0;
+                report = 0;
+                payload = null;
+                return DeviceStatus.ErrorOther;
+            }
+
             dest = data[1];
             src = data[2];
             cmd = data[5];
