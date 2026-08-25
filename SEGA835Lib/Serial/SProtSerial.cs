@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Ports;
+using System.Runtime.CompilerServices;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices;
 using Microsoft.Extensions.Logging;
@@ -230,17 +231,12 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 };
                 int checksum = 0;
                 foreach (byte b in data) {
-                    if (b == ESCAPE_BYTE || b == SYNC_BYTE) {
-                        bytes.Add(ESCAPE_BYTE);
-                        bytes.Add((byte)(b - 1));
-                    } else {
-                        bytes.Add(b);
-                    }
-
+                    AppendSingleByte(bytes, b);
                     checksum += b;
                 }
 
-                bytes.Add((byte)(checksum % 0x100));
+                AppendSingleByte(bytes, (byte)(checksum % 0x100));
+
                 byte[] encoded = bytes.ToArray();
                 if (DumpBytesToLog) {
                     LOG.LogInformation("SProtSerial Write:");
@@ -248,6 +244,18 @@ namespace Haruka.Arcade.SEGA835Lib.Serial {
                 }
 
                 return base.Write(encoded);
+            }
+        }
+
+#if !NET35
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private void AppendSingleByte(List<byte> bytes, byte b) {
+            if (b == ESCAPE_BYTE || b == SYNC_BYTE) {
+                bytes.Add(ESCAPE_BYTE);
+                bytes.Add((byte)(b - 1));
+            } else {
+                bytes.Add(b);
             }
         }
 
