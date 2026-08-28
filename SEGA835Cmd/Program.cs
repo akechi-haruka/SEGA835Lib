@@ -30,6 +30,8 @@ static class Program {
         try {
             Parser parser = new Parser(settings => {
                 settings.CaseInsensitiveEnumValues = true;
+                settings.AutoHelp = true;
+                settings.HelpWriter = Console.Error;
             });
 
             args = NormalizeArguments(args);
