@@ -78,6 +78,14 @@ static class LedRunner {
             }
         }
 
+        if (opts.MonkeyAppliMode != null) {
+            ret = led.SetAppliMode(opts.MonkeyAppliMode.Value);
+            if (ret != DeviceStatus.Ok) {
+                LOG.LogError("Setting appli mode failed");
+                return ret;
+            }
+        }
+
         if (opts.MonkeyTable != null) {
             List<byte> data = new List<byte>();
             foreach (String s in opts.MonkeyTable.Split(',')) {

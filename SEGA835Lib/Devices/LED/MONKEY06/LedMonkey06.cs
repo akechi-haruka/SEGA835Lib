@@ -72,6 +72,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
         }
 
         /// <summary>
+        /// Sets the "appli mode" on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="Led15093.Reset"/> does NOT reset the parameters for the monkey device.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, or any other DeviceStatus on failure.</returns>
+        public DeviceStatus SetAppliMode(byte appliMode) {
+            LOG.LogInformation("SetAppliMode(" + appliMode + ")");
+            DeviceStatus ret = WriteAndRead(new ReqPacketMonkeySetAppliMode() {
+                appliMode = appliMode
+            }, out RespPacketMonkeySetAppliMode _, out byte status);
+            return SetLastError(ret, status);
+        }
+
+        /// <summary>
         /// Sets the chip number on the monkey device. This will be remembered until <see cref="ResetMonkey"/>. <see cref="Led15093.Reset"/> does NOT reset the parameters for the monkey device.
         /// </summary>
         /// <param name="chipNo">The chip number to set. Maximum 5 characters. Missing characters are padded with the space character (0x20)</param>

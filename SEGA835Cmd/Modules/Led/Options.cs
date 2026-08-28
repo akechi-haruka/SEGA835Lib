@@ -27,6 +27,9 @@ class Options : GlobalOptions {
     [Option("set-monkey-version", HelpText = "Sets the board firmware version for MONKEY06 boards (this will persist until monkey reset)")]
     public byte MonkeyVersion { get; set; }
 
+    [Option("set-monkey-appli-mode", HelpText = "Sets the board's \"appli mode\" for MONKEY06 boards (this will persist until monkey reset)")]
+    public byte? MonkeyAppliMode { get; set; }
+
     [Option("set-monkey-board-name", HelpText = "Sets the board name for MONKEY06 boards (this will persist until monkey reset, maximum 8 characters)")]
     public String MonkeyBoardName { get; set; }
 

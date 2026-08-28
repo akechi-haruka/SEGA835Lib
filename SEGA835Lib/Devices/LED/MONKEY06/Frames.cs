@@ -140,4 +140,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.LED.MONKEY06 {
             return 0xA7;
         }
     }
+
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    struct ReqPacketMonkeySetAppliMode : ISProtPayload {
+        public byte appliMode;
+
+        public byte GetCommandID() {
+            return 0xA8;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+    struct RespPacketMonkeySetAppliMode : ISProtPayload {
+        public byte GetCommandID() {
+            return 0xA8;
+        }
+    }
 }
