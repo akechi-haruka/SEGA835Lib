@@ -7,7 +7,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
     /// A 835-15257-01 SEGA I/O CONTROL BD ("IO4").
     /// </summary>
     public class Io4Usb15257 : JvsUsbIo {
+        /// <summary>
+        /// The HID vendor ID for a 835-15257-01.
+        /// </summary>
         public const int VENDOR_ID = 0x0CA3;
+
+        /// <summary>
+        /// The HID product ID for a 835-15257-01.
+        /// </summary>
         public const int PRODUCT_ID = 0x0021;
 
         private readonly byte[] gpio = new byte[4];
