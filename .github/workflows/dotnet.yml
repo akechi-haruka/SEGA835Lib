@@ -151,7 +151,6 @@ jobs:
   deploy:
     permissions:
         contents: write
-    if: github.event_name == 'release'
     runs-on: windows-latest
     needs: [ validate_nuget, run_test ]
     steps:
@@ -159,7 +158,7 @@ jobs:
         with:
           path: ${{ env.NuGetDirectory }}
           merge-multiple: true
-          skip-decompress: true
+          skip-decompress: false
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
       - name: Publish NuGet package
