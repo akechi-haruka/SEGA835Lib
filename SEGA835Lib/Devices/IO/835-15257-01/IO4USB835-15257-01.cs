@@ -7,15 +7,27 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO._835_15257_01 {
     /// A 835-15257-01 SEGA I/O CONTROL BD ("IO4").
     /// </summary>
     public class Io4Usb15257 : JvsUsbIo {
+        public const int VENDOR_ID = 0x0CA3;
+        public const int PRODUCT_ID = 0x0021;
+
         private readonly byte[] gpio = new byte[4];
         private readonly byte[] leds = new byte[32];
 
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Io4Usb15257));
 
         /// <summary>
-        /// Creates a new IO4 board.
+        /// Returns the number of connected IO4 I/O boards.
         /// </summary>
-        public Io4Usb15257() : base(0x0ca3, 0x0021) {
+        /// <returns>the number of connecte IO4 I/O boards.</returns>
+        public static int GetNodeCount() {
+            return GetNodeCount(VENDOR_ID, PRODUCT_ID);
+        }
+
+        /// <summary>
+        /// Creates a new IO4 board.
+        /// <param name="nodeIndex">The index of the node. Usually 0, if you only have one board connected.</param>
+        /// </summary>
+        public Io4Usb15257(int nodeIndex = 0) : base(VENDOR_ID, PRODUCT_ID, nodeIndex) {
         }
 
         /// <inheritdoc/>

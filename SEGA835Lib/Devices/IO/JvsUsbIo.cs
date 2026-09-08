@@ -18,6 +18,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(JvsUsbIo));
 
         /// <summary>
+        /// Returns the number of connected JVS I/O boards.
+        /// </summary>
+        /// <param name="vid">The vendor id of the board.</param>
+        /// <param name="pid">The product id of the board.</param>
+        /// <returns>the number of connecte JVS I/O boards.</returns>
+        public static int GetNodeCount(int vid, int pid) {
+            return HidDevices.Enumerate(vid, pid).Count();
+        }
+
+        /// <summary>
         /// USB vendor ID of this board.
         /// </summary>
         public int UsbVendorID { get; }
@@ -38,15 +48,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         public JvsUsbReportIn? LastReport { get; private set; }
 
         private HidDevice device;
+        private int index;
 
         /// <summary>
         /// Creates a new JVSUSBIO.
         /// </summary>
         /// <param name="vid">The vendor id of the board.</param>
         /// <param name="pid">The product id of the board.</param>
-        protected JvsUsbIo(int vid, int pid) {
+        /// <param name="nodeIndex">The index of the node. Usually 0, if you only have one board connected.</param>
+        protected JvsUsbIo(int vid, int pid, int nodeIndex = 0) {
             UsbVendorID = vid;
             UsbProductID = pid;
+            index = nodeIndex;
         }
 
         /// <summary>
@@ -58,9 +71,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// </returns>
         public sealed override DeviceStatus Connect() {
             LOG.LogInformation("Open JVS USB: VID:" + UsbVendorID + ", PID: " + UsbProductID);
-            device = HidDevices.Enumerate(UsbVendorID, UsbProductID).FirstOrDefault();
+            HidDevice[] nodes = HidDevices.Enumerate(UsbVendorID, UsbProductID).ToArray();
 
-            if (device == null) {
+            if (index < 0 || index >= nodes.Length) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
