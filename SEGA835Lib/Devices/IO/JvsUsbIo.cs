@@ -77,6 +77,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
+            device = nodes[index];
+
             LOG.LogInformation("Found JVS USB at " + device.DevicePath);
 
             try {
