@@ -11,6 +11,9 @@ class Options : GlobalOptions {
         Led
     }
 
+    [Option('n', Required = false, HelpText = "The IO4 node to use", Default = 0)]
+    public int Node { get; set; }
+
     [Option("clear", Required = false, HelpText = "Clears all other outputs of the same type.")]
     public bool Clear { get; set; }
 

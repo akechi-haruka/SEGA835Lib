@@ -14,7 +14,7 @@ static class Io4Controller {
     internal static unsafe DeviceStatus Run(Options opts) {
         Program.SetGlobalOptions(opts);
 
-        Io4Usb15257 dev = new Io4Usb15257();
+        Io4Usb15257 dev = new Io4Usb15257(opts.Node);
         DeviceStatus ret = dev.Connect();
         if (ret != DeviceStatus.Ok) {
             LOG.LogError("Failed to connect to IO4 board.");

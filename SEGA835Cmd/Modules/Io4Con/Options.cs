@@ -6,6 +6,9 @@ namespace Haruka.Arcade.SEGA835Cmd.Modules.Io4Con;
 [Verb("io4con", HelpText = "Use a IO4 board as a VJoy controller")]
 [UsedImplicitly]
 class Options : GlobalOptions {
+    [Option('n', Required = false, HelpText = "The IO4 node to use", Default = 0)]
+    public int Node { get; set; }
+
     [Option("controller-id", Required = false, HelpText = "The vJoy controller ID to use.", Default = (uint)1)]
     public uint ControllerId { get; set; }
 
