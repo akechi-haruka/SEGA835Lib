@@ -227,6 +227,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         public int Outputs { get; private set; }
 
         /// <summary>
+        /// Unknown. Not observed in the wild.
+        /// </summary>
+        public int PwmOutputs { get; private set; }
+
+        /// <summary>
         /// The number of analog inputs per player. Array length is equal to player count, value equal to inputs for this player.
         /// </summary>
         public int[] AnalogInputs { get; private set; }
@@ -302,6 +307,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
 
                     if (type == "GOUT") {
                         capabilities.Outputs = Int32.Parse(values[0], NumberStyles.HexNumber);
+                    } else if (type == "PWMOUT") {
+                        capabilities.PwmOutputs = Int32.Parse(values[0], NumberStyles.HexNumber);
                     } else if (type == "ADIN") {
                         // players,bits
                         capabilities.AnalogInputs = new int[Int32.Parse(values[0], NumberStyles.HexNumber)];
