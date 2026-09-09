@@ -216,6 +216,32 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         }
 
         /// <summary>
+        /// Reads this board's capabilities (number of inputs, analogs, etc.)
+        /// </summary>
+        /// <param name="capabilities">The capabilities that were read from the device.</param>
+        /// <returns>
+        /// <see cref="DeviceStatus.Ok"/> if the data was successfully read.<br />
+        /// <see cref="DeviceStatus.ErrorNotInitialized"/> if <see cref="Connect"/> was never called.<br />
+        /// <see cref="DeviceStatus.ErrorIncompatible"/> if the capability data cannot be parsed.<br />
+        /// <see cref="DeviceStatus.ErrorDevice"/> if there was a communication error with the device.<br />
+        /// <see cref="DeviceStatus.ErrorOther"/> if the USB library threw an exception.
+        /// </returns>
+        public DeviceStatus GetCapabilities(out JvsCapabilities capabilities) {
+            DeviceStatus ret = GetProduct(out string product);
+            if (ret != DeviceStatus.Ok) {
+                capabilities = null;
+                return ret;
+            }
+
+            if (!JvsCapabilities.TryParse(product, out capabilities)) {
+                capabilities = null;
+                return SetLastError(DeviceStatus.ErrorIncompatible);
+            }
+
+            return SetLastError(DeviceStatus.Ok);
+        }
+
+        /// <summary>
         /// Writes a report to the USB device.
         /// </summary>
         /// <param name="report">The report that should be written to the device.</param>

@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using Haruka.Arcade.SEGA835Lib.Debugging;
+using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
     /// <summary>
@@ -172,6 +176,186 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             int p = b / 8;
             int o = b % 8;
             return (buttons[p] >> o & 1) != 0;
+        }
+    }
+
+    /// <summary>
+    /// Capabilities describind a JVS board.
+    /// </summary>
+    [SuppressMessage("ReSharper", "CollectionNeverQueried.Global")]
+    public class JvsCapabilities {
+        private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(JvsCapabilities));
+
+        /// <summary>
+        /// Usually "I/O CONTROL BD".
+        /// </summary>
+        public String Type { get; private set; }
+
+        /// <summary>
+        /// The board number, after 83X, for example "15257".
+        /// </summary>
+        public int BoardNumber { get; private set; }
+
+        /// <summary>
+        /// Unknown. 1 is observed.
+        /// </summary>
+        public int Mode { get; private set; }
+
+        /// <summary>
+        /// The board's firmware revision.
+        /// </summary>
+        public byte FirmwareRevision { get; private set; }
+
+        /// <summary>
+        /// The board's firmware revision.
+        /// </summary>
+        public short FirmwareChecksum { get; private set; }
+
+        /// <summary>
+        /// The board's chip number.
+        /// </summary>
+        public String ChipNumber { get; private set; }
+
+        /// <summary>
+        /// Unknown. 0 is observed.
+        /// </summary>
+        public byte Config { get; private set; }
+
+        /// <summary>
+        /// The number of general purpose outputs this board has. Usually refers to LEDs and coin blockers, sometimes to door locks.
+        /// </summary>
+        public int Outputs { get; private set; }
+
+        /// <summary>
+        /// The number of analog inputs per player. Array length is equal to player count, value equal to inputs for this player.
+        /// </summary>
+        public int[] AnalogInputs { get; private set; }
+
+        /// <summary>
+        /// The number of rotary inputs.
+        /// </summary>
+        public int RotaryInputs { get; private set; }
+
+        /// <summary>
+        /// The number of coin chutes/slots.
+        /// </summary>
+        public int Chutes { get; private set; }
+
+        /// <summary>
+        /// The number of digital inputs per player. Array length is equal to player count, value equal to inputs for this player.
+        /// </summary>
+        public int[] SwitchInputs { get; private set; }
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public UniqueFunction[] UniqueFunctions { get; private set; }
+
+        /// <summary>
+        /// Attempts to parse the given I/O board's product string for the board's capabilities.
+        /// </summary>
+        /// <param name="str">The string to parse.</param>
+        /// <param name="capabilities">The parsed capabilities, or null on failure.</param>
+        /// <returns>true on success, false otherwise.</returns>
+        public static bool TryParse(String str, out JvsCapabilities capabilities) {
+            if (String.IsNullOrEmpty(str)) {
+                LOG.LogWarning("Failed to parse IO4 board parameters: null");
+                capabilities = null;
+                return false;
+            }
+
+            String[] parts = str.Split(';');
+            if (parts.Length != 8) {
+                LOG.LogWarning("Failed to parse IO4 board parameters: " + str);
+                capabilities = null;
+                return false;
+            }
+
+            try {
+                capabilities = new JvsCapabilities {
+                    Type = parts[0],
+                    BoardNumber = Int32.Parse(parts[1]),
+                    Mode = Int32.Parse(parts[2], NumberStyles.HexNumber),
+                    FirmwareRevision = Byte.Parse(parts[3], NumberStyles.HexNumber),
+                    FirmwareChecksum = Int16.Parse(parts[4], NumberStyles.HexNumber),
+                    ChipNumber = parts[5],
+                    Config = Byte.Parse(parts[6], NumberStyles.HexNumber)
+                };
+
+                // SEGA calls this string an "amyItemList", which has a function
+                // amyItemListChangeConfig(context, "_=?")
+                // underscore equal to question mark is what I'm literally thinking about all this.
+
+                List<UniqueFunction> uniqueFunctions = new List<UniqueFunction>();
+
+                String[] functions = parts[7].Split('_');
+                foreach (String function in functions) {
+                    String[] part = function.Split('=');
+                    if (part.Length != 2) {
+                        LOG.LogWarning("Failed to parse IO4 board parameters: " + str);
+                        capabilities = null;
+                        return false;
+                    }
+
+                    String type = part[0];
+                    String[] values = part[1].Replace("_", "").Split(',');
+
+                    if (type == "GOUT") {
+                        capabilities.Outputs = Int32.Parse(values[0], NumberStyles.HexNumber);
+                    } else if (type == "ADIN") {
+                        // players,bits
+                        capabilities.AnalogInputs = new int[Int32.Parse(values[0], NumberStyles.HexNumber)];
+                        for (int i = 0; i < capabilities.AnalogInputs.Length; i++) {
+                            capabilities.AnalogInputs[i] = Int32.Parse(values[1], NumberStyles.HexNumber);
+                        }
+                    } else if (type == "ROTIN") {
+                        capabilities.RotaryInputs = Int32.Parse(values[0], NumberStyles.HexNumber);
+                    } else if (type == "COININ") {
+                        capabilities.Chutes = Int32.Parse(values[0], NumberStyles.HexNumber);
+                    } else if (type == "SWIN") {
+                        // players,bits
+                        capabilities.SwitchInputs = new int[Int32.Parse(values[0], NumberStyles.HexNumber)];
+                        for (int i = 0; i < capabilities.SwitchInputs.Length; i++) {
+                            capabilities.SwitchInputs[i] = Int32.Parse(values[1], NumberStyles.HexNumber);
+                        }
+                    } else if (type.StartsWith("UQ")) {
+                        int functionId = Int32.Parse(values[0], NumberStyles.HexNumber);
+                        int functionParam = Int32.Parse(values[1], NumberStyles.HexNumber);
+
+                        uniqueFunctions.Add(new UniqueFunction(functionId, functionParam));
+                    } else {
+                        LOG.LogWarning("Encountered unknown IO4 function: " + type);
+                    }
+                }
+
+                capabilities.UniqueFunctions = uniqueFunctions.ToArray();
+
+                return true;
+            } catch (Exception ex) {
+                LOG.LogWarning(ex, "Failed to parse IO4 board parameters: " + str);
+                capabilities = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public class UniqueFunction {
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            public int Id { get; }
+
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            public int Value { get; }
+
+            internal UniqueFunction(int id, int value) {
+                Id = id;
+                Value = value;
+            }
         }
     }
 }
