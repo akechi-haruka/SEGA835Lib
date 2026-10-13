@@ -270,7 +270,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             }
 
             String[] parts = str.Split(';');
-            if (parts.Length != 8) {
+            if (parts.Length < 8) {
                 LOG.LogWarning("Failed to parse IO4 board parameters: " + str);
                 capabilities = null;
                 return false;
@@ -279,7 +279,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
             try {
                 capabilities = new JvsCapabilities {
                     Type = parts[0],
-                    BoardNumber = Int32.Parse(parts[1]),
+                    BoardNumber = Int32.Parse(parts[1].Trim()),
                     Mode = Int32.Parse(parts[2], NumberStyles.HexNumber),
                     FirmwareRevision = Byte.Parse(parts[3], NumberStyles.HexNumber),
                     FirmwareChecksum = Int16.Parse(parts[4], NumberStyles.HexNumber),
