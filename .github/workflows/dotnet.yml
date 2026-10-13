@@ -161,7 +161,7 @@ jobs:
           merge-multiple: true
           skip-decompress: true
       -   name: Unzip .nupkg artifact
-          run: Expand-Archive nuget\Sega835Lib.nupkg.zip . -Force
+          run: Expand-Archive ${{ env.NuGetDirectory }}\Sega835Lib.nupkg.zip . -Force
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
       - name: Publish NuGet package
