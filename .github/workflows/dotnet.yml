@@ -161,7 +161,7 @@ jobs:
           merge-multiple: true
           skip-decompress: true
       -   name: Unzip .nupkg artifact
-          run: Expand-Archive ${{ env.NuGetDirectory }}\Sega835Lib.nupkg.zip . -Force
+          run: Expand-Archive ${{ env.NuGetDirectory }}\Sega835Lib.nupkg.zip ${{ env.NuGetDirectory }} -Force
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {

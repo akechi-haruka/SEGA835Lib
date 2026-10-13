@@ -24,7 +24,7 @@ class Options : GlobalOptions {
     [Option("invert-y", Required = false, HelpText = "Inverts the Y-Axis.")]
     public bool YFlip { get; set; }
 
-    [Option("poll-delay", Required = false, HelpText = "Sets the amount of milliseconds between polls", Default = 10)]
+    [Option("poll-delay", Required = false, HelpText = "Sets the amount of milliseconds between polls", Default = 1)]
     public int PollDelay { get; set; }
 
     [Option("no-exit-button", Required = false, HelpText = "Disables pressing ESC to exit.")]

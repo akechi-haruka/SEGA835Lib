@@ -27,17 +27,21 @@ static class Io4Controller {
             return ret;
         }
 
+        LOG.LogInformation("Connecting to vJoy...");
         VirtualJoystick j = new VirtualJoystick(opts.ControllerId);
         try {
             j.Aquire();
+            LOG.LogDebug("vJoy acquire success");
         } catch {
             if (opts.IgnoreVJoyErrors) {
                 j = null;
+                LOG.LogWarning("vJoy acquire failed");
             } else {
                 throw;
             }
         }
 
+        LOG.LogInformation("Ready");
         if (!opts.NoExitButton) {
             Console.WriteLine("Press ESC to exit.");
         }
