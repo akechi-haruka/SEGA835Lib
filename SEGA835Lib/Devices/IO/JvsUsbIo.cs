@@ -136,7 +136,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                     return SetLastError(DeviceStatus.ErrorDevice);
                 }
 
-                manufacturer = Encoding.ASCII.GetString(data);
+                manufacturer = Encoding.Unicode.GetString(data);
                 return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
                 LOG.LogCritical(ex, "Failed reading USB Device Manufacturer of " + GetName());
@@ -167,7 +167,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
                     return SetLastError(DeviceStatus.ErrorDevice);
                 }
 
-                product = Encoding.ASCII.GetString(data);
+                product = Encoding.Unicode.GetString(data);
                 return SetLastError(DeviceStatus.Ok);
             } catch (Exception ex) {
                 LOG.LogCritical(ex, "Failed reading USB Device Product of " + GetName());
