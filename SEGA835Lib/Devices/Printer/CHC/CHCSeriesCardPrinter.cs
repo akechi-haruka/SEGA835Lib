@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -621,7 +620,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 throw new ThreadStateException("printer thread has shut down");
             }
 
-            if (printThread.ManagedThreadId == Environment.CurrentManagedThreadId) {
+            if (printThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId) {
 #if DEBUG
                 LOG.LogWarning("Calling ExecuteOnPrintThread on the printer thread!");
                 ushort _ = 0;
@@ -678,8 +677,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                 throw new ThreadStateException(callerFunc + " must be called on printer thread, which is not active!");
             }
 
-            if (printThread.ManagedThreadId != Environment.CurrentManagedThreadId) {
-                throw new ThreadStateException(callerFunc + " must be called on printer thread (" + printThread.ManagedThreadId + ")! Called from " + Environment.CurrentManagedThreadId);
+            if (printThread.ManagedThreadId != Thread.CurrentThread.ManagedThreadId) {
+                throw new ThreadStateException(callerFunc + " must be called on printer thread (" + printThread.ManagedThreadId + ")! Called from " + Thread.CurrentThread.ManagedThreadId);
             }
         }
 
@@ -1080,7 +1079,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="error">the error code</param>
         /// <returns>The printer error message or "Unknown Printer Error".</returns>
         public static string RcToErrorMessage(int error) {
-            return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).Message;
+            PrinterError pe = ERROR_TABLE.FirstOrDefault(e => e.ErrorCodeInt == error);
+            if (pe.Message == null) {
+                pe = new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error");
+            }
+
+            return pe.Message;
         }
 
         /// <summary>
@@ -1089,7 +1093,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="error">the error code</param>
         /// <returns>The printer error code, or 6810 if the error code is not known.</returns>
         public static int RcToSegaError(int error) {
-            return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).ErrorCodeExt;
+            PrinterError pe = ERROR_TABLE.FirstOrDefault(e => e.ErrorCodeInt == error);
+            if (pe.Message == null) {
+                pe = new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error");
+            }
+
+            return pe.ErrorCodeExt;
         }
 
         /// <summary>
@@ -1098,7 +1107,12 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         /// <param name="error">the error code</param>
         /// <returns>A string in the format "[ExternalErrorCode] Message (InternalErrorCode)"</returns>
         public static string RcToString(int error) {
-            return ERROR_TABLE.Where(pe => pe.ErrorCodeInt == error).FirstOrDefault(new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error")).ToString();
+            PrinterError pe = ERROR_TABLE.FirstOrDefault(e => e.ErrorCodeInt == error);
+            if (pe.Message == null) {
+                pe = new PrinterError(error, PRINTER_ERROR_UNKNOWN, "Unknown Printer Error");
+            }
+
+            return pe.ToString();
         }
 
         /// <summary>
@@ -1130,5 +1144,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         protected abstract DeviceStatus PreProcessing(ref ushort rc);
     }
 }
-
-#endif

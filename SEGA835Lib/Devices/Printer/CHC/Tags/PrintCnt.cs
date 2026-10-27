@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags {
     /// <summary>
@@ -38,5 +37,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags {
         public uint RibbonRemain;
     }
 }
-
-#endif

@@ -1,15 +1,12 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 using Haruka.Arcade.SEGA835Lib.Misc;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
-
     /// <summary>
     /// A DLL based RFID backend (used by the CHC-310).
     /// </summary>
     class RfidBackendChcDll : RfidBackend {
-
         protected const int CHCUSB_RC_OK = 1;
         protected const int RESULT_NOERROR = 0;
         protected const int RESULT_CARDRFID_READ_A = 2405;
@@ -42,17 +39,20 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
             uint wlen = 2048;
             byte[] resp = new byte[wlen];
             int ret;
-            fixed(byte* wptr = packet, rptr = resp) {
+            fixed (byte* wptr = packet, rptr = resp) {
                 ret = native.CHC_commCardRfidReader(wptr, rptr, (uint)packet.Length, ref wlen, ref rc);
             }
+
             if (ret != CHCUSB_RC_OK) {
                 lastResponse = null;
                 return (DeviceStatus)ret;
             }
+
             if (rc != RESULT_NOERROR && rc != RESULT_CARDRFID_READ_A) {
                 lastResponse = null;
                 return (DeviceStatus)ret;
             }
+
             lastResponse = new byte[wlen];
             Array.Copy(packet, lastResponse, wlen);
             return DeviceStatus.Ok;
@@ -64,10 +64,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.RFID.Backends {
             if (lastResponse == null) {
                 return DeviceStatus.ErrorNotInitialized;
             }
+
             return DeviceStatus.Ok;
         }
-
     }
 }
-
-#endif

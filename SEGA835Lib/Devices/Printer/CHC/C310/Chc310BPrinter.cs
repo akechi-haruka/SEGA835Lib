@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Microsoft.Extensions.Logging;
@@ -14,6 +13,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
     public class Chc310BPrinter : Chc310Printer {
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Chc310BPrinter));
         private static readonly NativeB NATIVE = new NativeB(); // hack to pass the same Native to both parameters
+
         private static readonly byte[] CARD_MAKER_OUTTONE_TABLE = {
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
             16, 17, 18, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -32,6 +32,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 224, 225, 226, 227, 229,
             230, 231, 233, 234, 236, 238, 239, 241, 243, 244, 246, 248, 250, 251, 253, 255,
         };
+
         private static readonly int[] CARD_MAKER_MTF_200 = {
             0, -25, 0,
             -25, 200, -25,
@@ -131,5 +132,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
     }
 }
-
-#endif

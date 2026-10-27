@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
@@ -110,10 +109,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
 
                 LOG.LogInformation("Reading Card ID from RFID board");
                 byte[] cardId = null;
-                ret = PrintWaitFor(ref rc, (ref ushort rc) => {
+                ret = PrintWaitFor(ref rc, (ref ushort rcInner) => {
                     ret = GetLoadedCardId(out cardId);
                     if (cardId != null) {
-                        rc = RESULT_NOERROR;
+                        rcInner = RESULT_NOERROR;
                         return CHCUSB_RC_OK;
                     }
 
@@ -185,5 +184,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C330 {
         }
     }
 }
-
-#endif

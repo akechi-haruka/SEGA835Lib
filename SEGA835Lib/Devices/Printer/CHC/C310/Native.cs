@@ -1,70 +1,69 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
-    unsafe partial class Native : INativeTrampolineChc {
+    unsafe class Native : INativeTrampolineChc {
         private static readonly ILogger LOG = LogManager.GetOrCreate(typeof(Native));
 
         public const String DLL = "C310Ausb.dll";
 
         /// Return Type: int
         ///maxCount: unsigned short
-        [LibraryImport(DLL, EntryPoint = "chcusb_MakeThread")]
-        private static partial int chcusb_MakeThread(ushort maxCount);
+        [DllImport(DLL, EntryPoint = "chcusb_MakeThread")]
+        private static extern int chcusb_MakeThread(ushort maxCount);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_open")]
-        private static partial int chcusb_open(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_open")]
+        private static extern int chcusb_open(ref ushort rResult);
 
 
         /// Return Type: void
-        [LibraryImport(DLL, EntryPoint = "chcusb_close")]
-        private static partial void chcusb_close();
+        [DllImport(DLL, EntryPoint = "chcusb_close")]
+        private static extern void chcusb_close();
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_ReleaseThread")]
-        private static partial int chcusb_ReleaseThread(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_ReleaseThread")]
+        private static extern int chcusb_ReleaseThread(ref ushort rResult);
 
 
         /// Return Type: int
         ///rIdArray: unsigned byte*
-        [LibraryImport(DLL, EntryPoint = "chcusb_listupPrinter")]
-        private static partial int chcusb_listupPrinter(byte* rIdArray);
+        [DllImport(DLL, EntryPoint = "chcusb_listupPrinter")]
+        private static extern int chcusb_listupPrinter(byte* rIdArray);
 
 
         /// Return Type: int
         ///rSerialArray: unsigned int*
-        [LibraryImport(DLL, EntryPoint = "chcusb_listupPrinterSN")]
-        private static partial int chcusb_listupPrinterSN(ulong* rSerialArray);
+        [DllImport(DLL, EntryPoint = "chcusb_listupPrinterSN")]
+        private static extern int chcusb_listupPrinterSN(ulong* rSerialArray);
 
 
         /// Return Type: int
         ///printerId: unsigned byte
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_selectPrinter")]
-        private static partial int chcusb_selectPrinter(byte printerId, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_selectPrinter")]
+        private static extern int chcusb_selectPrinter(byte printerId, ref ushort rResult);
 
 
         /// Return Type: int
         ///printerSN: unsigned int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_selectPrinterSN")]
-        private static partial int chcusb_selectPrinterSN(ulong printerSerial, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_selectPrinterSN")]
+        private static extern int chcusb_selectPrinterSN(ulong printerSerial, ref ushort rResult);
 
 
         /// Return Type: int
         ///tagNumber: unsigned short
         ///rBuffer: unsigned byte*
         ///rLen: unsigned int*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getPrinterInfo")]
-        private static partial int chcusb_getPrinterInfo(ushort tagNumber, byte* rBuffer, ref uint rLen);
+        [DllImport(DLL, EntryPoint = "chcusb_getPrinterInfo")]
+        private static extern int chcusb_getPrinterInfo(ushort tagNumber, byte* rBuffer, ref uint rLen);
 
 
         /// Return Type: int
@@ -75,14 +74,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///height: unsigned short
         ///image: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_imageformat")]
-        private static partial int chcusb_imageformat(ushort format, ushort ncomp, ushort depth, ushort width, ushort height, byte* image, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_imageformat")]
+        private static extern int chcusb_imageformat(ushort format, ushort ncomp, ushort depth, ushort width, ushort height, byte* image, ref ushort rResult);
 
 
         /// Return Type: int
         ///mtf: int*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setmtf")]
-        private static partial int chcusb_setmtf(int* mtf);
+        [DllImport(DLL, EntryPoint = "chcusb_setmtf")]
+        private static extern int chcusb_setmtf(int* mtf);
 
 
         /// Return Type: int
@@ -90,8 +89,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///intoneR: unsigned byte*
         ///intoneG: unsigned byte*
         ///intoneB: unsigned byte*
-        [LibraryImport(DLL, EntryPoint = "chcusb_makeGamma")]
-        private static partial int chcusb_makeGamma(ushort k, byte* intoneR, byte* intoneG, byte* intoneB);
+        [DllImport(DLL, EntryPoint = "chcusb_makeGamma")]
+        private static extern int chcusb_makeGamma(ushort k, byte* intoneR, byte* intoneG, byte* intoneB);
 
 
         /// Return Type: int
@@ -105,66 +104,66 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///outtoneG: unsigned byte*
         ///outtoneB: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setIcctable")]
-        private static partial int chcusb_setIcctable([MarshalAs(UnmanagedType.LPStr)] string icc1, [MarshalAs(UnmanagedType.LPStr)] string icc2, ushort intents, byte* intoneR, byte* intoneG, byte* intoneB, byte* outtoneR, byte* outtoneG, byte* outtoneB, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setIcctable")]
+        private static extern int chcusb_setIcctable([MarshalAs(UnmanagedType.LPStr)] string icc1, [MarshalAs(UnmanagedType.LPStr)] string icc2, ushort intents, byte* intoneR, byte* intoneG, byte* intoneB, byte* outtoneR, byte* outtoneG, byte* outtoneB, ref ushort rResult);
 
 
         /// Return Type: int
         ///copies: unsigned short
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_copies")]
-        private static partial int chcusb_copies(ushort copies, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_copies")]
+        private static extern int chcusb_copies(ushort copies, ref ushort rResult);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_status")]
-        private static partial int chcusb_status(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_status")]
+        private static extern int chcusb_status(ref ushort rResult);
 
 
         /// Return Type: int
         ///idArray: unsigned byte*
         ///rResultArray: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_statusAll")]
-        private static partial int chcusb_statusAll(byte* idArray, ref ushort rResultArray);
+        [DllImport(DLL, EntryPoint = "chcusb_statusAll")]
+        private static extern int chcusb_statusAll(byte* idArray, ref ushort rResultArray);
 
 
         /// Return Type: int
         ///postCardState: unsigned short
         ///pageId: unsigned short*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_startpage")]
-        private static partial int chcusb_startpage(ushort postCardState, ref ushort pageId, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_startpage")]
+        private static extern int chcusb_startpage(ushort postCardState, ref ushort pageId, ref ushort rResult);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_endpage")]
-        private static partial int chcusb_endpage(ref ushort rResult);
-
-
-        /// Return Type: int
-        ///data: unsigned byte*
-        ///writeSize: unsigned int*
-        ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_write")]
-        private static partial int chcusb_write(byte* data, ref uint writeSize, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_endpage")]
+        private static extern int chcusb_endpage(ref ushort rResult);
 
 
         /// Return Type: int
         ///data: unsigned byte*
         ///writeSize: unsigned int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_writeLaminate")]
-        private static partial int chcusb_writeLaminate(byte* data, ref uint writeSize, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_write")]
+        private static extern int chcusb_write(byte* data, ref uint writeSize, ref ushort rResult);
 
 
         /// Return Type: int
         ///data: unsigned byte*
         ///writeSize: unsigned int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_writeHolo")]
-        private static partial int chcusb_writeHolo(byte* data, ref uint writeSize, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_writeLaminate")]
+        private static extern int chcusb_writeLaminate(byte* data, ref uint writeSize, ref ushort rResult);
+
+
+        /// Return Type: int
+        ///data: unsigned byte*
+        ///writeSize: unsigned int*
+        ///rResult: unsigned short*
+        [DllImport(DLL, EntryPoint = "chcusb_writeHolo")]
+        private static extern int chcusb_writeHolo(byte* data, ref uint writeSize, ref ushort rResult);
 
 
         /// Return Type: int
@@ -172,8 +171,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///rBuffer: unsigned byte*
         ///rLen: unsigned int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setPrinterInfo")]
-        private static partial int chcusb_setPrinterInfo(PrinterInfoTag tagNumber, byte* rBuffer, ref uint rLen, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setPrinterInfo")]
+        private static extern int chcusb_setPrinterInfo(PrinterInfoTag tagNumber, byte* rBuffer, ref uint rLen, ref ushort rResult);
 
 
         /// Return Type: int
@@ -182,23 +181,23 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///g: unsigned byte*
         ///b: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getGamma")]
-        private static partial int chcusb_getGamma([MarshalAs(UnmanagedType.LPStr)] string filename, byte* r, byte* g, byte* b, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getGamma")]
+        private static extern int chcusb_getGamma([MarshalAs(UnmanagedType.LPStr)] string filename, byte* r, byte* g, byte* b, ref ushort rResult);
 
 
         /// Return Type: int
         ///filename: LPCSTR->CHAR*
         ///mtf: int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getMtf")]
-        private static partial int chcusb_getMtf([MarshalAs(UnmanagedType.LPStr)] string filename, int* mtf, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getMtf")]
+        private static extern int chcusb_getMtf([MarshalAs(UnmanagedType.LPStr)] string filename, int* mtf, ref ushort rResult);
 
 
         /// Return Type: int
         ///pageId: unsigned short
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_cancelCopies")]
-        private static partial int chcusb_cancelCopies(ushort pageId, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_cancelCopies")]
+        private static extern int chcusb_cancelCopies(ushort pageId, ref ushort rResult);
 
 
         /// Return Type: int
@@ -206,8 +205,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///number: unsigned short
         ///data: unsigned short*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setPrinterToneCurve")]
-        private static partial int chcusb_setPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setPrinterToneCurve")]
+        private static extern int chcusb_setPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult);
 
 
         /// Return Type: int
@@ -215,63 +214,63 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///number: unsigned short
         ///data: unsigned short*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getPrinterToneCurve")]
-        private static partial int chcusb_getPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getPrinterToneCurve")]
+        private static extern int chcusb_getPrinterToneCurve(ushort type, ushort number, ref ushort data, ref ushort rResult);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_blinkLED")]
-        private static partial int chcusb_blinkLED(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_blinkLED")]
+        private static extern int chcusb_blinkLED(ref ushort rResult);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_resetPrinter")]
-        private static partial int chcusb_resetPrinter(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_resetPrinter")]
+        private static extern int chcusb_resetPrinter(ref ushort rResult);
 
 
         /// Return Type: int
         ///rCount: unsigned short*
         ///rMaxCount: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_AttachThreadCount")]
-        private static partial int chcusb_AttachThreadCount(ref ushort rCount, ref ushort rMaxCount);
+        [DllImport(DLL, EntryPoint = "chcusb_AttachThreadCount")]
+        private static extern int chcusb_AttachThreadCount(ref ushort rCount, ref ushort rMaxCount);
 
 
         /// Return Type: int
         ///pageId: unsigned short
         ///rBuffer: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getPrintIDStatus")]
-        private static partial int chcusb_getPrintIDStatus(ushort pageId, byte* rBuffer, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getPrintIDStatus")]
+        private static extern int chcusb_getPrintIDStatus(ushort pageId, byte* rBuffer, ref ushort rResult);
 
 
         /// Return Type: int
         ///position: unsigned short
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setPrintStandby")]
-        private static partial int chcusb_setPrintStandby(ushort position, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setPrintStandby")]
+        private static extern int chcusb_setPrintStandby(ushort position, ref ushort rResult);
 
 
         /// Return Type: int
         ///mode: unsigned short
         ///times: unsigned short
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_testCardFeed")]
-        private static partial int chcusb_testCardFeed(ushort mode, ushort times, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_testCardFeed")]
+        private static extern int chcusb_testCardFeed(ushort mode, ushort times, ref ushort rResult);
 
 
         /// Return Type: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_exitCard")]
-        private static partial int chcusb_exitCard(ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_exitCard")]
+        private static extern int chcusb_exitCard(ref ushort rResult);
 
 
         /// Return Type: int
         ///rCardTID: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getCardRfidTID")]
-        private static partial int chcusb_getCardRfidTID(byte* rCardTid, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getCardRfidTID")]
+        private static extern int chcusb_getCardRfidTID(byte* rCardTid, ref ushort rResult);
 
 
         /// Return Type: int
@@ -280,45 +279,45 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///sendSize: unsigned int
         ///rRecvSize: unsigned int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_commCardRfidReader")]
-        private static partial int chcusb_commCardRfidReader(byte* sendData, byte* rRecvData, uint sendSize, ref uint rRecvSize, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_commCardRfidReader")]
+        private static extern int chcusb_commCardRfidReader(byte* sendData, byte* rRecvData, uint sendSize, ref uint rRecvSize, ref ushort rResult);
 
 
         /// Return Type: int
         ///data: unsigned byte*
         ///size: unsigned int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_updateCardRfidReader")]
-        private static partial int chcusb_updateCardRfidReader(byte* data, uint size, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_updateCardRfidReader")]
+        private static extern int chcusb_updateCardRfidReader(byte* data, uint size, ref ushort rResult);
 
 
         /// Return Type: int
         ///index: unsigned short
         ///rData: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getErrorLog")]
-        private static partial int chcusb_getErrorLog(ushort index, byte* rData, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getErrorLog")]
+        private static extern int chcusb_getErrorLog(ushort index, byte* rData, ref ushort rResult);
 
 
         /// Return Type: int
         ///rBuffer: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getErrorStatus")]
-        private static partial int chcusb_getErrorStatus(ushort* rBuffer);
+        [DllImport(DLL, EntryPoint = "chcusb_getErrorStatus")]
+        private static extern int chcusb_getErrorStatus(ushort* rBuffer);
 
 
         /// Return Type: int
         ///rData: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setCutList")]
-        private static partial int chcusb_setCutList(byte* rData, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setCutList")]
+        private static extern int chcusb_setCutList(byte* rData, ref ushort rResult);
 
 
         /// Return Type: int
         ///index: unsigned short
         ///rData: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setLaminatePattern")]
-        private static partial int chcusb_setLaminatePattern(ushort index, byte* rData, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setLaminatePattern")]
+        private static extern int chcusb_setLaminatePattern(ushort index, byte* rData, ref ushort rResult);
 
 
         /// Return Type: int
@@ -330,8 +329,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///a6: int
         ///a7: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_color_adjustment")]
-        private static partial int chcusb_color_adjustment([MarshalAs(UnmanagedType.LPStr)] string filename, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_color_adjustment")]
+        private static extern int chcusb_color_adjustment([MarshalAs(UnmanagedType.LPStr)] string filename, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult);
 
 
         /// Return Type: int
@@ -343,32 +342,32 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///a6: int
         ///a7: int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_color_adjustmentEx")]
-        private static partial int chcusb_color_adjustmentEx(int a1, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_color_adjustmentEx")]
+        private static extern int chcusb_color_adjustmentEx(int a1, int a2, int a3, short a4, short a5, int a6, int a7, ref ushort rResult);
 
 
         /// Return Type: int
         ///index: unsigned byte
         ///rData: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getEEPROM")]
-        private static partial int chcusb_getEEPROM(byte index, byte* rData, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getEEPROM")]
+        private static extern int chcusb_getEEPROM(byte index, byte* rData, ref ushort rResult);
 
 
         /// Return Type: int
         ///a1: unsigned byte
         ///a2: unsigned int
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_setParameter")]
-        private static partial int chcusb_setParameter(byte a1, uint a2, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_setParameter")]
+        private static extern int chcusb_setParameter(byte a1, uint a2, ref ushort rResult);
 
 
         /// Return Type: int
         ///a1: unsigned byte
         ///a2: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_getParameter")]
-        private static partial int chcusb_getParameter(byte a1, byte* a2, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_getParameter")]
+        private static extern int chcusb_getParameter(byte a1, byte* a2, ref ushort rResult);
 
 
         /// Return Type: int
@@ -377,15 +376,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         ///a3: int
         ///a4: unsigned byte*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_universal_command")]
-        private static partial int chcusb_universal_command(int a1, byte a2, int a3, byte* a4, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_universal_command")]
+        private static extern int chcusb_universal_command(int a1, byte a2, int a3, byte* a4, ref ushort rResult);
 
         /// Return Type: int
         ///data: unsigned byte*
         ///writeSize: unsigned int*
         ///rResult: unsigned short*
-        [LibraryImport(DLL, EntryPoint = "chcusb_writeIred")]
-        private static partial int chcusb_writeIred(byte* data, ref uint writeSize, ref ushort rResult);
+        [DllImport(DLL, EntryPoint = "chcusb_writeIred")]
+        private static extern int chcusb_writeIred(byte* data, ref uint writeSize, ref ushort rResult);
 
         public string GetDllFileName() {
             return DLL;
@@ -632,5 +631,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
     }
 }
-
-#endif

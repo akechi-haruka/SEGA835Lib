@@ -1,5 +1,5 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC;
 
@@ -26,9 +26,7 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
                 return null;
             }
 
-            return enumField.GetCustomAttribute<TAttribute>();
+            return enumField.GetCustomAttributes(true).Cast<TAttribute>().FirstOrDefault();
         }
     }
 }
-
-#endif

@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Drawing;
 using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
@@ -184,5 +183,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320 {
         }
     }
 }
-
-#endif

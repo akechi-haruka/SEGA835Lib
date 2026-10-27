@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Drawing;
 using Haruka.Arcade.SEGA835Lib.Debugging;
 using Haruka.Arcade.SEGA835Lib.Devices.RFID;
@@ -70,7 +69,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
         private DeviceStatus SendRfidCommand(byte cmd, byte subCmd, byte[] payloadIn, out byte[] payloadOut, out byte status) {
             CheckCallingThread();
-            ArgumentNullException.ThrowIfNull(payloadIn);
+            NetStandardBackCompatExtensions.ThrowIfNull(payloadIn, nameof(payloadIn));
 
             SProtFrame reqFrame = new SProtFrame(cmd, payloadIn);
             byte[] payload = reqFrame.Payload;
@@ -118,16 +117,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         public override unsafe DeviceStatus GetLoadedCardId(out byte[] cardid) {
             byte[] buf = new byte[CARD_ID_LEN];
             DeviceStatus ret = ExecuteOnPrintThread((ref ushort rc) => {
-                DeviceStatus ret;
+                DeviceStatus retInner;
                 fixed (byte* ptr = buf) {
-                    ret = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
+                    retInner = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
                 }
 
                 if (rc != RESULT_STATUS_READY && rc != RESULT_CARDRFID_READ_A) {
                     buf = null;
                 }
 
-                return ret;
+                return retInner;
             });
             cardid = buf;
             return SetLastError(ret);
@@ -156,18 +155,18 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
 
                 LOG.LogInformation("Reading Card ID from RFID board");
                 byte[] cardId = new byte[CARD_ID_LEN];
-                ret = PrintWaitFor(ref rc, (ref ushort rc) => {
+                ret = PrintWaitFor(ref rc, (ref ushort rcInner) => {
                     unsafe {
                         fixed (byte* ptr = cardId) {
-                            ret = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rc), rc);
+                            ret = SetLastErrorByReturnCode(Native.CHC_getCardRfidTID(ptr, ref rcInner), rcInner);
                         }
                     }
 
-                    if (rc == RESULT_CARDRFID_READ_A) {
-                        rc = RESULT_NOERROR;
+                    if (rcInner == RESULT_CARDRFID_READ_A) {
+                        rcInner = RESULT_NOERROR;
                     }
 
-                    return rc;
+                    return rcInner;
                 }, 20000);
                 if (ret != DeviceStatus.Ok) {
                     LOG.LogError("RFID Read failed");
@@ -204,7 +203,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
                     }
                 }
 
-                return SetLastError(SendRfidCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, Array.Empty<byte>(), out byte[] _, out byte status3), status3);
+                return SetLastError(SendRfidCommand(COMMAND_WRITE_START_STOP, SUBCOMMAND_WRITE_START_STOP, new byte[0], out byte[] _, out byte status3), status3);
             }
 
             LOG.LogWarning("No RFID data to write");
@@ -294,10 +293,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
             LOG.LogInformation("Get loaded card ID");
             // 310 only
             byte[] cardIdBuf = new byte[CARD_ID_LEN];
-            DeviceStatus ret = PrintWaitFor(ref rc, (ref ushort rc) => {
+            DeviceStatus ret = PrintWaitFor(ref rc, (ref ushort rcInner) => {
                 unsafe {
                     fixed (byte* ptr = cardIdBuf) {
-                        return Native.CHC_getCardRfidTID(ptr, ref rc);
+                        return Native.CHC_getCardRfidTID(ptr, ref rcInner);
                     }
                 }
             }, 20000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
@@ -314,5 +313,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310 {
         }
     }
 }
-
-#endif

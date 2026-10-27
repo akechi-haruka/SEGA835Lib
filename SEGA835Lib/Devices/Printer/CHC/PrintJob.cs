@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Threading;
@@ -57,9 +56,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
             private readonly bool overrideCardId;
 
             internal PrintJob(ChcSeriesCardPrinter printer, INativeTrampolineChc native, Bitmap imageFront, Bitmap imageBack, Bitmap infrared, Bitmap holo, byte[] rfidPayload, bool overrideCardId) {
-                ArgumentNullException.ThrowIfNull(printer);
-                ArgumentNullException.ThrowIfNull(native);
-                ArgumentNullException.ThrowIfNull(imageFront);
+                NetStandardBackCompatExtensions.ThrowIfNull(printer, nameof(printer));
+                NetStandardBackCompatExtensions.ThrowIfNull(native, nameof(native));
+                NetStandardBackCompatExtensions.ThrowIfNull(imageFront, nameof(imageFront));
                 this.printer = printer;
                 this.native = native;
                 this.imageFront = imageFront;
@@ -119,7 +118,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     ushort? initialPosition = printer.GetInitialCardPosition();
                     if (initialPosition != null) {
                         LOG.LogInformation("Set printer to standby");
-                        ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_setPrintStandby(initialPosition.Value, ref rc), 30000);
+                        ret = printer.PrintWaitFor(ref rc, (ref ushort rcInner) => native.CHC_setPrintStandby(initialPosition.Value, ref rcInner), 30000);
                         if (ret != DeviceStatus.Ok) {
                             return PrintExitThreadError(ret, rc);
                         }
@@ -254,7 +253,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                     LOG.LogInformation("Starting page");
                     ushort pageIdQ = 0;
-                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => native.CHC_startpage(printer.GetStartPageParameter(), ref pageIdQ, ref rc), 3000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
+                    ret = printer.PrintWaitFor(ref rc, (ref ushort rcInner) => native.CHC_startpage(printer.GetStartPageParameter(), ref pageIdQ, ref rcInner), 3000, RESULT_STATUS_BUSY, RESULT_STATUS_OPERATION);
                     pageId = pageIdQ;
                     if (ret != DeviceStatus.Ok) {
                         return PrintExitThreadError(ret, rc, pageId);
@@ -384,22 +383,22 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
                     }
 
                     LOG.LogInformation("Now printing...");
-                    ret = printer.PrintWaitFor(ref rc, (ref ushort rc) => {
-                        if (native.CHC_status(ref rc) == CHCUSB_RC_BUSY) {
-                            if (rc != RESULT_STATUS_BUSY && rc != RESULT_STATUS_OPERATION && rc != 1007) {
-                                LOG.LogError("Status check failed: " + rc);
-                                return rc;
+                    ret = printer.PrintWaitFor(ref rc, (ref ushort rcInner) => {
+                        if (native.CHC_status(ref rcInner) == CHCUSB_RC_BUSY) {
+                            if (rcInner != RESULT_STATUS_BUSY && rcInner != RESULT_STATUS_OPERATION && rcInner != 1007) {
+                                LOG.LogError("Status check failed: " + rcInner);
+                                return rcInner;
                             }
                         }
 
                         byte[] buf = new byte[8];
                         fixed (byte* ptr = buf) {
-                            ret = printer.SetLastErrorByReturnCode(native.CHC_getPrintIDStatus(0, ptr, ref rc), rc);
+                            ret = printer.SetLastErrorByReturnCode(native.CHC_getPrintIDStatus(0, ptr, ref rcInner), rcInner);
                         }
 
                         if (ret != DeviceStatus.Ok) {
-                            LOG.LogError("GetPrintIDStatus check failed: " + rc);
-                            return rc;
+                            LOG.LogError("GetPrintIDStatus check failed: " + rcInner);
+                            return rcInner;
                         }
 
                         int printStatus = buf[7] << 8 | buf[6];
@@ -448,9 +447,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 
                 return ret;
             }
-
         }
     }
 }
-
-#endif

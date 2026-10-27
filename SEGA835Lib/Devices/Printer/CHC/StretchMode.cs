@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
+﻿namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
     /// <summary>
     /// Enum how the size of an image sent to the printer will be modified.
     /// </summary>
@@ -20,5 +19,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         Center
     }
 }
-
-#endif

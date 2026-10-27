@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.Tags;
 using Haruka.Arcade.SEGA835Lib.Misc;
@@ -109,5 +108,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
         public uint Value { get; }
     }
 }
-
-#endif

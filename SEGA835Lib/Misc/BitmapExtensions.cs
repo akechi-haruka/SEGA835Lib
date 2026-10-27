@@ -1,12 +1,9 @@
 ﻿using System.Drawing;
 using System.Drawing.Drawing2D;
-#if NET8_0_OR_GREATER
-using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C310;
-#endif
+using Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC.C320;
 
 namespace Haruka.Arcade.SEGA835Lib.Misc {
     static class BitmapExtensions {
-#if NET8_0_OR_GREATER
         /// <summary>
         /// Converts this bitmap into a 24bpp row-major sequential byte array without padding bytes. This is the format that <see cref="Native.CHC_write(byte*, ref uint, ref ushort)" /> expects.
         /// </summary>
@@ -53,7 +50,6 @@ namespace Haruka.Arcade.SEGA835Lib.Misc {
 
             return data;
         }
-#endif
 
         /// <summary>
         /// Creates a stretched copy of this bitmap for the given size.

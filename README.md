@@ -75,9 +75,9 @@ Support Table:
 +----------------+--------------------------+-------------+--------------------------------------------+
 |    Version     | Compatible Unity Version |   Support   |                   Notes                    |
 +----------------+--------------------------+-------------+--------------------------------------------+
-| net35          | Before Unity 2018        | No Printing | or if netstandard.dll is not used in Unity |
-| net48          | N/A                      | No Printing | Usable without .NET core                   |
-| net6           | N/A                      | No Printing | Usable on Windows 7 if needed              |
+| net35          | Before Unity 2018        | Full        | or if netstandard.dll is not used in Unity |
+| net48          | N/A                      | Full        | Usable without .NET core                   |
+| net6           | N/A                      | Full        | Usable on Windows 7 if needed              |
 | netstandard2.0 | Unity 2018 and later     | Full        |                                            |
 | netstandard2.1 | Unity 2021.2 and later   | Full        |                                            |
 | net10          | N/A                      | Full        | Default version used by Sega835Cmd         |

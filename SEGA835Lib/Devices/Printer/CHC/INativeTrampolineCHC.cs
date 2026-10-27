@@ -1,5 +1,4 @@
-﻿#if NET8_0_OR_GREATER
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
@@ -74,5 +73,3 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Printer.CHC {
 #endif
     }
 }
-
-#endif
