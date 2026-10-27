@@ -168,13 +168,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.IO {
         /// <returns>true if the button is pressed, false if not.</returns>
         /// <exception cref="ArgumentException">if the given button is invalid</exception>
         public bool GetButton(int b) {
-            const int max = BUTTON_COUNT * sizeof(ushort) * 8;
+            const int bits = sizeof(ushort) * 8;
+            const int max = BUTTON_COUNT * bits;
             if (b < 0 || b > max) {
                 throw new ArgumentException("button must be within [0," + max + ")");
             }
 
-            int p = b / 8;
-            int o = b % 8;
+            int p = b / bits;
+            int o = b % bits;
             return (buttons[p] >> o & 1) != 0;
         }
     }
