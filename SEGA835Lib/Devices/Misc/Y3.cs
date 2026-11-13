@@ -445,7 +445,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <summary>
         /// Checks that on a printer camera board if the camera marker is detected. As a convenience, this method starts and stops the board if the board is not started. If it is, no change in status will be performed.
         /// </summary>
-        /// <param name="detected">Whether or not the marker was detected.</param>
+        /// <param name="detected">Whether the marker was detected.</param>
         /// <returns><see cref="DeviceStatus.Ok"/> if a read attempt was made, any other status on error</returns>
         public DeviceStatus DetectPrinterMarker(out bool detected) {
             LOG.LogInformation("Detecting printer marker");
@@ -821,7 +821,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
 
             /// <summary>
-            /// Converts this card data to a csv seperated by ";" (to work around decimal seperators)
+            /// Converts this card data to a csv separated by ";" (to work around decimal separators)
             /// where the fields are: <see cref="CardType"/>;<see cref="UnknownType"/>;<see cref="X"/>;<see cref="Y"/>;<see cref="Rotation"/>;<see cref="ID"/>;<see cref="DataCount"/>;<see cref="GetIvCode"/>;<see cref="GetTitleCode"/>;<see cref="Data0"/>;<see cref="Data1"/>;<see cref="Data2"/>;<see cref="Data3"/>;<see cref="Data4"/>;<see cref="Data5"/>
             /// </summary>
             /// <remarks>any <see cref="CardByteData"/>s at indexes greater than <see cref="DataCount"/> are not </remarks>
@@ -888,8 +888,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             Field,
 
             /// <summary>
-            /// The firmware on this Y3 board is for the printer camera inside the CHC-320 forn Sangokushi Taisen.
-            /// The Y3 board's serial code is 601-13160-01.
+            /// The firmware on this Y3 board is for the printer camera inside the CHC-320 from Sangokushi Taisen.
+            /// The Y3 board's serial code is 601-13160-02.
             /// </summary>
             Printer,
 
@@ -915,8 +915,8 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             Field,
 
             /// <summary>
-            /// The target code for this Y3 board is for the printer camera inside the CHC-320 forn Sangokushi Taisen.
-            /// The Y3 board's serial code is 601-13160-01.
+            /// The target code for this Y3 board is for the printer camera inside the CHC-320 from Sangokushi Taisen.
+            /// The Y3 board's serial code is 601-13160-02.
             /// </summary>
             Printer,
 
