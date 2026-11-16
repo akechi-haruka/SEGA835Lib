@@ -446,24 +446,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 Thread.Sleep(250);
             } while (lastStatus == Status.Calibration);
 
-            LOG.LogInformation("AutoParam calibration done: " + lastStatus);
+            LOG.LogInformation("AutoParam calibration done");
 
             if (lastStatus != 0) {
                 LOG.LogError("Calibration failed: " + lastStatus);
                 return ReportBoardError();
             }
 
-            ret = WaitBoardIdle();
-            if (ret != DeviceStatus.Ok) {
-                return ret;
-            }
-
-            ret = Reset();
-            lastStatus = GetStatus();
-            LOG.LogInformation("Reset: " + lastStatus);
-            if (ret != DeviceStatus.Ok) {
-                return ret;
-            }
+            Reset();
 
             ret = WaitBoardIdle();
             if (ret != DeviceStatus.Ok) {
@@ -481,11 +471,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
-        /// <summary>
-        /// Wait until the Y3 board returns to idle status.
-        /// </summary>
-        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, <see cref="DeviceStatus.ErrorTimeout"/> on timeout, or any other status on error.</returns>
-        public DeviceStatus WaitBoardIdle() {
+        private DeviceStatus WaitBoardIdle() {
             LOG.LogInformation("Waiting for idle status");
             Status lastStatus;
             DateTime start = DateTime.Now;
@@ -729,11 +715,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return ret;
             }
 
+            LOG.LogInformation("StartFirmwareUpdate: " + file + " (" + data.Length + ")");
+
             lock (threadLock) {
                 if (Native.API_FirmwareUpdate(handle, Native.TRANSFER_ADDRESS, (uint)data.Length, data) != 0) {
                     return ReportBoardError();
                 }
             }
+
+            LOG.LogInformation("Firmware data sent");
 
             Status lastStatus;
             do {
@@ -750,11 +740,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 }
 
                 if (lastStatus == Status.Idle) {
+                    LOG.LogInformation("Firmware update completed successfully");
                     FirmwareUpdate = new FirmwareUpdateStatus(DeviceStatus.Ok, lastStatus);
                     return DeviceStatus.Ok;
                 }
+
+                Thread.Sleep(100);
             } while (lastStatus < Status.ErrorBegin);
 
+            LOG.LogError("Firmware update failed");
             ret = ReportBoardError();
             FirmwareUpdate = new FirmwareUpdateStatus(ret, lastStatus);
             return ret;
@@ -867,7 +861,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// Parameter values for <see cref="GetParameter(ParameterNumber, out uint)"/>.
+        /// Parameter values for <see cref="GetParameter"/>.
         /// </summary>
         public enum ParameterNumber : uint {
             /// <summary>
@@ -1316,10 +1310,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// </summary>
             /// <param name="x">The x position of the cell.</param>
             /// <param name="y">The y position of the cell.</param>
+            /// <exception cref="ArgumentException">if x and/or y are outside the boundaries</exception>
             /// <returns>A value between 0.0 and 1.0 describing the absolute luminance of that cell.</returns>
             public float GetLuminance(int x, int y) {
                 if (x < 0 || y < 0 || x >= X || y >= Y) {
-                    return 0;
+                    throw new ArgumentException(x + "/" + y + " is an invalid cell position in " + X + "/" + Y);
                 }
 
                 return RawLuminance[x * X + y] / 255F;
