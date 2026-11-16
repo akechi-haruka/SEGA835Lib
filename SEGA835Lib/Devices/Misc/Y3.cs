@@ -471,7 +471,11 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return DeviceStatus.Ok;
         }
 
-        private DeviceStatus WaitBoardIdle() {
+        /// <summary>
+        /// Wait until the Y3 board returns to idle status.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, <see cref="DeviceStatus.ErrorTimeout"/> on timeout, or any other status on error.</returns>
+        public DeviceStatus WaitBoardIdle() {
             LOG.LogInformation("Waiting for idle status");
             Status lastStatus;
             DateTime start = DateTime.Now;
@@ -1302,11 +1306,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// </summary>
             /// <param name="x">The x position of the cell.</param>
             /// <param name="y">The y position of the cell.</param>
-            /// <exception cref="ArgumentException">if x and/or y are outside the boundaries</exception>
             /// <returns>A value between 0.0 and 1.0 describing the absolute luminance of that cell.</returns>
             public float GetLuminance(int x, int y) {
                 if (x < 0 || y < 0 || x >= X || y >= Y) {
-                    throw new ArgumentException(x + "/" + y + " is an invalid cell position in " + X + "/" + Y);
+                    return 0;
                 }
 
                 return RawLuminance[x * X + y] / 255F;
