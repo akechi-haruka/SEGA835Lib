@@ -853,7 +853,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// Parameter values for <see cref="GetParameter"/>.
+        /// Parameter values for <see cref="GetParameter(ParameterNumber, out uint)"/>.
         /// </summary>
         public enum ParameterNumber : uint {
             /// <summary>
