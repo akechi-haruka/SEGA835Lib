@@ -162,10 +162,15 @@ jobs:
           skip-decompress: true
       -   name: Unzip .nupkg artifact
           run: Expand-Archive ${{ env.NuGetDirectory }}\Sega835Lib.nupkg.zip ${{ env.NuGetDirectory }} -Force
+      -   name: NuGet login
+          uses: NuGet/login@v1
+          id: login
+          with:
+              user: ${{ secrets.NUGET_USER }}
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
-              dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+                dotnet nuget push $file --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
       - name: Add binaries to release
         uses: softprops/action-gh-release@v3
