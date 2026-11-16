@@ -696,6 +696,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         /// <exception cref="FileNotFoundException">if the file path is invalid.</exception>
         public DeviceStatus UpdateFirmware(String file) {
+            FirmwareUpdate = null;
             NetStandardBackCompatExtensions.ThrowIfNull(file, nameof(file));
 
             if (!File.Exists(file)) {
@@ -708,10 +709,15 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            Reset();
-
-            DeviceStatus ret = WaitBoardIdle();
+            DeviceStatus ret = Reset();
             if (ret != DeviceStatus.Ok) {
+                FirmwareUpdate = new FirmwareUpdateStatus(ret, GetStatus());
+                return ret;
+            }
+
+            ret = WaitBoardIdle();
+            if (ret != DeviceStatus.Ok) {
+                FirmwareUpdate = new FirmwareUpdateStatus(ret, GetStatus());
                 return ret;
             }
 
@@ -719,7 +725,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
 
             lock (threadLock) {
                 if (Native.API_FirmwareUpdate(handle, Native.TRANSFER_ADDRESS, (uint)data.Length, data) != 0) {
-                    return ReportBoardError();
+                    ret = ReportBoardError();
+                    FirmwareUpdate = new FirmwareUpdateStatus(ret, GetStatus());
+                    return ret;
                 }
             }
 
