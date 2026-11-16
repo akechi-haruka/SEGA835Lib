@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Haruka.Arcade.SEGA835Lib.Debugging;
+using Haruka.Arcade.SEGA835Lib.Misc;
 using Microsoft.Extensions.Logging;
 
 namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
     /// <summary>
     /// A Y3 601-13160(-01,-02) camera board, also known as playfield camera, printer camera or Y3CR BD SIE F720MM used in the Taisen series.
+    /// This API is thread-safe.
     /// TODO: get rid of the DLL dependency and analyze serial protocol
     /// </summary>
     [SuppressMessage("ReSharper", "UnassignedField.Global")]
@@ -51,8 +54,21 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// </summary>
         public String TargetCode { get; private set; }
 
+        /// <summary>
+        /// The last read luminance data. null unless <see cref="StartLuminanceReporting"/> was called.
+        /// </summary>
+        public LedCalibrationData LuminanceData { get; private set; }
+
+        /// <summary>
+        /// The current firmware update status. null unless <see cref="UpdateFirmware"/> was called.
+        /// </summary>
+        public FirmwareUpdateStatus FirmwareUpdate { get; private set; }
+
+        private readonly Object threadLock = new object();
         private IntPtr handle;
         private CardInfo[] cards;
+        private bool luminanceReportingStatus;
+        private Thread luminanceReportingThread;
 
         /// <summary>
         /// Creates a new Y3 board.
@@ -81,50 +97,64 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <see cref="DeviceStatus.ErrorNotConnected"/> if the board is not attached or if opening the device fails.<br />
         /// </returns>
         public override DeviceStatus Connect() {
-            try {
-                LOG.LogInformation("Y3 DLL version: " + Native.API_DLLVersion());
-            } catch (Exception ex) {
-                LOG.LogCritical(ex, "DLL initialization failed");
-                return DeviceStatus.ErrorLibrary;
+            lock (threadLock) {
+                try {
+                    LOG.LogInformation("Y3 DLL version: " + Native.API_DLLVersion());
+                } catch (Exception ex) {
+                    LOG.LogCritical(ex, "DLL initialization failed");
+                    return DeviceStatus.ErrorLibrary;
+                }
+
+                LOG.LogInformation("Opening Y3 board at port " + Port);
+
+                handle = Native.API_Connect("COM" + Port);
+                if (handle == IntPtr.Zero) {
+                    LOG.LogError("Could not open Y3 board at port " + Port);
+                    return SetLastError(DeviceStatus.ErrorNotConnected);
+                }
+
+                LOG.LogInformation("Connected");
+
+                UpdateBoardInfo();
+
+                if (IsCalibrationNeeded) {
+                    LOG.LogWarning("Calibration is required!");
+                }
+
+                return DeviceStatus.Ok;
             }
-
-            LOG.LogInformation("Opening Y3 board at port " + Port);
-
-            handle = Native.API_Connect("COM" + Port);
-            if (handle == IntPtr.Zero) {
-                LOG.LogError("Could not open Y3 board at port " + Port);
-                return SetLastError(DeviceStatus.ErrorNotConnected);
-            }
-
-            LOG.LogInformation("Connected");
-
-            UpdateBoardInfo();
-
-            if (IsCalibrationNeeded) {
-                LOG.LogWarning("Calibration is required!");
-            }
-
-            return DeviceStatus.Ok;
         }
 
         /// <inheritdoc/>
         public override DeviceStatus Disconnect() {
             if (handle != IntPtr.Zero) {
+                if (luminanceReportingThread != null) {
+                    StopLuminanceReporting();
+                }
+
                 LOG.LogInformation("Disconnecting on Port " + Port);
-                Native.API_Close(handle);
+                lock (threadLock) {
+                    Native.API_Close(handle);
+                }
+
                 LOG.LogInformation("Disconnected on Port " + Port);
             }
 
-            handle = IntPtr.Zero;
+            lock (threadLock) {
+                handle = IntPtr.Zero;
+            }
+
             cards = null;
 
             return DeviceStatus.Ok;
         }
 
         private void UpdateBoardInfo() {
-            FirmwareVersion = Native.API_GetFirmVersion(handle);
-            FirmwareName = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetFirmName(handle)));
-            TargetCode = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetTargetCode(handle)));
+            lock (threadLock) {
+                FirmwareVersion = Native.API_GetFirmVersion(handle);
+                FirmwareName = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetFirmName(handle)));
+                TargetCode = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetTargetCode(handle)));
+            }
         }
 
         /// <summary>
@@ -201,9 +231,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            if (Native.API_SetParameter(handle, Native.ParameterNumber.CodeMax, new uint[] { count }) != 0) {
-                return ReportBoardError();
-            }
+            SetParameter(ParameterNumber.CodeMax, count);
 
             cards = new CardInfo[count];
 
@@ -217,12 +245,69 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
         public DeviceStatus SetClbMode(bool set) {
             LOG.LogInformation("SetClbMode(" + set + ")");
+            return SetParameter(ParameterNumber.ClbMode, set ? 1U : 0U);
+        }
+
+        /// <summary>
+        /// Queries a board parameter.
+        /// </summary>
+        /// <param name="param">The parameter to query.</param>
+        /// <param name="value">The value that was retrieved for that parameter.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
+        public DeviceStatus GetParameter(ParameterNumber param, out uint value) {
+            uint[] values = new uint[1];
+            DeviceStatus ret = GetParameter(param, ref values);
+            value = values[0];
+            return ret;
+        }
+
+        private DeviceStatus GetParameter(ParameterNumber param, ref uint[] values) {
+            lock (threadLock) {
+                LOG.LogInformation("GetParameter(" + param + ")");
+                return Native.API_GetParameter(handle, param, values) == 0 ? DeviceStatus.Ok : ReportBoardError();
+            }
+        }
+
+        private DeviceStatus SetParameter(ParameterNumber param, uint value, bool verify = true) {
+            return SetParameter(param, new uint[] { value }, verify);
+        }
+
+        private DeviceStatus SetParameter(ParameterNumber param, uint[] values, bool verify = true) {
+            NetStandardBackCompatExtensions.ThrowIfNull(values, nameof(values));
+
+            if (values.Length == 0) {
+                throw new IndexOutOfRangeException("values array cannot be 0 size");
+            }
+
+            LOG.LogInformation("SetParameter(" + param + ", " + values[0] + ")");
+
             if (handle == IntPtr.Zero) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            if (Native.API_SetParameter(handle, Native.ParameterNumber.ClbMode, new uint[] { set ? 1U : 0U }) != 0) {
-                return ReportBoardError();
+            lock (threadLock) {
+                if (Native.API_SetParameter(handle, param, values) != 0) {
+                    return ReportBoardError();
+                }
+            }
+
+            if (verify) {
+                uint[] readback = new uint[values.Length];
+                for (int i = 0; i < values.Length; i++) {
+                    readback[i] = 0x123456U;
+                }
+
+                DeviceStatus ret = GetParameter(param, ref readback);
+                if (ret != DeviceStatus.Ok) {
+                    return ret;
+                }
+
+                for (int i = 0; i < values.Length; i++) {
+                    if (readback[i] != values[i]) {
+                        LOG.LogError("Failed to write parameter, expected " + values[i] + " at " + i + ", got " + readback[i]);
+                        return SetLastError(DeviceStatus.ErrorDevice);
+                    }
+                }
             }
 
             return DeviceStatus.Ok;
@@ -238,8 +323,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            if (Native.API_Start(handle) != 0) {
-                return ReportBoardError();
+            lock (threadLock) {
+                if (Native.API_Start(handle) != 0) {
+                    return ReportBoardError();
+                }
             }
 
             return DeviceStatus.Ok;
@@ -255,8 +342,10 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            if (Native.API_Stop(handle) != 0) {
-                return ReportBoardError();
+            lock (threadLock) {
+                if (Native.API_Stop(handle) != 0) {
+                    return ReportBoardError();
+                }
             }
 
             return DeviceStatus.Ok;
@@ -286,14 +375,16 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 return SetLastError(DeviceStatus.ErrorNotInitialized);
             }
 
-            int count = Native.API_GetCardInfo(handle, cards.Length, cards);
-            if (count < 0) {
-                return ReportBoardError();
-            }
+            lock (threadLock) {
+                int count = Native.API_GetCardInfo(handle, cards.Length, cards);
+                if (count < 0) {
+                    return ReportBoardError();
+                }
 
-            validCards = (uint)count;
-            cardData = cards;
-            procTime = Native.API_GetProcTime(handle);
+                validCards = (uint)count;
+                cardData = cards;
+                procTime = Native.API_GetProcTime(handle);
+            }
 
             return DeviceStatus.Ok;
         }
@@ -305,33 +396,83 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global")]
         public DeviceStatus Reset() {
             LOG.LogInformation("Reset");
-            if (Native.API_Reset(handle, false) != 0) {
-                return ReportBoardError();
+
+            lock (threadLock) {
+                if (Native.API_Reset(handle, false) != 0) {
+                    return ReportBoardError();
+                }
             }
 
             return DeviceStatus.Ok;
         }
 
         /// <summary>
-        /// Starts board calibration. This is normally never needed. This method blocks until completion. 
+        /// Starts board calibration for the playfield. This requires a calibration sheet placed on top of the playfield as written in the official game manuals. This is normally never needed. This method blocks until completion.
         /// </summary>
-        /// <param name="mode">The mode to use for calibration. Use <see cref="CalibrationType.AutoParam"/> for the playfield and <see cref="CalibrationType.Led"/> for the printer camera.</param>
         /// <returns>
         /// * <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called<br />
         /// * <see cref="DeviceStatus.ErrorTimeout"/> if the calibration was not finished in time or status changes didn't happen in time
         /// * <see cref="DeviceStatus.ErrorDevice"/> if settings were read back incorrectly or an unexpected <see cref="TargetCode"/> was encountered
         /// * or any other status on failure.
         /// </returns>
-        public DeviceStatus Calibrate(CalibrationType mode) {
-            LOG.LogInformation("Calibrate");
+        public DeviceStatus CalibratePlayfield() {
+            LOG.LogInformation("CalibratePlayfield");
             if (handle == IntPtr.Zero) {
                 return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
             Reset();
 
-            LOG.LogInformation("Waiting for idle status");
+            DeviceStatus ret = WaitBoardIdle();
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
 
+            SetClbMode(false);
+
+            LOG.LogInformation("Start AutoParam calibration");
+
+            lock (threadLock) {
+                if (Native.API_Calibration(handle, Native.CalibrationMode.PARAM) != 0) {
+                    return ReportBoardError();
+                }
+            }
+
+            LOG.LogInformation("Calibration start success (status=" + GetStatus() + ")");
+
+            Status lastStatus;
+            do {
+                lastStatus = GetStatus();
+                Thread.Sleep(250);
+            } while (lastStatus == Status.Calibration);
+
+            LOG.LogInformation("AutoParam calibration done");
+
+            if (lastStatus != 0) {
+                LOG.LogError("Calibration failed: " + lastStatus);
+                return ReportBoardError();
+            }
+
+            Reset();
+
+            ret = WaitBoardIdle();
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            UpdateBoardInfo();
+
+            if (GetTargetCodeType() != TargetCodeType.Field) {
+                LOG.LogError("Unexpected target code: " + GetTargetCodeType() + " / " + TargetCode);
+                return SetLastError(DeviceStatus.ErrorDevice);
+            }
+
+            LOG.LogInformation("Calibration complete");
+            return DeviceStatus.Ok;
+        }
+
+        private DeviceStatus WaitBoardIdle() {
+            LOG.LogInformation("Waiting for idle status");
             Status lastStatus;
             DateTime start = DateTime.Now;
             TimeSpan timeout = TimeSpan.FromSeconds(5);
@@ -343,103 +484,154 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             } while (lastStatus != Status.Idle && DateTime.Now - start < timeout);
 
             if (DateTime.Now - start >= timeout) {
-                LOG.LogError("Calibration timed out");
+                LOG.LogError("Waiting for idle status timed out");
                 return SetLastError(DeviceStatus.ErrorTimeout, (int)lastStatus);
             }
 
-            LOG.LogInformation("SetParameter");
-            uint targetValue = 0;
-            if (Native.API_SetParameter(handle, Native.ParameterNumber.ClbMode, new uint[] { targetValue }) != 0) {
-                return ReportBoardError();
+            return DeviceStatus.Ok;
+        }
+
+        /// <summary>
+        /// Sets the board into luminance reporting mode ("led calibration"). This will spawn a thread that will constantly write the current camera luminance values into <see cref="LuminanceData"/>. 
+        /// </summary>
+        /// <seealso cref="LedCalibrationData"/>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
+        public DeviceStatus StartLuminanceReporting() {
+            if (luminanceReportingStatus) {
+                return DeviceStatus.Busy;
             }
 
-            uint[] readback = { 0x123456 };
-            if (Native.API_GetParameter(handle, Native.ParameterNumber.ClbMode, readback) != 0) {
-                return ReportBoardError();
+            if (handle == IntPtr.Zero) {
+                return SetLastError(DeviceStatus.ErrorNotConnected);
             }
 
-            if (readback[0] != targetValue) {
-                LOG.LogError("Failed to write parameter, expected " + targetValue + ", got " + readback[0]);
-                return SetLastError(DeviceStatus.ErrorDevice);
-            }
+            luminanceReportingStatus = true;
 
-            if (mode == CalibrationType.AutoParam) {
-                LOG.LogInformation("Start AutoParam calibration");
+            LOG.LogInformation("Start Led calibration");
 
-                if (Native.API_Calibration(handle, Native.CalibrationMode.PARAM) != 0) {
-                    return ReportBoardError();
-                }
-
-                do {
-                    lastStatus = GetStatus();
-                    Thread.Sleep(250);
-                } while (lastStatus == Status.Calibration);
-
-                LOG.LogInformation("AutoParam calibration done");
-
-                if (lastStatus != 0) {
-                    LOG.LogError("Calibration failed: " + lastStatus);
-                    return ReportBoardError();
-                }
-
-                Reset();
-
-                UpdateBoardInfo();
-
-                if (GetTargetCodeType() != TargetCodeType.Field) {
-                    LOG.LogError("Unexpected target code: " + GetTargetCodeType() + " / " + TargetCode);
-                    return SetLastError(DeviceStatus.ErrorDevice);
-                }
-            } else if (mode == CalibrationType.Led) {
-                LOG.LogInformation("Start Led calibration");
-
+            lock (threadLock) {
                 if (Native.API_Calibration(handle, Native.CalibrationMode.LED_5x5) != 0) {
                     return ReportBoardError();
                 }
-
-                uint[] ledInfo = new uint[128];
-                do {
-                    lastStatus = GetStatus();
-                    if (lastStatus == Status.ErrorCalibrationLed) {
-                        Thread.Sleep(250);
-                    } else if (lastStatus >= Status.ErrorBegin) {
-                        return ReportBoardError();
-                    }
-
-                    if (Native.API_GetCalibrationResult(handle, Native.CalibrationMode.LED_5x5, ledInfo) == 0) {
-                        LOG.LogInformation("Calibrated at X:" + ledInfo[0] + ",Y:" + ledInfo[1]); // TODO: what do we do with this?
-                    }
-                } while (lastStatus != Status.Calibration);
-
-                if (Native.API_Calibration(handle, 0) != 0) {
-                    return ReportBoardError();
-                }
-
-                LOG.LogInformation("Calibration complete");
-            } else {
-                LOG.LogError("Invalid calibration mode: " + mode);
-                return SetLastError(DeviceStatus.ErrorIncompatible);
             }
 
-            LOG.LogInformation("Calibration complete");
+            luminanceReportingThread = new Thread(LuminanceReportingT) {
+                Name = "Y3 LED calibration thread"
+            };
+            luminanceReportingThread.Start();
+
+            return DeviceStatus.Ok;
+        }
+
+        private void LuminanceReportingT() {
+            try {
+                uint[] ledInfo = new uint[128];
+                Status lastStatus;
+                do {
+                    lastStatus = GetStatus();
+                    LedCalibrationData newData = new LedCalibrationData {
+                        BoardStatus = lastStatus,
+                        DeviceStatus = DeviceStatus.Ok,
+                        IsGood = lastStatus == Status.Calibration
+                    };
+
+                    if (lastStatus >= Status.ErrorBegin && lastStatus != Status.ErrorCalibrationLed) {
+                        newData.DeviceStatus = ReportBoardError();
+                    }
+
+                    lock (threadLock) {
+                        if (Native.API_GetCalibrationResult(handle, Native.CalibrationMode.LED_5x5, ledInfo) == 0) {
+                            newData.X = ledInfo[0];
+                            newData.Y = ledInfo[1];
+                            newData.RawLuminance = new byte[128];
+
+                            for (int i = 0, offset = 2; i < newData.X * newData.Y; i += 4, offset++) {
+                                newData.RawLuminance[i] = (byte)ledInfo[offset];
+                                newData.RawLuminance[i + 1] = (byte)(ledInfo[offset] >> 8);
+                                newData.RawLuminance[i + 2] = (byte)(ledInfo[offset] >> 16);
+                                newData.RawLuminance[i + 3] = (byte)(ledInfo[offset] >> 24);
+                            }
+                        }
+                    }
+
+                    LuminanceData = newData;
+
+                    Thread.Sleep(250);
+                } while ((lastStatus == Status.Calibration || lastStatus == Status.ErrorCalibrationLed) && luminanceReportingStatus);
+            } catch (Exception ex) {
+                LOG.LogError(ex, "Calibration thread exception");
+            } finally {
+                lock (threadLock) {
+                    Native.API_Calibration(handle, 0);
+                }
+
+                luminanceReportingStatus = false;
+                luminanceReportingThread = null;
+            }
+        }
+
+        /// <summary>
+        /// Stops luminance reporting and returns the board into idle state.
+        /// </summary>
+        /// <seealso cref="StartLuminanceReporting"/>
+        /// <returns>always <see cref="DeviceStatus.Ok"/>.</returns>
+        public DeviceStatus StopLuminanceReporting() {
+            LOG.LogInformation("Stop Led calibration");
+
+            if (luminanceReportingThread != null) {
+                luminanceReportingStatus = false;
+                LOG.LogInformation("Waiting for led calibration termination");
+                luminanceReportingThread?.Join();
+                luminanceReportingThread = null;
+            }
+
             return DeviceStatus.Ok;
         }
 
         [SuppressMessage("Performance", "CA1806")]
         private DeviceStatus ReportBoardError() {
-            uint ec = Native.API_GetLastError(handle);
-            byte[] str = new byte[512];
-            Native.API_GetErrorMessage(ec, str, str.Length);
-            LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.GetEncoding("shift_jis").GetString(str));
-            return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
+            lock (threadLock) {
+                uint ec = Native.API_GetLastError(handle);
+                byte[] str = new byte[512];
+                Native.API_GetErrorMessage(ec, str, str.Length);
+                LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.GetEncoding("shift_jis").GetString(str));
+                return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
+            }
         }
+
+        /// <summary>
+        /// Retrieves the last error code for this Y3 board.
+        /// </summary>
+        /// <seealso cref="GetBoardErrorMessage"/>
+        /// <returns>the last error code</returns>
+        public uint GetBoardErrorCode() {
+            lock (threadLock) {
+                return Native.API_GetLastError(handle);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the last error message for this Y3 board.
+        /// </summary>
+        /// <param name="ec">the error code to get the message from, or null for the last board error.</param>
+        /// <returns>a string describing the last error (in Japanese)</returns>
+        public string GetBoardErrorMessage(uint? ec = null) {
+            lock (threadLock) {
+                byte[] str = new byte[512];
+                Native.API_GetErrorMessage(ec ?? GetBoardErrorCode(), str, str.Length);
+                return Encoding.GetEncoding("shift_jis").GetString(str);
+            }
+        }
+
 
         /// <summary>
         /// Returns the current board status.
         /// </summary>
         /// <returns>the current board status</returns>
         public Status GetStatus() {
-            return (Status)Native.API_GetStatus(handle);
+            lock (threadLock) {
+                return (Status)Native.API_GetStatus(handle);
+            }
         }
 
         /// <summary>
@@ -497,9 +689,68 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return ret;
         }
 
+        /// <summary>
+        /// Updates the Y3 board's firmware. This will block until completion. Another thread can retrieve status information from <see cref="FirmwareUpdate"/>.
+        /// </summary>
+        /// <param name="file">The path to the firmware file to upload.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, or any other status on error.</returns>
+        /// <exception cref="FileNotFoundException">if the file path is invalid.</exception>
+        public DeviceStatus UpdateFirmware(String file) {
+            NetStandardBackCompatExtensions.ThrowIfNull(file, nameof(file));
+
+            if (!File.Exists(file)) {
+                throw new FileNotFoundException(file);
+            }
+
+            byte[] data = File.ReadAllBytes(file);
+
+            if (handle == IntPtr.Zero) {
+                return SetLastError(DeviceStatus.ErrorNotConnected);
+            }
+
+            Reset();
+
+            DeviceStatus ret = WaitBoardIdle();
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            lock (threadLock) {
+                if (Native.API_FirmwareUpdate(handle, Native.TRANSFER_ADDRESS, (uint)data.Length, data) != 0) {
+                    return ReportBoardError();
+                }
+            }
+
+            Status lastStatus;
+            do {
+                lastStatus = GetStatus();
+                if (lastStatus == Status.BlockingProcess) {
+                    lock (threadLock) {
+                        uint memStatus = Native.API_GetMemStatus(handle);
+                        uint memCounter = Native.API_GetMemCounter(handle);
+                        float progress = (data.Length - memCounter) / (float)data.Length;
+                        FirmwareUpdateStatus.FirmwareUpdateProcess fwProcess = (FirmwareUpdateStatus.FirmwareUpdateProcess)memStatus;
+
+                        FirmwareUpdate = new FirmwareUpdateStatus(fwProcess, lastStatus, progress);
+                    }
+                }
+
+                if (lastStatus == Status.Idle) {
+                    FirmwareUpdate = new FirmwareUpdateStatus(DeviceStatus.Ok, lastStatus);
+                    return DeviceStatus.Ok;
+                }
+            } while (lastStatus < Status.ErrorBegin);
+
+            ret = ReportBoardError();
+            FirmwareUpdate = new FirmwareUpdateStatus(ret, lastStatus);
+            return ret;
+        }
+
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         private static class Native {
+            internal const uint TRANSFER_ADDRESS = 4194304U;
+
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern float API_DLLVersion();
 
@@ -599,15 +850,41 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 VIEW_ETH_8 = 0b10011110,
                 VIEW_HALF_1 = 0b10011111
             }
+        }
 
-            public enum ParameterNumber : uint {
-                DebugMode = 0xE5,
-                CodeMax = 0xF1,
-                ProcMode = 0xF2,
-                CardMode = 0xF4,
-                CardType = 0xF5,
-                ClbMode = 0x100
-            }
+        /// <summary>
+        /// Parameter values for <see cref="GetParameter"/>.
+        /// </summary>
+        public enum ParameterNumber : uint {
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            DebugMode = 0xE5,
+
+            /// <summary>
+            /// Maximum number of cards to read.
+            /// </summary>
+            CodeMax = 0xF1,
+
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            ProcMode = 0xF2,
+
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            CardMode = 0xF4,
+
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            CardType = 0xF5,
+
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            ClbMode = 0x100
         }
 
         /// <summary>
@@ -927,21 +1204,6 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         }
 
         /// <summary>
-        /// The calibration that should be performed.
-        /// </summary>
-        public enum CalibrationType {
-            /// <summary>
-            /// Unknown. Used for the playfield firmware.
-            /// </summary>
-            AutoParam,
-
-            /// <summary>
-            /// Unknown. Used for the printer camera.
-            /// </summary>
-            Led
-        }
-
-        /// <summary>
         /// Status codes returned by <see cref="GetStatus"/>. Most of these are unknown.
         /// </summary>
         public enum Status : uint {
@@ -999,6 +1261,113 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             ErrorCheckBoard = 0xF00000D0,
             ErrorTimeout = 0xF0000100
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+        }
+
+        /// <summary>
+        /// Object holding data from <see cref="StartLuminanceReporting"/>.
+        /// </summary>
+        public class LedCalibrationData {
+            /// <summary>
+            /// If the current luminance values are good. This is reported by the board itself.
+            /// </summary>
+            public bool IsGood { get; internal set; }
+
+            /// <summary>
+            /// The current board status.
+            /// </summary>
+            public Status BoardStatus { get; internal set; }
+
+            /// <summary>
+            /// The status of the last API call.
+            /// </summary>
+            public DeviceStatus DeviceStatus { get; internal set; }
+
+            /// <summary>
+            /// Number of columns in the luminance grid.
+            /// </summary>
+            public uint X { get; internal set; }
+
+            /// <summary>
+            /// Number of rows in the luminance grid.
+            /// </summary>
+            public uint Y { get; internal set; }
+
+            /// <summary>
+            /// Raw luminance values.
+            /// </summary>
+            public byte[] RawLuminance { get; internal set; }
+
+            /// <summary>
+            /// Retrieves an absolute percentage for the luminance in the given cell.
+            /// </summary>
+            /// <param name="x">The x position of the cell.</param>
+            /// <param name="y">The y position of the cell.</param>
+            /// <exception cref="ArgumentException">if x and/or y are outside the boundaries</exception>
+            /// <returns>A value between 0.0 and 1.0 describing the absolute luminance of that cell.</returns>
+            public float GetLuminance(int x, int y) {
+                if (x < 0 || y < 0 || x >= X || y >= Y) {
+                    throw new ArgumentException(x + "/" + y + " is an invalid cell position in " + X + "/" + Y);
+                }
+
+                return RawLuminance[x * X + y] / 255F;
+            }
+        }
+
+        /// <summary>
+        /// Class holding status information for a firmware update triggered with <see cref="UpdateFirmware"/>.
+        /// </summary>
+        public class FirmwareUpdateStatus {
+            /// <summary>
+            /// The current process in the firmware update.
+            /// </summary>
+            public FirmwareUpdateProcess Process { get; }
+
+            /// <summary>
+            /// The current board status.
+            /// </summary>
+            public Status Status { get; }
+
+            /// <summary>
+            /// The result of the last API call.
+            /// </summary>
+            public DeviceStatus DeviceStatus { get; }
+
+            /// <summary>
+            /// The progress between 0.0 and 1.0 of the current process.
+            /// </summary>
+            public float Progress { get; }
+
+            internal FirmwareUpdateStatus(DeviceStatus deviceStatus, Status status) {
+                DeviceStatus = deviceStatus;
+                Status = status;
+            }
+
+            internal FirmwareUpdateStatus(FirmwareUpdateProcess process, Status status, float progress) {
+                Process = process;
+                Status = status;
+                Progress = progress;
+                DeviceStatus = DeviceStatus.Busy;
+            }
+
+            /// <summary>
+            /// Firmware update steps.
+            /// </summary>
+            public enum FirmwareUpdateProcess {
+                /// <summary>
+                /// Writing firmware.
+                /// </summary>
+                Write = 112,
+
+                /// <summary>
+                /// Sending firmware.
+                /// </summary>
+                Send = 113,
+
+                /// <summary>
+                /// Verifying firmware.
+                /// </summary>
+                Verify = 114
+            }
         }
     }
 }
