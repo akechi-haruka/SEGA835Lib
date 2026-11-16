@@ -446,14 +446,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 Thread.Sleep(250);
             } while (lastStatus == Status.Calibration);
 
-            LOG.LogInformation("AutoParam calibration done");
+            LOG.LogInformation("AutoParam calibration done: " + lastStatus);
 
             if (lastStatus != 0) {
                 LOG.LogError("Calibration failed: " + lastStatus);
                 return ReportBoardError();
             }
 
-            Reset();
+            ret = WaitBoardIdle();
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
+
+            ret = Reset();
+            lastStatus = GetStatus();
+            LOG.LogInformation("Reset: " + lastStatus);
+            if (ret != DeviceStatus.Ok) {
+                return ret;
+            }
 
             ret = WaitBoardIdle();
             if (ret != DeviceStatus.Ok) {
