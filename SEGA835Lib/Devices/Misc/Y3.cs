@@ -1370,14 +1370,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             /// </summary>
             public enum FirmwareUpdateProcess {
                 /// <summary>
-                /// Writing firmware.
-                /// </summary>
-                Write = 112,
-
-                /// <summary>
                 /// Sending firmware.
                 /// </summary>
-                Send = 113,
+                Send = 112,
+                
+                /// <summary>
+                /// Writing firmware.
+                /// </summary>
+                Write = 113,
 
                 /// <summary>
                 /// Verifying firmware.
