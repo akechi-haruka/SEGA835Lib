@@ -55,6 +55,24 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         public String TargetCode { get; private set; }
 
         /// <summary>
+        /// Unknown.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
+        public uint CardDataSize { get; private set; }
+
+        /// <summary>
+        /// Unknown.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
+        public uint CardInfoCharSize { get; private set; }
+
+        /// <summary>
+        /// The firmware build date as an integer, in the format YYYYMMDD.
+        /// This is only set after <see cref="Connect"/> succeeded.
+        /// </summary>
+        public uint FirmwareDate { get; private set; }
+
+        /// <summary>
         /// The last read luminance data. null unless <see cref="StartLuminanceReporting"/> was called.
         /// </summary>
         public LedCalibrationData LuminanceData { get; private set; }
@@ -154,6 +172,9 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 FirmwareVersion = Native.API_GetFirmVersion(handle);
                 FirmwareName = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetFirmName(handle)));
                 TargetCode = Encoding.ASCII.GetString(BitConverter.GetBytes(Native.API_GetTargetCode(handle)));
+                CardDataSize = Native.API_GetCardDataSize(handle);
+                CardInfoCharSize = Native.API_GetCardInfoCharSize();
+                FirmwareDate = Native.API_GetFirmDate(handle);
             }
         }
 
@@ -268,7 +289,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             }
         }
 
-        private DeviceStatus SetParameter(ParameterNumber param, uint value, bool verify = true) {
+        /// <summary>
+        /// Sets a board parameter.
+        /// </summary>
+        /// <param name="param">The parameter to sets.</param>
+        /// <param name="value">The value to set.</param>
+        /// <param name="verify">Verify if the parameter was written correctly.</param>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success, <see cref="DeviceStatus.ErrorNotConnected"/> if <see cref="Connect"/> was not called, <see cref="DeviceStatus.ErrorDevice"/> if verification fails, or any other status on error.</returns>
+        public DeviceStatus SetParameter(ParameterNumber param, uint value, bool verify = true) {
             return SetParameter(param, new uint[] { value }, verify);
         }
 
@@ -594,7 +622,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 uint ec = Native.API_GetLastError(handle);
                 byte[] str = new byte[512];
                 Native.API_GetErrorMessage(ec, str, str.Length);
-                LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.GetEncoding("shift_jis").GetString(str));
+                LOG.LogError("Y3 board reported error (status=" + Native.API_GetStatus(handle) + "): " + ec + " / " + Encoding.GetEncoding("shift_jis").GetString(str) + " / " + GetErrorText(ec));
                 return SetLastError(DeviceStatus.ErrorDevice, (int)ec);
             }
         }
@@ -617,9 +645,14 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
         /// <returns>a string describing the last error (in Japanese)</returns>
         public string GetBoardErrorMessage(uint? ec = null) {
             lock (threadLock) {
-                byte[] str = new byte[512];
-                Native.API_GetErrorMessage(ec ?? GetBoardErrorCode(), str, str.Length);
-                return Encoding.GetEncoding("shift_jis").GetString(str);
+                uint error = ec ?? GetBoardErrorCode();
+                if (error >= 0x10000) {
+                    return GetErrorText(error);
+                } else {
+                    byte[] str = new byte[512];
+                    Native.API_GetErrorMessage(error, str, str.Length);
+                    return Encoding.GetEncoding("shift_jis").GetString(str);
+                }
             }
         }
 
@@ -762,6 +795,50 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             return ret;
         }
 
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        /// <returns><see cref="DeviceStatus.Ok"/> on success or any other status on error.</returns>
+        public DeviceStatus TestReset() {
+            lock (threadLock) {
+                if (Native.API_TestReset(handle) != 0) {
+                    return ReportBoardError();
+                }
+            }
+
+            return DeviceStatus.Ok;
+        }
+
+        /// <summary>
+        /// Returns an English version of the Japanese error message from <see cref="GetBoardErrorMessage"/>
+        /// </summary>
+        /// <param name="error">The error code to translate</param>
+        /// <returns>the error message for that code</returns>
+        public static String GetErrorText(uint error) {
+            switch (error - 0x10000) {
+                case 0: return "Invalid handle";
+                case 1: return "An error has occurred whilst acquiring the input image from the card reader";
+                case 2: return "An invalid command has been specified";
+                case 3: return "An invalid argument has been specified";
+                case 4: return "A communication timeout error has occurred";
+                case 5: return "The command was ignored";
+                case 6: return "A command checksum error has occurred";
+                case 7: return "A card reader receive timeout has occurred";
+                case 8: return "An invalid mode has been specified";
+                case 9: return "A command that cannot be executed during the detection process has been specified";
+                case 10: return "A processing error has occurred with the card reader";
+                case 11: return "Failed to initialise the camera";
+                case 12: return "A timeout occurred during exclusive control";
+                case 13: return "A reply timeout has occurred";
+                case 14: return "The maximum number of commands has been exceeded";
+                case 15: return "The processing status has not changed";
+                case 16: return "A data receive timeout has occurred";
+                case 17: return "A fan operation error has occurred with the card reader";
+                case 18: return "An error has occurred regarding the size of the card data received";
+                default: return "Unknown error code: " + error;
+            }
+        }
+
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         private static class Native {
@@ -813,7 +890,13 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             public static extern int API_GetCardInfo(IntPtr hDevice, int numCards, [Out] CardInfo[] pCardInfo);
 
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-            public static extern int API_GetCardInfoCharSize();
+            public static extern uint API_GetCardInfoCharSize();
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_SetDevice(IntPtr hDevice, uint unk);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_SetCommand(IntPtr hDevice, uint unk1, uint unk2, IntPtr unk3);
 
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern int API_FirmwareUpdate(IntPtr hDevice, uint address, uint size, byte[] buffer);
@@ -834,10 +917,49 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
             public static extern uint API_GetMemCounter(IntPtr hDevice);
 
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_SetSysControl(IntPtr hDevice, uint uParam, uint[] pParam);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_GetSysControl(IntPtr hDevice, uint uParam, uint[] pParam);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern int API_SetParameter(IntPtr hDevice, ParameterNumber uParam, uint[] pParam);
 
             [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
             public static extern int API_GetParameter(IntPtr hDevice, ParameterNumber uParam, uint[] pParam);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_TestReset(IntPtr hDevice);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_DebugReset(IntPtr hDevice, uint unk);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint API_GetBoardType(IntPtr hDevice);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint API_GetCardDataSize(IntPtr hDevice);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint API_GetFirmDate(IntPtr hDevice);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_SystemCommand(IntPtr hDevice, SystemCommandType command, byte unk1);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_CalcCheckSum(IntPtr hDevice, uint unk1, uint unk2);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint API_GetCheckSumResult(IntPtr hDevice);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_BlockRead(IntPtr hDevice, BlockReadUnknown unk1, uint unk2, uint unk3);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_GetBlockReadResult(IntPtr hDevice, uint[] unk2);
+
+            [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
+            public static extern int API_BlockWrite(IntPtr hDevice, BlockWriteUnknown unk1, uint unk2, uint unk3, uint size, uint[] data);
 
             private const string DLL_NAME = "Y3CodeReaderNE";
 
@@ -1373,7 +1495,7 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 /// Sending firmware.
                 /// </summary>
                 Send = 112,
-                
+
                 /// <summary>
                 /// Writing firmware.
                 /// </summary>
@@ -1384,6 +1506,56 @@ namespace Haruka.Arcade.SEGA835Lib.Devices.Misc {
                 /// </summary>
                 Verify = 114
             }
+        }
+        
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public enum SystemCommandType {
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown1 = 7,
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown2 = 12,
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown3 = 85
+        }
+        
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public enum BlockReadUnknown {
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown1 = 193,
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown2 = 195,
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown3 = 197
+        }
+        
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public enum BlockWriteUnknown {
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown1 = 210,
+            /// <summary>
+            /// Unknown.
+            /// </summary>
+            Unknown2 = 212
         }
     }
 }
